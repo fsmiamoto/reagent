@@ -2,7 +2,13 @@
 
 **Give your AI coding agents targeted feedback, just like you would with human engineers.**
 
-When working with AI coding assistants like Claude Code, you often need to provide detailed, line-specific feedback on their generated code. But pointing to specific lines through chat is clunky, and setting up GitHub PRs for local work-in-progress is overkill.
+In the age of Agentic coding assistantes, ensuring their output code is high quality is essencial for long term
+healthy codebases.
+
+For that, you often need to provide detailed, line-specific feedback on their generated code, just like you would do with
+a human teammate's code.
+
+But pointing to specific lines through chat is clunky, and setting up GitHub PRs for local work-in-progress is overkill.
 
 Reagent is a lightweight MCP server that opens a familiar, GitHub-style review interface right in your browser—no external tools, no overhead. Just seamless code reviews for the code already on your machine.
 
@@ -12,7 +18,8 @@ Reagent is a lightweight MCP server that opens a familiar, GitHub-style review i
 
 - **Communicate naturally**: Line-level comments are clearer than "change line 42 in app.ts"
 - **Stay in flow**: Review AI-generated code without context-switching to external platforms
-- **Work locally**: Everything runs on your machine—no GitHub setup required for WIP code
+- **Work locally**: Everything runs on your machine
+- **Token efficient**: Give your agent as much feedback as possible at once, reducing token waste
 - **Git-native**: Works with uncommitted changes, commits, and branches using tools you already know
 
 ## Features
@@ -34,7 +41,7 @@ npm run build
 
 ### As an MCP Server
 
-Add to your Claude Code MCP configuration:
+Add to your favorite Agentic coding tool to it's MCP configuration:
 
 ```json
 {
@@ -48,10 +55,6 @@ Add to your Claude Code MCP configuration:
 ```
 
 ### Using the Tool
-
-Reagent supports two input modes:
-
-#### 1. Git Mode (Recommended)
 
 > Tip: Calling `ask_for_review` with no arguments will automatically review all uncommitted changes
 > in your current git repository.
@@ -93,8 +96,6 @@ Review every file inside a directory (recursively):
   "source": "uncommitted"
 }
 ```
-
-See [GIT_USAGE.md](./GIT_USAGE.md) for comprehensive git integration documentation.
 
 ### Return Value
 
