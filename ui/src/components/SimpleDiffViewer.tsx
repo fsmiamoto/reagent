@@ -43,11 +43,11 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-[#0d1117]">
-      <div className="p-4 border-b border-[#30363d] bg-[#161b22] sticky top-0 z-10">
-        <h3 className="text-sm font-semibold text-[#c9d1d9]">{file.path}</h3>
+    <div className="flex-1 overflow-auto bg-[var(--bg-base)]">
+      <div className="p-4 border-b border-[var(--border-default)] bg-[var(--bg-surface)] sticky top-0 z-10">
+        <h3 className="text-sm font-semibold text-[var(--text-primary)]">{file.path}</h3>
         {file.language && (
-          <span className="text-xs text-[#8b949e] mt-1">Language: {file.language}</span>
+          <span className="text-xs text-[var(--text-muted)] mt-1">Language: {file.language}</span>
         )}
       </div>
 
@@ -60,10 +60,10 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
 
           return (
             <div key={lineNumber}>
-              <div className="flex hover:bg-[#161b22] group">
+              <div className="flex hover:bg-[var(--bg-muted)] group">
                 {/* Line number + comment button */}
-                <div className="flex items-center bg-[#0d1117] sticky left-0">
-                  <span className="w-12 text-right pr-2 text-[#6e7681] select-none flex-shrink-0">
+                <div className="flex items-center bg-[var(--bg-base)] sticky left-0">
+                  <span className="w-12 text-right pr-2 text-[var(--text-subtle)] select-none flex-shrink-0">
                     {lineNumber}
                   </span>
                   <button
@@ -73,10 +73,10 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
                       transition-colors flex-shrink-0
                       ${
                         hasComment
-                          ? 'text-[#58a6ff] opacity-100'
-                          : 'text-[#8b949e] opacity-0 group-hover:opacity-100'
+                          ? 'text-[var(--text-accent)] opacity-100'
+                          : 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100'
                       }
-                      ${isCommenting ? 'text-[#1f6feb]' : ''}
+                      ${isCommenting ? 'text-[var(--accent)]' : ''}
                     `}
                     title={hasComment ? 'View comments' : 'Add comment'}
                   >
@@ -86,22 +86,22 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
 
                 {/* Code line */}
                 <div className="flex-1 px-4 py-0.5 overflow-x-auto">
-                  <code className="text-[#c9d1d9] whitespace-pre">{line || ' '}</code>
+                  <code className="text-[var(--text-primary)] whitespace-pre">{line || ' '}</code>
                 </div>
               </div>
 
               {/* Comments */}
               {lineComments.length > 0 && (
-                <div className="bg-[#21262d] border-l-4 border-[#58a6ff] ml-20 mr-4 my-2 p-3">
+                <div className="bg-[var(--bg-comment)] border-l-4 border-[var(--comment-border)] ml-20 mr-4 my-2 p-3">
                   {lineComments.map((comment) => (
                     <div
                       key={comment.id}
                       className="mb-2 last:mb-0 flex items-start justify-between"
                     >
-                      <p className="text-sm text-[#c9d1d9] flex-1">{comment.text}</p>
+                      <p className="text-sm text-[var(--text-primary)] flex-1">{comment.text}</p>
                       <button
                         onClick={() => onDeleteComment(comment.id)}
-                        className="ml-3 text-xs text-[#f85149] hover:text-[#ff7b72] flex-shrink-0"
+                        className="ml-3 text-xs text-[var(--text-danger)] hover:text-[var(--danger-hover)] flex-shrink-0"
                       >
                         Delete
                       </button>
@@ -112,12 +112,12 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
 
               {/* Comment input */}
               {isCommenting && (
-                <div className="bg-[#161b22] border-l-4 border-[#1f6feb] ml-20 mr-4 my-2 p-3">
+                <div className="bg-[var(--bg-comment-input)] border-l-4 border-[var(--accent)] ml-20 mr-4 my-2 p-3">
                   <textarea
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder="Add your comment..."
-                    className="w-full bg-[#0d1117] text-[#c9d1d9] border border-[#30363d] rounded p-2 text-sm resize-none focus:border-[#1f6feb] focus:outline-none"
+                    className="w-full bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-default)] rounded p-2 text-sm resize-none focus:border-[var(--accent)] focus:outline-none"
                     rows={3}
                     autoFocus
                   />
@@ -125,7 +125,7 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
                     <button
                       onClick={handleSubmitComment}
                       disabled={!commentText.trim()}
-                      className="px-3 py-1.5 bg-[#238636] text-white rounded text-sm font-medium hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1.5 bg-[var(--success)] text-white rounded text-sm font-medium hover:bg-[var(--success-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Add comment
                     </button>
@@ -134,7 +134,7 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
                         setCommentingLine(null);
                         setCommentText('');
                       }}
-                      className="px-3 py-1.5 bg-[#21262d] text-[#c9d1d9] rounded text-sm font-medium hover:bg-[#30363d] transition-colors"
+                      className="px-3 py-1.5 bg-[var(--bg-muted)] text-[var(--text-primary)] rounded text-sm font-medium hover:bg-[var(--bg-hover)] transition-colors"
                     >
                       Cancel
                     </button>

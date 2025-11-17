@@ -21,10 +21,10 @@ export const FileTree: FC<FileTreeProps> = ({
   }, {} as Record<string, number>);
 
   return (
-    <div className="w-64 bg-[#161b22] border-r border-[#30363d] flex flex-col">
-      <div className="p-4 border-b border-[#30363d]">
-        <h2 className="text-sm font-semibold text-[#c9d1d9]">Files Changed</h2>
-        <p className="text-xs text-[#8b949e] mt-1">{files.length} files</p>
+    <div className="w-64 bg-[var(--bg-surface)] border-r border-[var(--border-default)] flex flex-col">
+      <div className="p-4 border-b border-[var(--border-default)]">
+        <h2 className="text-sm font-semibold text-[var(--text-primary)]">Files Changed</h2>
+        <p className="text-xs text-[var(--text-muted)] mt-1">{files.length} files</p>
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -41,8 +41,8 @@ export const FileTree: FC<FileTreeProps> = ({
                 flex items-center justify-between
                 ${
                   isSelected
-                    ? 'bg-[#1f6feb] text-white'
-                    : 'text-[#c9d1d9] hover:bg-[#21262d]'
+                    ? 'bg-[var(--accent)] text-[var(--text-inverse)]'
+                    : 'text-[var(--text-primary)] hover:bg-[var(--bg-muted)]'
                 }
               `}
             >
@@ -51,7 +51,11 @@ export const FileTree: FC<FileTreeProps> = ({
                 <span
                   className={`
                     ml-2 px-1.5 py-0.5 rounded text-xs font-medium
-                    ${isSelected ? 'bg-white/20' : 'bg-[#21262d] text-[#58a6ff]'}
+                    ${
+                      isSelected
+                        ? 'bg-white/25 text-[var(--text-inverse)]'
+                        : 'bg-[var(--bg-pill)] text-[var(--text-accent)]'
+                    }
                   `}
                 >
                   {commentCount}

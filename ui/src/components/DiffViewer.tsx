@@ -25,9 +25,9 @@ interface SplitRow {
 }
 
 const SIDE_BG: Record<Side, string> = {
-  context: 'bg-[#0d1117]',
-  add: 'bg-[#052011]',
-  remove: 'bg-[#200b0d]',
+  context: 'bg-[var(--diff-context)]',
+  add: 'bg-[var(--diff-add)]',
+  remove: 'bg-[var(--diff-remove)]',
 };
 
 const getLines = (value: string): string[] => {
@@ -161,7 +161,7 @@ export const DiffViewer: FC<DiffViewerProps> = ({
   };
 
   const getBackground = (cell?: SideCell) => {
-    if (!cell) return 'bg-[#0d1117]';
+    if (!cell) return 'bg-[var(--diff-context)]';
     return SIDE_BG[cell.type];
   };
 
@@ -173,30 +173,30 @@ export const DiffViewer: FC<DiffViewerProps> = ({
   };
 
   const getIndicatorColor = (cell?: SideCell) => {
-    if (!cell) return 'text-[#6e7681]';
-    if (cell.type === 'add') return 'text-[#3fb950]';
-    if (cell.type === 'remove') return 'text-[#f85149]';
-    return 'text-[#6e7681]';
+    if (!cell) return 'text-[var(--text-subtle)]';
+    if (cell.type === 'add') return 'text-[var(--indicator-add)]';
+    if (cell.type === 'remove') return 'text-[var(--indicator-remove)]';
+    return 'text-[var(--text-subtle)]';
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-[#0d1117]">
-      <div className="p-4 border-b border-[#30363d] bg-[#161b22] sticky top-0 z-10">
-        <h3 className="text-sm font-semibold text-[#c9d1d9]">{file.path}</h3>
+    <div className="flex-1 overflow-auto bg-[var(--bg-base)]">
+      <div className="p-4 border-b border-[var(--border-default)] bg-[var(--bg-surface)] sticky top-0 z-10">
+        <h3 className="text-sm font-semibold text-[var(--text-primary)]">{file.path}</h3>
         {file.language && (
-          <span className="text-xs text-[#8b949e] mt-1">Language: {file.language}</span>
+          <span className="text-xs text-[var(--text-muted)] mt-1">Language: {file.language}</span>
         )}
       </div>
 
       <div className="font-mono text-sm">
-        <div className="flex border-b border-[#30363d] bg-[#161b22] text-xs text-[#8b949e]">
+        <div className="flex border-b border-[var(--border-default)] bg-[var(--bg-surface)] text-xs text-[var(--text-muted)]">
           <div className="w-1/2 flex items-center px-4 py-2 gap-3">
             <span className="uppercase tracking-wide">Base</span>
-            <span className="text-[#6e7681]">Original</span>
+            <span className="text-[var(--text-subtle)]">Original</span>
           </div>
-          <div className="w-1/2 flex items-center px-4 py-2 gap-3 border-l border-[#30363d]">
+          <div className="w-1/2 flex items-center px-4 py-2 gap-3 border-l border-[var(--border-default)]">
             <span className="uppercase tracking-wide">Head</span>
-            <span className="text-[#6e7681]">Changes</span>
+            <span className="text-[var(--text-subtle)]">Changes</span>
           </div>
         </div>
 
@@ -211,31 +211,31 @@ export const DiffViewer: FC<DiffViewerProps> = ({
           const hasComment = lineComments.length > 0;
 
           return (
-            <div key={row.key} className="border-b border-[#21262d]">
+            <div key={row.key} className="border-b border-[var(--border-default)]">
               <div className="flex">
-                <div className={`w-1/2 flex border-r border-[#21262d] ${getBackground(row.left)}`}>
-                  <div className="w-12 text-right pr-2 text-xs text-[#6e7681] select-none py-1.5">
+                <div className={`w-1/2 flex border-r border-[var(--border-default)] ${getBackground(row.left)}`}>
+                  <div className="w-12 text-right pr-2 text-xs text-[var(--text-subtle)] select-none py-1.5">
                     {row.left?.lineNumber ?? ''}
                   </div>
                   <div className="w-4 text-center font-semibold pt-1.5">
                     <span className={getIndicatorColor(row.left)}>{getIndicator(row.left)}</span>
                   </div>
                   <div className="flex-1 px-3 py-1.5">
-                    <code className="text-[#c9d1d9] whitespace-pre-wrap break-words">
+                    <code className="text-[var(--text-primary)] whitespace-pre-wrap break-words">
                       {row.left?.text ?? ' '}
                     </code>
                   </div>
                 </div>
 
                 <div className={`w-1/2 flex ${getBackground(row.right)}`}>
-                  <div className="w-12 text-right pr-2 text-xs text-[#6e7681] select-none py-1.5">
+                  <div className="w-12 text-right pr-2 text-xs text-[var(--text-subtle)] select-none py-1.5">
                     {row.right?.lineNumber ?? ''}
                   </div>
                   <div className="w-4 text-center font-semibold pt-1.5">
                     <span className={getIndicatorColor(row.right)}>{getIndicator(row.right)}</span>
                   </div>
                   <div className="flex-1 px-3 py-1.5">
-                    <code className="text-[#c9d1d9] whitespace-pre-wrap break-words">
+                    <code className="text-[var(--text-primary)] whitespace-pre-wrap break-words">
                       {row.right?.text ?? ' '}
                     </code>
                   </div>
@@ -245,8 +245,8 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                         onClick={() => handleLineClick(newLineNumber)}
                         className={`
                           w-8 h-8 flex items-center justify-center rounded transition-colors
-                          ${hasComment ? 'text-[#58a6ff]' : 'text-[#8b949e] hover:text-white'}
-                          ${isCommenting ? 'bg-[#1f6feb]/20' : ''}
+                          ${hasComment ? 'text-[var(--text-accent)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}
+                          ${isCommenting ? 'bg-[var(--accent-soft-bg)]' : ''}
                         `}
                         title={hasComment ? 'View comments' : 'Add comment'}
                       >
@@ -260,13 +260,13 @@ export const DiffViewer: FC<DiffViewerProps> = ({
               {lineComments.length > 0 && (
                 <div className="flex">
                   <div className="w-1/2" />
-                  <div className="w-1/2 px-4 py-3 bg-[#21262d] border-l-4 border-[#58a6ff] space-y-2">
+                  <div className="w-1/2 px-4 py-3 bg-[var(--bg-comment)] border-l-4 border-[var(--comment-border)] space-y-2">
                     {lineComments.map((comment) => (
                       <div key={comment.id} className="flex items-start justify-between">
-                        <p className="text-sm text-[#c9d1d9] flex-1">{comment.text}</p>
+                        <p className="text-sm text-[var(--text-primary)] flex-1">{comment.text}</p>
                         <button
                           onClick={() => onDeleteComment(comment.id)}
-                          className="ml-3 text-xs text-[#f85149] hover:text-[#ff7b72]"
+                          className="ml-3 text-xs text-[var(--text-danger)] hover:text-[var(--danger-hover)]"
                         >
                           Delete
                         </button>
@@ -279,12 +279,12 @@ export const DiffViewer: FC<DiffViewerProps> = ({
               {isCommenting && newLineNumber !== null && (
                 <div className="flex">
                   <div className="w-1/2" />
-                  <div className="w-1/2 px-4 py-3 bg-[#1b1f24] border-l-4 border-[#1f6feb] space-y-2">
+                  <div className="w-1/2 px-4 py-3 bg-[var(--bg-comment-input)] border-l-4 border-[var(--accent)] space-y-2">
                     <textarea
                       value={commentText}
                       onChange={(event) => setCommentText(event.target.value)}
                       placeholder="Add your comment..."
-                      className="w-full bg-[#0d1117] text-[#c9d1d9] border border-[#30363d] rounded p-2 text-sm resize-none focus:border-[#1f6feb] focus:outline-none"
+                      className="w-full bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-default)] rounded p-2 text-sm resize-none focus:border-[var(--accent)] focus:outline-none"
                       rows={3}
                       autoFocus
                     />
@@ -292,7 +292,7 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                       <button
                         onClick={handleSubmitComment}
                         disabled={!commentText.trim()}
-                        className="px-3 py-1.5 bg-[#238636] text-white rounded text-sm font-medium hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="px-3 py-1.5 bg-[var(--success)] text-white rounded text-sm font-medium hover:bg-[var(--success-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         Add comment
                       </button>
@@ -301,7 +301,7 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                           setCommentingLine(null);
                           setCommentText('');
                         }}
-                        className="px-3 py-1.5 bg-[#21262d] text-[#c9d1d9] rounded text-sm font-medium hover:bg-[#30363d] transition-colors"
+                        className="px-3 py-1.5 bg-[var(--bg-muted)] text-[var(--text-primary)] rounded text-sm font-medium hover:bg-[var(--bg-hover)] transition-colors"
                       >
                         Cancel
                       </button>

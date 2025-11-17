@@ -8,14 +8,86 @@
   padding: 0;
 }
 
+:root {
+  color-scheme: dark;
+  --bg-base: #0d1117;
+  --bg-surface: #161b22;
+  --bg-muted: #21262d;
+  --bg-hover: #1b1f24;
+  --bg-input: #0d1117;
+  --bg-comment: #21262d;
+  --bg-comment-input: #1b1f24;
+  --bg-pill: #21262d;
+  --accent-soft-bg: rgba(31, 111, 235, 0.2);
+  --border-default: #30363d;
+  --border-strong: #484f58;
+  --comment-border: #58a6ff;
+  --text-primary: #c9d1d9;
+  --text-muted: #8b949e;
+  --text-subtle: #6e7681;
+  --text-inverse: #0d1117;
+  --text-accent: #58a6ff;
+  --text-danger: #f85149;
+  --indicator-add: #3fb950;
+  --indicator-remove: #f85149;
+  --accent: #1f6feb;
+  --accent-soft: #58a6ff;
+  --success: #238636;
+  --success-hover: #2ea043;
+  --danger: #da3633;
+  --danger-hover: #f85149;
+  --diff-context: #0d1117;
+  --diff-add: #052011;
+  --diff-remove: #200b0d;
+  --scroll-track: #161b22;
+  --scroll-thumb: #30363d;
+  --scroll-thumb-hover: #484f58;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg-base: #f6f8fa;
+  --bg-surface: #ffffff;
+  --bg-muted: #f2f4f8;
+  --bg-hover: #e7ebf3;
+  --bg-input: #ffffff;
+  --bg-comment: #edf1fb;
+  --bg-comment-input: #ffffff;
+  --bg-pill: #e8edf5;
+  --accent-soft-bg: rgba(9, 105, 218, 0.15);
+  --border-default: #d0d7de;
+  --border-strong: #afb8c1;
+  --comment-border: #0969da;
+  --text-primary: #1f2328;
+  --text-muted: #4f5965;
+  --text-subtle: #6e7781;
+  --text-inverse: #ffffff;
+  --text-accent: #0d74ce;
+  --text-danger: #cf222e;
+  --indicator-add: #116329;
+  --indicator-remove: #cf222e;
+  --accent: #0969da;
+  --accent-soft: #218bff;
+  --success: #1a7f37;
+  --success-hover: #1f883d;
+  --danger: #cf222e;
+  --danger-hover: #e5534b;
+  --diff-context: #ffffff;
+  --diff-add: #dafbe1;
+  --diff-remove: #ffebe9;
+  --scroll-track: #e7ebf3;
+  --scroll-thumb: #d0d7de;
+  --scroll-thumb-hover: #afb8c1;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #0d1117;
-  color: #c9d1d9;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
 }
 
 code {
@@ -33,14 +105,14 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #161b22;
+  background: var(--scroll-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #30363d;
+  background: var(--scroll-thumb);
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #484f58;
+  background: var(--scroll-thumb-hover);
 }

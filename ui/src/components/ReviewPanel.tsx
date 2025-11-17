@@ -18,27 +18,27 @@ export const ReviewPanel: FC<ReviewPanelProps> = ({
   commentCount,
 }) => {
   return (
-    <div className="w-96 bg-[#161b22] border-l border-[#30363d] flex flex-col">
-      <div className="p-4 border-b border-[#30363d]">
-        <h2 className="text-sm font-semibold text-[#c9d1d9]">Review Summary</h2>
-        <p className="text-xs text-[#8b949e] mt-1">{commentCount} comments</p>
+    <div className="w-96 bg-[var(--bg-surface)] border-l border-[var(--border-default)] flex flex-col">
+      <div className="p-4 border-b border-[var(--border-default)]">
+        <h2 className="text-sm font-semibold text-[var(--text-primary)]">Review Summary</h2>
+        <p className="text-xs text-[var(--text-muted)] mt-1">{commentCount} comments</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
         <div>
-          <label className="block text-sm font-medium text-[#c9d1d9] mb-2">
+          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
             General Feedback
           </label>
           <textarea
             value={generalFeedback}
             onChange={(e) => onFeedbackChange(e.target.value)}
             placeholder="Add your overall feedback about the changes..."
-            className="w-full h-40 bg-[#0d1117] text-[#c9d1d9] border border-[#30363d] rounded p-3 text-sm resize-none focus:border-[#1f6feb] focus:outline-none"
+            className="w-full h-40 bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-default)] rounded p-3 text-sm resize-none focus:border-[var(--accent)] focus:outline-none"
           />
         </div>
 
         <div className="mt-6">
-          <p className="text-xs text-[#8b949e] mb-3">
+          <p className="text-xs text-[var(--text-muted)] mb-3">
             Choose an action to complete your review:
           </p>
 
@@ -46,7 +46,7 @@ export const ReviewPanel: FC<ReviewPanelProps> = ({
             <button
               onClick={onApprove}
               disabled={isSubmitting}
-              className="w-full px-4 py-3 bg-[#238636] text-white rounded font-medium text-sm hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-[var(--success)] text-white rounded font-medium text-sm hover:bg-[var(--success-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -81,7 +81,7 @@ export const ReviewPanel: FC<ReviewPanelProps> = ({
             <button
               onClick={onRequestChanges}
               disabled={isSubmitting}
-              className="w-full px-4 py-3 bg-[#da3633] text-white rounded font-medium text-sm hover:bg-[#f85149] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-[var(--danger)] text-white rounded font-medium text-sm hover:bg-[var(--danger-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -115,8 +115,8 @@ export const ReviewPanel: FC<ReviewPanelProps> = ({
           </div>
         </div>
 
-        <div className="mt-6 p-3 bg-[#0d1117] border border-[#30363d] rounded">
-          <p className="text-xs text-[#8b949e]">
+        <div className="mt-6 p-3 bg-[var(--bg-input)] border border-[var(--border-default)] rounded">
+          <p className="text-xs text-[var(--text-muted)]">
             💡 <strong>Tip:</strong> You can click the <strong>+</strong> button next to any
             line number to add inline comments.
           </p>
