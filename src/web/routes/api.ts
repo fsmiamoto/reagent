@@ -19,7 +19,6 @@ apiRouter.get('/sessions/:id', (req, res) => {
     return;
   }
 
-  // Return the session data as JSON
   res.json(session.toJSON());
 });
 

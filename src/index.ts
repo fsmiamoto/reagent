@@ -1,23 +1,44 @@
 #!/usr/bin/env node
 
+import { Server } from 'http';
 import { startMCPServer } from './mcp/server.js';
 import { startWebServer } from './web/server.js';
 import { sessionStore } from './core/SessionStore.js';
 
-/**
- * Main entry point for Reagent
- *
- * Starts both the web server (for the review UI) and the MCP server (for tool communication)
- */
+let webServer: Server | null = null;
+let isCleaningUp = false;
+
+function cleanup() {
+  // We're in Node so this is fine although is not properly atomic
+  if (isCleaningUp) return;
+  isCleaningUp = true;
+
+  console.error('\n[Reagent] Shutting down...');
+
+  if (!webServer) {
+    sessionStore.clear();
+    process.exit(0);
+  }
+
+  const timeout = setTimeout(() => {
+    console.error('[Reagent] Force exit after timeout');
+    process.exit(0);
+  }, 5000);
+
+  webServer.close(() => {
+    clearTimeout(timeout);
+    sessionStore.clear();
+    process.exit(0);
+  });
+}
+
 async function main() {
   try {
-    // Get port from environment or use default
     const port = parseInt(process.env.REAGENT_PORT || '3636', 10);
+    const maxAttempts = parseInt(process.env.REAGENT_MAX_ATTEMPTS || '10', 10);
 
-    // Start the web server first (so it's ready when reviews are opened)
-    await startWebServer(port);
+    webServer = await startWebServer(port, maxAttempts);
 
-    // Set up periodic cleanup of old sessions (every hour)
     setInterval(() => {
       const cleaned = sessionStore.cleanupOldSessions();
       if (cleaned > 0) {
@@ -25,7 +46,8 @@ async function main() {
       }
     }, 60 * 60 * 1000);
 
-    // Start the MCP server (this will block and handle stdio communication)
+    process.stdin.on('end', cleanup);
+
     await startMCPServer();
   } catch (error) {
     console.error('[Reagent] Failed to start:', error);
@@ -33,17 +55,7 @@ async function main() {
   }
 }
 
-// Handle graceful shutdown
-process.on('SIGINT', () => {
-  console.error('\n[Reagent] Shutting down...');
-  sessionStore.clear();
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  console.error('\n[Reagent] Shutting down...');
-  sessionStore.clear();
-  process.exit(0);
-});
+process.on('SIGINT', cleanup);
+process.on('SIGTERM', cleanup);
 
 main();
