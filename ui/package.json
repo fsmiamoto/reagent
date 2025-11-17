@@ -1,6 +1,6 @@
 {
-  "name": "reagent-ui",
-  "version": "1.0.0",
+  "name": "@fsmiamoto/reagent-ui",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -2,7 +2,7 @@
 
 **Give your AI coding agents targeted feedback, just like you would with human engineers.**
 
-In the age of Agentic coding assistantes, ensuring their output code is high quality is essencial for long term
+In the age of Agentic coding assistants, ensuring their output code is high quality is essencial for long term
 healthy codebases.
 
 For that, you often need to provide detailed, line-specific feedback on their generated code, just like you would do with
@@ -28,27 +28,19 @@ Reagent is a lightweight MCP server that opens a familiar, GitHub-style review i
 - Line-level comments with file tree navigation
 - Approve or request changes workflow
 - Git integration: review uncommitted changes, specific commits, or branch diffs
-- Works with directories (recursive review)
-
-## Installation
-
-```bash
-npm install
-npm run build
-```
 
 ## Usage
 
-### As an MCP Server
-
-Add to your favorite Agentic coding tool to it's MCP configuration:
+1. Clone the repo locally
+1. Run `npm install` and `npm run build`
+1. Add it as an MCP server to your favorite Agentic coding tool.
 
 ```json
 {
   "mcpServers": {
     "reagent": {
       "command": "node",
-      "args": ["/path/to/reagent/dist/index.js"]
+      "args": ["$PATH_TO_REAGENT_REPO/dist/index.js"]
     }
   }
 }
