@@ -39,22 +39,16 @@ function App() {
   const handleApprove = async () => {
     try {
       await completeReview('approved');
-      // Show success message
-      alert('Review approved! You can close this window.');
     } catch (error) {
       console.error('Failed to approve review:', error);
-      alert('Failed to submit review. Please try again.');
     }
   };
 
   const handleRequestChanges = async () => {
     try {
       await completeReview('changes_requested');
-      // Show success message
-      alert('Review submitted! You can close this window.');
     } catch (error) {
       console.error('Failed to submit review:', error);
-      alert('Failed to submit review. Please try again.');
     }
   };
 
