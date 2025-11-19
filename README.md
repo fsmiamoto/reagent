@@ -1,8 +1,10 @@
-# Reagent
+# Reagent 
 
-**Give your AI coding agents targeted feedback, just like you would with human engineers.**
+> Code **Re**views for your **Agent**
 
-In the age of Agentic coding assistants, ensuring their output code is high quality is essencial for long term
+## Why is this useful?
+
+In the age of AI coding assistants, ensuring their output code is high quality is essencial for long term
 healthy codebases.
 
 For that, you often need to provide detailed, line-specific feedback on their generated code, just like you would do with
@@ -10,17 +12,11 @@ a human teammate's code.
 
 But pointing to specific lines through chat is clunky, and setting up GitHub PRs for local work-in-progress is overkill.
 
-Reagent is a lightweight MCP server that opens a familiar, GitHub-style review interface right in your browser—no external tools, no overhead. Just seamless code reviews for the code already on your machine.
+Reagent is a lightweight MCP server that opens a familiar, GitHub-style review interface right in your browser.
+
+No external tools and no overhead for seamless code reviews right in your machine.
 
 ![Reagent Usage](./docs/usage.png)
-
-## Why Reagent?
-
-- **Communicate naturally**: Line-level comments are clearer than "change line 42 in app.ts"
-- **Stay in flow**: Review AI-generated code without context-switching to external platforms
-- **Work locally**: Everything runs on your machine
-- **Token efficient**: Give your agent as much feedback as possible at once, reducing token waste
-- **Git-native**: Works with uncommitted changes, commits, and branches using tools you already know
 
 ## Features
 
