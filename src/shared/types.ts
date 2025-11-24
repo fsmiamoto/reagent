@@ -55,6 +55,42 @@ export interface GitReviewInput {
 
 export type AskForReviewInput = GitReviewInput;
 
+/**
+ * Input for create_review tool
+ */
+export interface CreateReviewInput extends GitReviewInput {
+  openBrowser?: boolean; // Default: true
+}
+
+/**
+ * Output from create_review tool
+ */
+export interface CreateReviewResult {
+  sessionId: string;
+  reviewUrl: string;
+  filesCount: number;
+  title?: string;
+}
+
+/**
+ * Input for get_review tool
+ */
+export interface GetReviewInput {
+  sessionId: string;
+  wait?: boolean; // Default: true - if true, blocks until complete; if false, returns current state
+}
+
+/**
+ * Output from get_review tool (non-blocking mode)
+ */
+export interface GetReviewResult {
+  status: ReviewStatus;
+  generalFeedback?: string;
+  comments?: ReviewComment[];
+  timestamp?: Date;
+  // If status is 'pending', feedback and comments are undefined
+}
+
 export interface AddCommentRequest {
   filePath: string;
   lineNumber: number;

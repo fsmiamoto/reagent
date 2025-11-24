@@ -39,7 +39,17 @@ export const GitReviewInputSchema = z
     }
   });
 
-export const AskForReviewInputSchema = GitReviewInputSchema;
+export const CreateReviewInputSchema = z.intersection(
+  GitReviewInputSchema,
+  z.object({
+    openBrowser: z.boolean().optional().default(true),
+  })
+);
+
+export const GetReviewInputSchema = z.object({
+  sessionId: z.string().uuid('Invalid session ID format'),
+  wait: z.boolean().optional().default(true),
+});
 
 export const AddCommentRequestSchema = z.object({
   filePath: z.string().min(1),
