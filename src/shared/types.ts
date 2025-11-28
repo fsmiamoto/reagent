@@ -37,14 +37,14 @@ export interface ReviewResult {
   timestamp: Date;
 }
 
-export type GitSource = 'uncommitted' | 'commit' | 'branch';
+export type ReviewSource = 'uncommitted' | 'commit' | 'branch' | 'local';
 
 /**
- * Git-based review input
+ * Review input
  */
-export interface GitReviewInput {
+export interface ReviewInput {
   files?: string[]; // Array of file paths (optional: reviews all changes when omitted)
-  source?: GitSource;
+  source?: ReviewSource;
   commitHash?: string; // For source: 'commit'
   base?: string; // For source: 'branch'
   head?: string; // For source: 'branch'
@@ -53,12 +53,12 @@ export interface GitReviewInput {
   workingDirectory?: string; // Optional working directory, defaults to cwd
 }
 
-export type AskForReviewInput = GitReviewInput;
+export type AskForReviewInput = ReviewInput;
 
 /**
  * Input for create_review tool
  */
-export interface CreateReviewInput extends GitReviewInput {
+export interface CreateReviewInput extends ReviewInput {
   openBrowser?: boolean; // Default: true
 }
 
@@ -103,9 +103,9 @@ export interface CompleteReviewRequest {
 }
 
 /**
- * Resolve which git source should be used based on provided fields
+ * Resolve which source should be used based on provided fields
  */
-export function resolveGitSource(input: GitReviewInput): GitSource {
+export function resolveReviewSource(input: ReviewInput): ReviewSource {
   if (input.source) {
     return input.source;
   }
@@ -115,5 +115,6 @@ export function resolveGitSource(input: GitReviewInput): GitSource {
   if (input.base || input.head) {
     return 'branch';
   }
+  // Default to uncommitted if no specific source indicators
   return 'uncommitted';
 }

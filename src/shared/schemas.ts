@@ -3,15 +3,15 @@
  */
 
 import { z } from 'zod';
-import { resolveGitSource } from './types.js';
+import { resolveReviewSource } from './types.js';
 
 /**
- * Git-based review input schema
+ * Review input schema
  */
-export const GitReviewInputSchema = z
+export const ReviewInputSchema = z
   .object({
     files: z.array(z.string().min(1)).optional(),
-    source: z.enum(['uncommitted', 'commit', 'branch']).optional(),
+    source: z.enum(['uncommitted', 'commit', 'branch', 'local']).optional(),
     commitHash: z.string().optional(),
     base: z.string().optional(),
     head: z.string().optional(),
@@ -20,9 +20,9 @@ export const GitReviewInputSchema = z
     workingDirectory: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    const resolvedSource = resolveGitSource(data);
+    const source = resolveReviewSource(data);
 
-    if (resolvedSource === 'commit' && !data.commitHash) {
+    if (source === 'commit' && !data.commitHash) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['commitHash'],
@@ -30,17 +30,25 @@ export const GitReviewInputSchema = z
       });
     }
 
-    if (resolvedSource === 'branch' && (!data.base || !data.head)) {
+    if (source === 'branch' && (!data.base || !data.head)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['base'],
         message: 'base and head are required when comparing branches',
       });
     }
+
+    if (source === 'local' && (!data.files || data.files.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['files'],
+        message: 'files are required for local review',
+      });
+    }
   });
 
 export const CreateReviewInputSchema = z.intersection(
-  GitReviewInputSchema,
+  ReviewInputSchema,
   z.object({
     openBrowser: z.boolean().optional().default(true),
   })

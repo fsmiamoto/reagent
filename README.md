@@ -1,20 +1,16 @@
-# Reagent 
+# ReAgent 
 
 > Code **Re**views for your **Agent**
 
 ## Why is this useful?
 
-In the age of AI coding assistants, ensuring their output code is high quality is essencial for long term
-healthy codebases.
+In the age of AI coding assistants, ensuring their output code is high quality is essencial. 
 
-For that, you often need to provide detailed, line-specific feedback on their generated code, just like you would do with
-a human teammate's code.
+For that, you often need to provide detailed, line-specific feedback, just like you would do with a human teammate's code.
 
 But pointing to specific lines through chat is clunky, and setting up GitHub PRs for local work-in-progress is overkill.
 
-Reagent is a lightweight MCP server that opens a familiar, GitHub-style review interface right in your browser.
-
-No external tools and no overhead for seamless code reviews right in your machine.
+Reagent is a lightweight MCP server that opens a familiar, GitHub-style review interface right in your browser to speed your feedback cycles.
 
 ![Reagent Usage](./docs/usage.png)
 

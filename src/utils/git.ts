@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import { readFileSync } from 'fs';
 import * as path from 'path';
-import { resolveGitSource, type ReviewFile, type GitReviewInput } from '../shared/types.js';
+import { resolveReviewSource, type ReviewFile, type ReviewInput } from '../shared/types.js';
 
 /**
  * Git utilities for extracting file content and diffs
@@ -277,7 +277,7 @@ function convertToReviewFiles(changes: GitFileChange[]): ReviewFile[] {
 /**
  * Main function to get review files from git
  */
-export function getReviewFilesFromGit(input: GitReviewInput): ReviewFile[] {
+export function getReviewFilesFromGit(input: ReviewInput): ReviewFile[] {
   const cwd = input.workingDirectory;
 
   // Verify it's a git repository
@@ -287,7 +287,7 @@ export function getReviewFilesFromGit(input: GitReviewInput): ReviewFile[] {
 
   let changes: GitFileChange[];
 
-  const resolvedSource = resolveGitSource(input);
+  const resolvedSource = resolveReviewSource(input);
 
   switch (resolvedSource) {
     case 'uncommitted':
@@ -322,8 +322,8 @@ export function getReviewFilesFromGit(input: GitReviewInput): ReviewFile[] {
 /**
  * Get a summary of git changes for display
  */
-export function getGitSummary(input: GitReviewInput): string {
-  const source = resolveGitSource(input);
+export function getGitSummary(input: ReviewInput): string {
+  const source = resolveReviewSource(input);
 
   switch (source) {
     case 'uncommitted':

@@ -1,26 +1,35 @@
-import { getReviewFilesFromGit, getGitSummary } from '../../utils/git.js';
-import type { GitReviewInput, ReviewFile } from '../../shared/types.js';
-import { resolveGitSource } from '../../shared/types.js';
+import { getReviewFilesFromGit } from '../../utils/git.js';
+import { getLocalFiles } from '../../utils/files.js';
+import type { ReviewInput, ReviewFile } from '../../shared/types.js';
+import { resolveReviewSource } from '../../shared/types.js';
 
 /**
- * Process git input to extract review files
+ * Process input to extract review files
  * Shared by create_review and get_review tools
  */
-export function extractReviewFiles(input: GitReviewInput): {
+export function extractReviewFiles(input: ReviewInput): {
   files: ReviewFile[];
   title?: string;
   description?: string;
 } {
-  const gitSource = resolveGitSource(input);
-  const sourceLabel = input.source ? gitSource : `${gitSource} (auto-detected)`;
-  console.error(`[Reagent] Using git source: ${sourceLabel}`);
+  const source = resolveReviewSource(input);
+  const sourceLabel = input.source ? source : `${source} (auto-detected)`;
+  console.error(`[Reagent] Using source: ${sourceLabel}`);
 
-  const gitInput = { ...input, source: gitSource };
-  const files = getReviewFilesFromGit(gitInput);
+  const reviewInput = { ...input, source };
+  let files: ReviewFile[];
 
-  // Generate title if not provided
-  const title = gitInput.title || getGitSummary(gitInput);
-  const description = gitInput.description;
+  if (source === 'local') {
+    if (!reviewInput.files || reviewInput.files.length === 0) {
+      throw new Error('Files must be specified for local review');
+    }
+    files = getLocalFiles(reviewInput.files, reviewInput.workingDirectory);
+  } else {
+    files = getReviewFilesFromGit(reviewInput);
+  }
+
+  const title = reviewInput.title;
+  const description = reviewInput.description;
 
   return { files, title, description };
 }

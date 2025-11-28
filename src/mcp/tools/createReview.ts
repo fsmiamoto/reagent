@@ -6,13 +6,13 @@ import { extractReviewFiles, buildReviewUrl } from './reviewHelpers.js';
 
 export async function createReview(input: CreateReviewInput): Promise<CreateReviewResult> {
   try {
-    // Process input to get review files from git
+    // Process input to get review files
     const { files, title, description } = extractReviewFiles(input);
 
     console.error(`[Reagent] Creating review session for ${files.length} file(s)`);
 
     if (files.length === 0) {
-      throw new Error('No files to review. Check your git source and file filters.');
+      throw new Error('No files to review. Check your source and file filters.');
     }
 
     // Create a new review session with deferred promise
