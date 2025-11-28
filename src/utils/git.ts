@@ -130,8 +130,8 @@ function shouldIncludeFile(filePath: string, specifiedFiles?: string[]): boolean
 function getUncommittedFiles(specifiedFiles?: string[], cwd?: string): GitFileChange[] {
   const changes: GitFileChange[] = [];
 
-  // Get staged and unstaged files
-  const statusOutput = execGit('git status --porcelain', cwd);
+  // Get staged, unstaged, and untracked files (including in subdirectories)
+  const statusOutput = execGit('git status --porcelain=v1 --untracked-files=all', cwd);
   const lines = statusOutput.split('\n').filter((line) => line.trim());
 
   for (const line of lines) {
@@ -153,13 +153,19 @@ function getUncommittedFiles(specifiedFiles?: string[], cwd?: string): GitFileCh
     }
 
     const newContent = changeStatus !== 'deleted' ? getWorkingTreeContent(filePath, cwd) : null;
+
+    // Skip entries where content is null (directories or unreadable files)
+    if (newContent === null) {
+      continue;
+    }
+
     const oldContent = changeStatus !== 'added' ? getFileContent(filePath, 'HEAD', cwd) : null;
 
     changes.push({
       path: filePath,
       status: changeStatus,
-      oldContent: oldContent || undefined,
-      newContent: newContent || undefined,
+      oldContent: oldContent ?? undefined,
+      newContent: newContent ?? undefined,
     });
   }
 
@@ -259,10 +265,10 @@ function getBranchFiles(
  */
 function convertToReviewFiles(changes: GitFileChange[]): ReviewFile[] {
   return changes
-    .filter((change) => change.newContent !== null) // Filter out deleted files
+    .filter((change) => typeof change.newContent === 'string') // Only include entries with string content
     .map((change) => ({
       path: change.path,
-      content: change.newContent!,
+      content: change.newContent as string,
       oldContent: change.oldContent,
       language: getLanguageFromPath(change.path),
     }));
