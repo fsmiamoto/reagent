@@ -1,19 +1,21 @@
 import { type FC } from 'react';
 import { useThemeStore } from '../store/themeStore';
+import { Button } from './ui/Button';
+import { Moon, Sun } from 'lucide-react';
 
 export const ThemeToggle: FC = () => {
   const { theme, toggleTheme } = useThemeStore();
   const isDark = theme === 'dark';
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon"
       onClick={toggleTheme}
-      className="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-[var(--border-default)] bg-[var(--bg-muted)] text-[var(--text-primary)] text-sm font-medium hover:bg-[var(--bg-hover)] transition-colors"
-      aria-pressed={isDark}
       title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
-      <span aria-hidden="true">{isDark ? '🌙' : '☀️'}</span>
-      <span>{isDark ? 'Dark' : 'Light'} mode</span>
-    </button>
+      {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+      <span className="sr-only">{isDark ? 'Dark' : 'Light'} mode</span>
+    </Button>
   );
 };

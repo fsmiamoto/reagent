@@ -1,13 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useReviewStore } from './store/reviewStore';
 import { FileTree } from './components/FileTree';
 import { DiffViewer } from './components/DiffViewer';
 import { ReviewPanel } from './components/ReviewPanel';
 import { ThemeToggle } from './components/ThemeToggle';
 import { useThemeStore } from './store/themeStore';
+import { Layout } from './components/Layout';
+import { Header } from './components/Header';
+import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Button } from './components/ui/Button';
+import { Popover, PopoverContent, PopoverTrigger } from './components/ui/Popover';
 
 function App() {
   const { theme } = useThemeStore();
+  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const {
     session,
     selectedFile,
@@ -22,6 +28,10 @@ function App() {
     completeReview,
   } = useReviewStore();
 
+  const fileRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const isScrollingRef = useRef(false);
+
   useEffect(() => {
     // Extract session ID from URL path: /review/:sessionId
     const pathParts = window.location.pathname.split('/');
@@ -34,7 +44,59 @@ function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [theme]);
+
+  // Scroll spy implementation
+  useEffect(() => {
+    if (isLoading || !session?.files) return;
+
+    const options = {
+      root: null,
+      rootMargin: '-20% 0px -80% 0px', // Trigger when file is near top
+      threshold: 0
+    };
+
+    observerRef.current = new IntersectionObserver((entries) => {
+      if (isScrollingRef.current) return;
+
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const filePath = entry.target.getAttribute('data-file-path');
+          if (filePath) {
+            setSelectedFile(filePath);
+          }
+        }
+      });
+    }, options);
+
+    Object.values(fileRefs.current).forEach((el) => {
+      if (el) observerRef.current?.observe(el);
+    });
+
+    return () => {
+      observerRef.current?.disconnect();
+    };
+  }, [isLoading, session?.files, setSelectedFile]);
+
+  const handleFileSelect = useCallback((filePath: string) => {
+    setSelectedFile(filePath);
+    isScrollingRef.current = true;
+
+    const element = fileRefs.current[filePath];
+    if (element) {
+      // Use auto behavior for instant scrolling to avoid the "slow" feeling
+      element.scrollIntoView({ behavior: 'auto', block: 'start' });
+      // Reset scrolling flag quickly since we're not animating
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 100);
+    }
+  }, [setSelectedFile]);
 
   const handleApprove = async () => {
     try {
@@ -54,10 +116,10 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-base)]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-soft)]"></div>
-          <p className="mt-4 text-[var(--text-muted)]">Loading review session...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="mt-4 text-muted-foreground">Loading review session...</p>
         </div>
       </div>
     );
@@ -65,23 +127,11 @@ function App() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-base)]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center max-w-md">
-          <svg
-            className="mx-auto h-12 w-12 text-[var(--text-danger)]"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-          <h2 className="mt-4 text-lg font-semibold text-[var(--text-primary)]">Error Loading Review</h2>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">{error}</p>
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
+          <h2 className="mt-4 text-lg font-semibold text-foreground">Error Loading Review</h2>
+          <p className="mt-2 text-sm text-muted-foreground">{error}</p>
         </div>
       </div>
     );
@@ -89,35 +139,21 @@ function App() {
 
   if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-base)]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <p className="text-[var(--text-muted)]">No review session found</p>
+          <p className="text-muted-foreground">No review session found</p>
         </div>
       </div>
     );
   }
 
-  const selectedFileData = session.files.find((f) => f.path === selectedFile);
-
   if (session.status !== 'pending') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-base)]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center max-w-md">
-          <svg
-            className="mx-auto h-16 w-16 text-[var(--success)]"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <h2 className="mt-4 text-lg font-semibold text-[var(--text-primary)]">Review Completed</h2>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">
+          <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto" />
+          <h2 className="mt-4 text-lg font-semibold text-foreground">Review Completed</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
             This review has already been {session.status === 'approved' ? 'approved' : 'submitted'}.
             You can close this window.
           </p>
@@ -127,55 +163,73 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] flex flex-col">
-      {/* Header */}
-      <header className="bg-[var(--bg-surface)] border-b border-[var(--border-default)] px-6 py-4">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              {session.title || 'Code Review'}
-            </h1>
-            {session.description && (
-              <p className="text-sm text-[var(--text-muted)] mt-1">{session.description}</p>
-            )}
-          </div>
+    <Layout
+      header={
+        <Header
+          title={session.title || 'Code Review'}
+          description={session.description}
+          isSidebarOpen={isLeftSidebarOpen}
+          onToggleSidebar={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
+        >
           <ThemeToggle />
-        </div>
-      </header>
-
-      {/* Main content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* File tree sidebar */}
-        <FileTree
-          files={session.files}
-          selectedFile={selectedFile}
-          onFileSelect={setSelectedFile}
-          comments={session.comments}
-        />
-
-        {/* Diff viewer */}
-        {selectedFileData && (
-          <DiffViewer
-            file={selectedFileData}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="default" className="bg-green-600 hover:bg-green-700 text-white">
+                Review changes
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-96" align="end">
+              <ReviewPanel
+                generalFeedback={session.generalFeedback}
+                onFeedbackChange={updateGeneralFeedback}
+                onApprove={handleApprove}
+                onRequestChanges={handleRequestChanges}
+                isSubmitting={isSubmitting}
+                commentCount={session.comments.length}
+              />
+            </PopoverContent>
+          </Popover>
+        </Header>
+      }
+      sidebar={
+        isLeftSidebarOpen ? (
+          <FileTree
+            files={session.files}
+            selectedFile={selectedFile}
+            onFileSelect={handleFileSelect}
             comments={session.comments}
-            onAddComment={async (lineNumber, text) => {
-              await addComment(selectedFileData.path, lineNumber, text);
-            }}
-            onDeleteComment={deleteComment}
           />
-        )}
+        ) : null
+      }
+    >
+      <div className="flex flex-col gap-8 p-6 pb-20">
+        {session.files.map((file) => (
+          <div
+            key={file.path}
+            ref={(el) => (fileRefs.current[file.path] = el)}
+            data-file-path={file.path}
+            className="scroll-mt-20"
+          >
+            <DiffViewer
+              file={file}
+              comments={session.comments}
+              onAddComment={async (lineNumber, text) => {
+                await addComment(file.path, lineNumber, text);
+              }}
+              onDeleteComment={deleteComment}
+            />
+          </div>
+        ))}
 
-        {/* Review panel */}
-        <ReviewPanel
-          generalFeedback={session.generalFeedback}
-          onFeedbackChange={updateGeneralFeedback}
-          onApprove={handleApprove}
-          onRequestChanges={handleRequestChanges}
-          isSubmitting={isSubmitting}
-          commentCount={session.comments.length}
-        />
+        {session.files.length === 0 && (
+          <div className="flex h-full items-center justify-center text-muted-foreground">
+            <div className="text-center">
+              <p>No files to review</p>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </Layout >
   );
 }
 

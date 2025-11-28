@@ -10,6 +10,32 @@ export const api = {
    * Fetch a review session by ID
    */
   async getSession(sessionId: string): Promise<ReviewSession> {
+    if (sessionId === 'demo') {
+      return {
+        id: 'demo',
+        title: 'Demo Review',
+        description: 'Testing diff rendering',
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        generalFeedback: '',
+        comments: [],
+        files: [
+          {
+            path: 'src/components/Demo.tsx',
+            language: 'typescript',
+            content: 'import React from "react";\n\nexport const Demo = () => {\n  return <div>Hello World</div>;\n};\n',
+            oldContent: 'import React from "react";\n\nexport const Demo = () => {\n  return <div>Hello</div>;\n};\n',
+          },
+          {
+            path: 'package-lock.json',
+            language: 'json',
+            content: '{\n  "name": "demo",\n  "version": "1.0.0"\n}\n',
+            oldContent: '{\n  "name": "demo",\n  "version": "0.0.0"\n}\n',
+          }
+        ]
+      };
+    }
+
     const response = await fetch(`${API_BASE}/sessions/${sessionId}`);
 
     if (!response.ok) {

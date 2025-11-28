@@ -1,5 +1,8 @@
 import { useState, type FC } from 'react';
 import type { ReviewFile, ReviewComment } from '../types';
+import { Button } from './ui/Button';
+import { MessageSquare, Plus, Trash2 } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 interface SimpleDiffViewerProps {
   file: ReviewFile;
@@ -43,11 +46,11 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-[var(--bg-base)]">
-      <div className="p-4 border-b border-[var(--border-default)] bg-[var(--bg-surface)] sticky top-0 z-10">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)]">{file.path}</h3>
+    <div className="flex-1 overflow-auto bg-background">
+      <div className="p-4 border-b border-border bg-card sticky top-0 z-10">
+        <h3 className="text-sm font-semibold text-foreground">{file.path}</h3>
         {file.language && (
-          <span className="text-xs text-[var(--text-muted)] mt-1">Language: {file.language}</span>
+          <span className="text-xs text-muted-foreground mt-1">Language: {file.language}</span>
         )}
       </div>
 
@@ -59,85 +62,92 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
           const isCommenting = commentingLine === lineNumber;
 
           return (
-            <div key={lineNumber}>
-              <div className="flex hover:bg-[var(--bg-muted)] group">
+            <div key={lineNumber} className="group border-b border-border/50 last:border-0">
+              <div className="flex hover:bg-muted/30 transition-colors">
                 {/* Line number + comment button */}
-                <div className="flex items-center bg-[var(--bg-base)] sticky left-0">
-                  <span className="w-12 text-right pr-2 text-[var(--text-subtle)] select-none flex-shrink-0">
+                <div className="flex items-center bg-muted/20 border-r border-border/50 sticky left-0 h-full">
+                  <span className="w-12 text-right pr-2 text-muted-foreground select-none flex-shrink-0 text-xs py-1">
                     {lineNumber}
                   </span>
-                  <button
-                    onClick={() => handleLineClick(lineNumber)}
-                    className={`
-                      w-6 h-6 flex items-center justify-center
-                      transition-colors flex-shrink-0
-                      ${
+                  <div className="w-8 flex justify-center">
+                    <button
+                      onClick={() => handleLineClick(lineNumber)}
+                      className={cn(
+                        "w-6 h-6 flex items-center justify-center rounded transition-all",
                         hasComment
-                          ? 'text-[var(--text-accent)] opacity-100'
-                          : 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100'
-                      }
-                      ${isCommenting ? 'text-[var(--accent)]' : ''}
-                    `}
-                    title={hasComment ? 'View comments' : 'Add comment'}
-                  >
-                    {hasComment ? '💬' : '+'}
-                  </button>
+                          ? "text-primary opacity-100"
+                          : "text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted hover:text-foreground",
+                        isCommenting && "bg-primary/10 text-primary opacity-100"
+                      )}
+                      title={hasComment ? 'View comments' : 'Add comment'}
+                    >
+                      {hasComment ? <MessageSquare className="h-3.5 w-3.5" /> : <Plus className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Code line */}
-                <div className="flex-1 px-4 py-0.5 overflow-x-auto">
-                  <code className="text-[var(--text-primary)] whitespace-pre">{line || ' '}</code>
+                <div className="flex-1 px-4 py-1 overflow-x-auto">
+                  <code className="text-foreground whitespace-pre">{line || ' '}</code>
                 </div>
               </div>
 
               {/* Comments */}
               {lineComments.length > 0 && (
-                <div className="bg-[var(--bg-comment)] border-l-4 border-[var(--comment-border)] ml-20 mr-4 my-2 p-3">
-                  {lineComments.map((comment) => (
-                    <div
-                      key={comment.id}
-                      className="mb-2 last:mb-0 flex items-start justify-between"
-                    >
-                      <p className="text-sm text-[var(--text-primary)] flex-1">{comment.text}</p>
-                      <button
-                        onClick={() => onDeleteComment(comment.id)}
-                        className="ml-3 text-xs text-[var(--text-danger)] hover:text-[var(--danger-hover)] flex-shrink-0"
+                <div className="flex">
+                  <div className="w-20 bg-muted/5 border-r border-border/50" />
+                  <div className="flex-1 px-4 py-3 bg-muted/30 border-l-4 border-primary space-y-2">
+                    {lineComments.map((comment) => (
+                      <div
+                        key={comment.id}
+                        className="mb-2 last:mb-0 flex items-start justify-between group/comment"
                       >
-                        Delete
-                      </button>
-                    </div>
-                  ))}
+                        <p className="text-sm text-foreground flex-1">{comment.text}</p>
+                        <button
+                          onClick={() => onDeleteComment(comment.id)}
+                          className="ml-3 text-xs text-destructive opacity-0 group-hover/comment:opacity-100 transition-opacity hover:underline flex items-center gap-1"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Delete
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
               {/* Comment input */}
               {isCommenting && (
-                <div className="bg-[var(--bg-comment-input)] border-l-4 border-[var(--accent)] ml-20 mr-4 my-2 p-3">
-                  <textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Add your comment..."
-                    className="w-full bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-default)] rounded p-2 text-sm resize-none focus:border-[var(--accent)] focus:outline-none"
-                    rows={3}
-                    autoFocus
-                  />
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={handleSubmitComment}
-                      disabled={!commentText.trim()}
-                      className="px-3 py-1.5 bg-[var(--success)] text-white rounded text-sm font-medium hover:bg-[var(--success-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Add comment
-                    </button>
-                    <button
-                      onClick={() => {
-                        setCommentingLine(null);
-                        setCommentText('');
-                      }}
-                      className="px-3 py-1.5 bg-[var(--bg-muted)] text-[var(--text-primary)] rounded text-sm font-medium hover:bg-[var(--bg-hover)] transition-colors"
-                    >
-                      Cancel
-                    </button>
+                <div className="flex">
+                  <div className="w-20 bg-muted/5 border-r border-border/50" />
+                  <div className="flex-1 px-4 py-3 bg-muted/30 border-l-4 border-primary space-y-2">
+                    <textarea
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Add your comment..."
+                      className="w-full bg-input text-foreground border border-input rounded-md p-2 text-sm resize-none focus:ring-1 focus:ring-ring focus:border-input focus:outline-none"
+                      rows={3}
+                      autoFocus
+                    />
+                    <div className="flex gap-2 mt-2 justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setCommentingLine(null);
+                          setCommentText('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleSubmitComment}
+                        disabled={!commentText.trim()}
+                      >
+                        Add comment
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
