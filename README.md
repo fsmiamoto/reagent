@@ -38,10 +38,32 @@ ReAgent is a lightweight MCP server that opens a familiar, GitHub-style review i
 }
 ```
 
-### Using the Tool
+### Two-Step Workflow
 
-> Tip: Calling `ask_for_review` with no arguments will automatically review all uncommitted changes
+ReAgent uses a two-step workflow to enable interactive browser-based code reviews:
+
+1. **create_review**: Initiates a review session and returns a URL
+2. **get_review**: Retrieves the completed review results
+
+> Tip: Calling `create_review` with no arguments will automatically review all uncommitted changes
 > in your current git repository.
+
+**Complete Workflow Example:**
+
+```typescript
+// Step 1: Create review
+const result1 = await create_review({"source": "uncommitted"});
+// Returns: {sessionId: "abc-123", reviewUrl: "http://localhost:3000/review/abc-123", filesCount: 5}
+
+// Step 2: Show URL to user
+console.log(`Please review at: ${result1.reviewUrl}`);
+
+// Step 3: Get results (blocks until user completes review)
+const result2 = await get_review({"sessionId": result1.sessionId, "wait": true});
+// Returns: {status: "approved", generalFeedback: "LGTM!", comments: [...]}
+```
+
+#### Individual Usage Examples
 
 Review uncommitted changes:
 ```json
@@ -81,9 +103,20 @@ Review every file inside a directory (recursively):
 }
 ```
 
-### Return Value
+### Return Values
 
-Each review returns the same format:
+**create_review returns:**
+
+```typescript
+{
+  "sessionId": "unique-session-id",
+  "reviewUrl": "http://localhost:3000/review/unique-session-id",
+  "filesCount": 5,
+  "title": "Review title"
+}
+```
+
+**get_review returns:**
 
 ```typescript
 {
@@ -95,7 +128,8 @@ Each review returns the same format:
       "lineNumber": 42,
       "text": "Comment text"
     }
-  ]
+  ],
+  "timestamp": "2025-11-29T10:30:00Z"
 }
 ```
 

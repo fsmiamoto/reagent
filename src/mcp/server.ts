@@ -31,15 +31,24 @@ export function createMCPServer() {
         {
           name: 'create_review',
           description:
-            'Create a code review session and return immediately with a review ID and URL. ' +
-            'Does NOT block - use get_review to retrieve results.\n\n' +
-            'If no arguments are provided, automatically reviews every uncommitted change ' +
-            'in the current git repository.\n\n' +
+            '**WORKFLOW STEP 1 of 2**: Create a code review session and return immediately with a review URL.\n\n' +
+            'This tool initiates a review session but does NOT wait for completion. After calling this tool:\n' +
+            '1. Show the returned `reviewUrl` to the user (REQUIRED - user provides feedback here)\n' +
+            '2. Then call `get_review` with the `sessionId` to retrieve the completed review results\n\n' +
+            'Returns: {sessionId: string, reviewUrl: string, filesCount: number, title?: string}\n\n' +
+            'USAGE:\n' +
+            'If no arguments provided, automatically reviews every uncommitted change in the current git repository.\n\n' +
             'Git mode examples:\n' +
             '- Uncommitted changes: {"source": "uncommitted"}\n' +
             '- Specific commit: {"source": "commit", "commitHash": "abc123"}\n' +
             '- Branch comparison: {"source": "branch", "base": "main", "head": "feature"}\n' +
-            '- Disable browser opening: {"openBrowser": false}',
+            '- Disable browser opening: {"openBrowser": false}\n\n' +
+            'COMPLETE WORKFLOW EXAMPLE:\n' +
+            '1. Call: create_review({"source": "uncommitted"})\n' +
+            '2. Receive: {sessionId: "abc-123", reviewUrl: "http://localhost:3000/review/abc-123", ...}\n' +
+            '3. Show URL to user: "Please review the changes at http://localhost:3000/review/abc-123"\n' +
+            '4. Call: get_review({"sessionId": "abc-123", "wait": true})\n' +
+            '5. Receive: {status: "changes_requested", generalFeedback: "...", comments: [...]}',
           inputSchema: {
             type: 'object',
             additionalProperties: false,
@@ -83,7 +92,7 @@ export function createMCPServer() {
               },
               openBrowser: {
                 type: 'boolean',
-                description: 'Whether to open the review in a browser (default: true)',
+                description: 'Whether to automatically open the review URL in the default browser (default: true). Set to false in remote/headless environments.',
                 default: true,
               },
             },
@@ -92,13 +101,17 @@ export function createMCPServer() {
         {
           name: 'get_review',
           description:
-            'Retrieve review results for a given session ID.\n\n' +
-            'Two modes:\n' +
-            '1. Blocking (wait=true, default): Waits until review is completed, then returns results\n' +
-            '2. Polling (wait=false): Returns current status immediately without blocking\n\n' +
+            '**WORKFLOW STEP 2 of 2**: Retrieve review results using the sessionId from create_review.\n\n' +
+            '(See create_review description for complete workflow example)\n\n' +
+            'Call this AFTER create_review and AFTER showing the reviewUrl to the user. ' +
+            'This tool waits for the user to complete their review in the browser UI.\n\n' +
+            'Returns: {status: "approved"|"changes_requested", generalFeedback: string, comments: [...], timestamp: Date}\n\n' +
+            'MODES:\n' +
+            '- Blocking (wait=true, default): Waits until review is completed by the user, then returns full results\n' +
+            '- Polling (wait=false): Returns current status immediately without blocking\n\n' +
             'Examples:\n' +
-            '- Wait for completion: {"sessionId": "uuid", "wait": true}\n' +
-            '- Check status: {"sessionId": "uuid", "wait": false}',
+            '- Wait for completion: {"sessionId": "uuid-from-create-review", "wait": true}\n' +
+            '- Check status: {"sessionId": "uuid-from-create-review", "wait": false}',
           inputSchema: {
             type: 'object',
             additionalProperties: false,
@@ -106,11 +119,11 @@ export function createMCPServer() {
             properties: {
               sessionId: {
                 type: 'string',
-                description: 'The review session ID returned from create_review',
+                description: 'The review session ID returned from create_review (found in the sessionId field of the response)',
               },
               wait: {
                 type: 'boolean',
-                description: 'Whether to block until review completes (default: true)',
+                description: 'Whether to block until user completes the review in browser (default: true). Set to false for status polling.',
                 default: true,
               },
             },
