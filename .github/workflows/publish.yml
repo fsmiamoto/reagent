@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to publish (e.g., v1.2.3)
+        required: true
+        type: string
 
 jobs:
   publish:
@@ -16,6 +22,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout tag for manual runs
+        if: github.event_name == 'workflow_dispatch'
+        run: git checkout "refs/tags/${{ inputs.tag }}"
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -27,7 +39,11 @@ jobs:
       - name: Derive version from tag
         id: tag
         run: |
-          TAG_NAME="${GITHUB_REF_NAME}"
+          TAG_NAME="${{ github.event.inputs.tag }}"
+          if [[ -z "${TAG_NAME}" ]]; then
+            TAG_NAME="${GITHUB_REF_NAME}"
+          fi
+
           if [[ "${TAG_NAME}" != v* ]]; then
             echo "Tag must start with v (got ${TAG_NAME})."
             exit 1
