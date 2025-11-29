@@ -10,9 +10,9 @@ For that, you often need to provide detailed, line-specific feedback, just like 
 
 But pointing to specific lines through chat is clunky, and setting up GitHub PRs for local work-in-progress is overkill.
 
-Reagent is a lightweight MCP server that opens a familiar, GitHub-style review interface right in your browser to speed your feedback cycles.
+ReAgent is a lightweight MCP server that opens a familiar, GitHub-style review interface right in your browser to speed your feedback cycles.
 
-![Reagent Usage](./docs/usage.png)
+![ReAgent Usage](./docs/usage.png)
 
 ## Features
 
