@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { resolveGitSource } from '@src/shared/types.js';
+import { resolveReviewSource } from '@src/shared/types.js';
 
-describe('resolveGitSource', () => {
+describe('resolveReviewSource', () => {
   it('should return "uncommitted" when called with an empty object', () => {
-    const result = resolveGitSource({});
+    const result = resolveReviewSource({});
     expect(result).toBe('uncommitted');
   });
 });
