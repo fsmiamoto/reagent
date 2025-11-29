@@ -1,0 +1,88 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      NODE_VERSION: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org/
+          cache: npm
+
+      - name: Derive version from tag
+        id: tag
+        run: |
+          TAG_NAME="${GITHUB_REF_NAME}"
+          if [[ "${TAG_NAME}" != v* ]]; then
+            echo "Tag must start with v (got ${TAG_NAME})."
+            exit 1
+          fi
+
+          TAG_VERSION="${TAG_NAME#v}"
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+
+          if [[ "${TAG_VERSION}" != "${PACKAGE_VERSION}" ]]; then
+            echo "Tag version ${TAG_VERSION} does not match package.json version ${PACKAGE_VERSION}."
+            exit 1
+          fi
+
+          echo "version=${PACKAGE_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Check if version already published
+        id: published
+        run: |
+          PACKAGE_VERSION="${{ steps.tag.outputs.version }}"
+          PUBLISHED_VERSIONS="$(npm view @fsmiamoto/reagent versions --json || echo '[]')"
+
+          if echo "${PUBLISHED_VERSIONS}" | grep -qw "\"${PACKAGE_VERSION}\""; then
+            echo "Version ${PACKAGE_VERSION} already published; skipping publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        if: steps.published.outputs.publish == 'true'
+        run: npm ci
+
+      - name: Run tests
+        if: steps.published.outputs.publish == 'true'
+        run: npm test
+
+      - name: Build package
+        if: steps.published.outputs.publish == 'true'
+        run: npm run build
+
+      - name: Configure npm authentication
+        if: steps.published.outputs.publish == 'true'
+        run: npm config set //registry.npmjs.org/:_authToken=${NPM_TOKEN}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to npm
+        if: steps.published.outputs.publish == 'true'
+        run: npm publish --access public
+
+      - name: Verify published version
+        if: steps.published.outputs.publish == 'true'
+        run: npm view @fsmiamoto/reagent version
+
+      - name: Publish skipped summary
+        if: steps.published.outputs.publish != 'true'
+        run: |
+          echo "Version already exists in npm registry; publish step skipped." >> "$GITHUB_STEP_SUMMARY"
