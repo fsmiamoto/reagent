@@ -20,6 +20,7 @@ ReAgent is a lightweight MCP server that opens a familiar, GitHub-style review i
 - Line-level comments with file tree navigation
 - Approve or request changes workflow
 - Git integration: review uncommitted changes, specific commits, or branch diffs
+- Local file review: review arbitrary files
 
 ## Usage
 
@@ -94,6 +95,17 @@ Compare branches:
   "head": "feature-branch"
 }
 ```
+
+Review local files without Git:
+```json
+{
+  "files": ["src/app.ts", "README.md"],
+  "source": "local"
+}
+```
+
+> Note: Local mode is useful for reviewing things like implementation plans for agents which you don't want to commit to the repo.
+> The `files` parameter is required to specify which files to review.
 
 Review every file inside a directory (recursively):
 ```json

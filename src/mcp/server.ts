@@ -38,11 +38,13 @@ export function createMCPServer() {
             'Returns: {sessionId: string, reviewUrl: string, filesCount: number, title?: string}\n\n' +
             'USAGE:\n' +
             'If no arguments provided, automatically reviews every uncommitted change in the current git repository.\n\n' +
-            'Git mode examples:\n' +
+            'Review mode examples:\n' +
             '- Uncommitted changes: {"source": "uncommitted"}\n' +
             '- Specific commit: {"source": "commit", "commitHash": "abc123"}\n' +
             '- Branch comparison: {"source": "branch", "base": "main", "head": "feature"}\n' +
+            '- Local files (no Git): {"source": "local", "files": ["src/app.ts", "README.md"]}\n' +
             '- Disable browser opening: {"openBrowser": false}\n\n' +
+            'NOTE: Local mode requires the "files" parameter and does not use Git. Files are read directly from the filesystem.\n\n' +
             'COMPLETE WORKFLOW EXAMPLE:\n' +
             '1. Call: create_review({"source": "uncommitted"})\n' +
             '2. Receive: {sessionId: "abc-123", reviewUrl: "http://localhost:3000/review/abc-123", ...}\n' +
@@ -61,9 +63,9 @@ export function createMCPServer() {
               },
               source: {
                 type: 'string',
-                enum: ['uncommitted', 'commit', 'branch'],
+                enum: ['uncommitted', 'commit', 'branch', 'local'],
                 description:
-                  'Git source: "uncommitted" for working tree changes, "commit" for specific commit, "branch" for branch comparison. Defaults to "uncommitted".',
+                  'Review source: "uncommitted" for Git working tree changes, "commit" for specific commit, "branch" for branch comparison, "local" for non-Git files (requires "files" parameter). Defaults to "uncommitted".',
                 default: 'uncommitted',
               },
               commitHash: {
