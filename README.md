@@ -24,16 +24,14 @@ ReAgent is a lightweight MCP server that opens a familiar, GitHub-style review i
 
 ## Usage
 
-1. Clone the repo locally
-1. Run `npm install` and `npm run build`
 1. Add it as an MCP server to your favorite Agentic coding tool.
 
 ```json
 {
   "mcpServers": {
     "reagent": {
-      "command": "node",
-      "args": ["$PATH_TO_REAGENT_REPO/dist/index.js"]
+      "command": "npx",
+      "args": ["@fsmiamoto/reagent"]
     }
   }
 }
@@ -43,26 +41,9 @@ ReAgent is a lightweight MCP server that opens a familiar, GitHub-style review i
 
 ReAgent uses a two-step workflow to enable interactive browser-based code reviews:
 
-1. **create_review**: Initiates a review session and returns a URL
+1. **create_review**: Initiates a review session and returns a URL.
+  * Optionally the it can open the browser with the review
 2. **get_review**: Retrieves the completed review results
-
-> Tip: Calling `create_review` with no arguments will automatically review all uncommitted changes
-> in your current git repository.
-
-**Complete Workflow Example:**
-
-```typescript
-// Step 1: Create review
-const result1 = await create_review({"source": "uncommitted"});
-// Returns: {sessionId: "abc-123", reviewUrl: "http://localhost:3000/review/abc-123", filesCount: 5}
-
-// Step 2: Show URL to user
-console.log(`Please review at: ${result1.reviewUrl}`);
-
-// Step 3: Get results (blocks until user completes review)
-const result2 = await get_review({"sessionId": result1.sessionId, "wait": true});
-// Returns: {status: "approved", generalFeedback: "LGTM!", comments: [...]}
-```
 
 #### Individual Usage Examples
 
@@ -105,7 +86,6 @@ Review local files without Git:
 ```
 
 > Note: Local mode is useful for reviewing things like implementation plans for agents which you don't want to commit to the repo.
-> The `files` parameter is required to specify which files to review.
 
 Review every file inside a directory (recursively):
 ```json
