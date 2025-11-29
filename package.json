@@ -1,6 +1,6 @@
 {
   "name": "@fsmiamoto/reagent",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Reagent: MCP server for local code reviews with GitHub-style UI",
   "type": "module",
   "main": "dist/index.js",
