@@ -4,6 +4,7 @@ import { Server } from 'http';
 import { startMCPServer } from './mcp/server.js';
 import { startWebServer } from './web/server.js';
 import { sessionStore } from './core/SessionStore.js';
+import { setActualPort } from './mcp/tools/reviewHelpers.js';
 
 let webServer: Server | null = null;
 let isCleaningUp = false;
@@ -37,7 +38,9 @@ async function main() {
     const port = parseInt(process.env.REAGENT_PORT || '3636', 10);
     const maxAttempts = parseInt(process.env.REAGENT_MAX_ATTEMPTS || '10', 10);
 
-    webServer = await startWebServer(port, maxAttempts);
+    const { server, port: actualPort } = await startWebServer(port, maxAttempts);
+    webServer = server;
+    setActualPort(actualPort);
 
     setInterval(() => {
       const cleaned = sessionStore.cleanupOldSessions();

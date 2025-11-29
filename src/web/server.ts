@@ -33,7 +33,10 @@ export function createWebServer() {
   return app;
 }
 
-export async function startWebServer(preferredPort: number, maxAttempts: number): Promise<Server> {
+export async function startWebServer(
+  preferredPort: number,
+  maxAttempts: number
+): Promise<{ server: Server; port: number }> {
   const app = createWebServer();
 
   for (let i = 0; i < maxAttempts; i++) {
@@ -46,7 +49,7 @@ export async function startWebServer(preferredPort: number, maxAttempts: number)
       });
 
       console.error(`[Reagent] Web server running on http://localhost:${port}`);
-      return server;
+      return { server, port };
     } catch (error: any) {
       if (error.code === 'EADDRINUSE' && i < maxAttempts - 1) {
         continue;
