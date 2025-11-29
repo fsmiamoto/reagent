@@ -20,7 +20,11 @@
     "inspector": "npx @modelcontextprotocol/inspector",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "preversion": "npm test",
+    "bump:patch": "npm version patch --message \"chore(release): %s\"",
+    "bump:minor": "npm version minor --message \"chore(release): %s\"",
+    "bump:major": "npm version major --message \"chore(release): %s\""
   },
   "keywords": [
     "mcp",
