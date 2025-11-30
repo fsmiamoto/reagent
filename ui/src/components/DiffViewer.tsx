@@ -8,8 +8,7 @@ import { MessageSquare, Plus, Trash2, ChevronDown, ChevronRight, FileJson, Colum
 import { diffLines } from 'diff';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { tokenizeToLines } from '../lib/prism';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { MarkdownPreview } from './MarkdownPreview';
 
 interface DiffViewerProps {
   file: ReviewFile;
@@ -252,11 +251,12 @@ export const DiffViewer: FC<DiffViewerProps> = ({
           </div>
         ) : null
       ) : previewMode ? (
-        <div className="p-6 prose dark:prose-invert max-w-none bg-background">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {file.content}
-          </ReactMarkdown>
-        </div>
+        <MarkdownPreview
+          file={file}
+          comments={comments}
+          onAddComment={onAddComment}
+          onDeleteComment={onDeleteComment}
+        />
       ) : (
         <div className="font-mono text-sm">
           {visibleRows.map((row, index) => {
