@@ -2,10 +2,14 @@
 import { useState, useMemo, type FC } from 'react';
 import type { ReviewFile, ReviewComment } from '../types';
 import { cn } from '../lib/utils';
+import { inferLanguage } from '../utils/language';
 import { Button } from './ui/Button';
-import { MessageSquare, Plus, Trash2, ChevronDown, ChevronRight, FileJson, Columns, Rows, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, ChevronDown, ChevronRight, FileJson, Columns, Rows, Minimize2, Maximize2, Eye, Code } from 'lucide-react';
 import { diffLines } from 'diff';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { tokenizeToLines } from '../lib/prism';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface DiffViewerProps {
   file: ReviewFile;
@@ -47,6 +51,16 @@ export const DiffViewer: FC<DiffViewerProps> = ({
   const [showAllLines, setShowAllLines] = useState(false);
   const [commentingLine, setCommentingLine] = useState<number | null>(null);
   const [commentText, setCommentText] = useState('');
+  const [previewMode, setPreviewMode] = useState(false);
+
+  const { oldTokens, newTokens } = useMemo(() => {
+    const lang = inferLanguage(file.path, file.language);
+
+    return {
+      oldTokens: tokenizeToLines(file.oldContent || '', lang),
+      newTokens: tokenizeToLines(file.content, lang),
+    };
+  }, [file.content, file.oldContent, file.language, file.path]);
 
   const diffRows = useMemo(() => {
     const changes = diffLines(file.oldContent || '', file.content);
@@ -175,6 +189,21 @@ export const DiffViewer: FC<DiffViewerProps> = ({
 
         {isExpanded && (
           <div className="flex items-center gap-1">
+            {file.path.endsWith('.md') && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn("h-7 px-2 text-xs gap-1.5", previewMode && "bg-muted text-foreground")}
+                  onClick={() => setPreviewMode(!previewMode)}
+                  title={previewMode ? "Show diff" : "Show preview"}
+                >
+                  {previewMode ? <Code className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  {previewMode ? "Diff" : "Preview"}
+                </Button>
+                <div className="w-px h-4 bg-border mx-1" />
+              </>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -192,6 +221,7 @@ export const DiffViewer: FC<DiffViewerProps> = ({
               className={cn("h-7 w-7", viewMode === 'unified' && "bg-muted text-foreground")}
               onClick={() => setViewMode('unified')}
               title="Unified view"
+              disabled={previewMode}
             >
               <Rows className="h-3.5 w-3.5" />
             </Button>
@@ -201,6 +231,7 @@ export const DiffViewer: FC<DiffViewerProps> = ({
               className={cn("h-7 w-7", viewMode === 'split' && "bg-muted text-foreground")}
               onClick={() => setViewMode('split')}
               title="Split view"
+              disabled={previewMode}
             >
               <Columns className="h-3.5 w-3.5" />
             </Button>
@@ -220,6 +251,12 @@ export const DiffViewer: FC<DiffViewerProps> = ({
             </Button>
           </div>
         ) : null
+      ) : previewMode ? (
+        <div className="p-6 prose dark:prose-invert max-w-none bg-background">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {file.content}
+          </ReactMarkdown>
+        </div>
       ) : (
         <div className="font-mono text-sm">
           {visibleRows.map((row, index) => {
@@ -294,7 +331,15 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                           <span className={cn("w-4 select-none opacity-50", textClass)}>
                             {row.type === 'added' ? '+' : row.type === 'removed' ? '-' : ' '}
                           </span>
-                          <code className={cn("whitespace-pre block min-w-full", textClass)}>{row.content || ' '}</code>
+                          <code className={cn("whitespace-pre block min-w-full", textClass)}>
+                            {(row.type === 'removed'
+                              ? oldTokens[(row.oldLineNumber || 0) - 1]
+                              : newTokens[(row.newLineNumber || 0) - 1])?.map((token, i) => (
+                                <span key={i} className={token.type !== 'text' ? `token ${token.type}` : undefined}>
+                                  {token.content}
+                                </span>
+                              )) || row.content || ' '}
+                          </code>
                         </div>
                       </div>
                     </div>
@@ -309,7 +354,11 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                         <div className={cn("flex-1 px-3 py-1 overflow-x-auto", row.type === 'added' && "bg-muted/5 opacity-30")}>
                           {row.type !== 'added' && (
                             <code className={cn("whitespace-pre block min-w-full", row.type === 'removed' ? textClass : "text-foreground")}>
-                              {row.content || ' '}
+                              {oldTokens[(row.oldLineNumber || 0) - 1]?.map((token, i) => (
+                                <span key={i} className={token.type !== 'text' ? `token ${token.type}` : undefined}>
+                                  {token.content}
+                                </span>
+                              )) || row.content || ' '}
                             </code>
                           )}
                         </div>
@@ -341,7 +390,11 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                         <div className={cn("flex-1 px-3 py-1 overflow-x-auto relative", row.type === 'removed' && "bg-muted/5 opacity-30")}>
                           {row.type !== 'removed' && (
                             <code className={cn("whitespace-pre block min-w-full", row.type === 'added' ? textClass : "text-foreground")}>
-                              {row.content || ' '}
+                              {newTokens[(row.newLineNumber || 0) - 1]?.map((token, i) => (
+                                <span key={i} className={token.type !== 'text' ? `token ${token.type}` : undefined}>
+                                  {token.content}
+                                </span>
+                              )) || row.content || ' '}
                             </code>
                           )}
                         </div>
