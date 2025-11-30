@@ -5,6 +5,7 @@ import { cn } from '../lib/utils';
 import { Button } from './ui/Button';
 import { MessageSquare, Plus, Trash2, ChevronDown, ChevronRight, FileJson, Columns, Rows, Minimize2, Maximize2 } from 'lucide-react';
 import { diffLines } from 'diff';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
 interface DiffViewerProps {
   file: ReviewFile;
@@ -141,6 +142,13 @@ export const DiffViewer: FC<DiffViewerProps> = ({
       console.error('Failed to submit comment:', error);
     }
   };
+
+  const { handleKeyDown } = useKeyboardShortcuts({
+    SUBMIT_COMMENT: (e) => {
+      e.preventDefault();
+      handleSubmitComment();
+    },
+  });
 
   return (
     <div className="flex-1 overflow-auto bg-card border border-border rounded-lg shadow-sm">
@@ -383,6 +391,7 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                             placeholder="Write a comment..."
                             className="w-full bg-transparent text-foreground placeholder:text-muted-foreground text-sm resize-none focus:outline-none min-h-[80px]"
                             autoFocus
+                            onKeyDown={handleKeyDown}
                           />
                           <div className="flex gap-2 justify-end border-t border-border pt-3">
                             <Button
