@@ -41,7 +41,7 @@ export function Header({
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2 text-primary">
                         <FlaskConical className="h-5 w-5" />
-                        <span className="font-bold tracking-tight hidden sm:inline-block">ReAgent</span>
+                        <span className="font-bold tracking-tight hidden sm:inline-block">Re<span className="text-secondary">Agent</span></span>
                     </div>
                     <span className="text-muted-foreground">/</span>
                     <div className="flex flex-col justify-center">

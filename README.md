@@ -1,6 +1,6 @@
 # ReAgent 
 
-> Code **Re**views for your **Agent**
+> **Re**views for your **Agent**
 
 ## Why is this useful?
 
@@ -13,6 +13,8 @@ But pointing to specific lines through chat is clunky, and setting up GitHub PRs
 ReAgent is a lightweight MCP server that opens a familiar, GitHub-style review interface right in your browser to speed your feedback cycles.
 
 ![ReAgent Usage](./docs/usage.png)
+
+![Plan Review](./docs/plan_review.png)
 
 ## Features
 
