@@ -6,54 +6,60 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    /* Tokyo Night Day (Light) */
+    --background: 228 11% 89%;
+    --foreground: 224 40% 25%;
+    /* Darker blue-grey for better text contrast */
+    --card: 228 11% 89%;
+    --card-foreground: 224 40% 25%;
+    --popover: 228 11% 89%;
+    --popover-foreground: 224 40% 25%;
+    --primary: 224 40% 25%;
+    --primary-foreground: 228 11% 89%;
+    --secondary: 274 53% 56%;
+    --secondary-foreground: 228 11% 89%;
+    --muted: 229 20% 81%;
+    --muted-foreground: 224 25% 45%;
+    /* Slightly darker muted text */
+    --accent: 220 15% 85%;
+    /* Softer grey-blue accent for light mode */
+    --accent-foreground: 224 40% 25%;
+    --destructive: 343 91% 56%;
+    --destructive-foreground: 228 11% 89%;
+    --border: 227 35% 71%;
+    --input: 227 35% 71%;
+    --ring: 222 55% 48%;
     --radius: 0.5rem;
 
-    /* Diff colors */
-    --diff-add: 142 76% 36%;
-    --diff-add-bg: 142 76% 95%;
+    /* Diff colors - Adjusted for light theme */
+    --diff-add: 142 70% 40%;
+    --diff-add-bg: 142 70% 90%;
     --diff-remove: 0 84% 60%;
     --diff-remove-bg: 0 84% 95%;
   }
 
   :root[data-theme="dark"] {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    /* Tokyo Night (Dark) */
+    --background: 235 19% 13%;
+    --foreground: 229 34% 75%;
+    --card: 235 19% 13%;
+    --card-foreground: 229 34% 75%;
+    --popover: 235 19% 13%;
+    --popover-foreground: 229 34% 75%;
+    --primary: 221 87% 72%;
+    --primary-foreground: 235 19% 13%;
+    --secondary: 261 82% 79%;
+    --secondary-foreground: 235 19% 13%;
+    --muted: 229 23% 44%;
+    --muted-foreground: 229 34% 75%;
+    --accent: 223 25% 25%;
+    /* Darker, more subtle blue-grey for dark mode selection */
+    --accent-foreground: 229 34% 75%;
+    --destructive: 347 87% 71%;
+    --destructive-foreground: 235 19% 13%;
+    --border: 229 23% 33%;
+    --input: 229 23% 33%;
+    --ring: 221 87% 72%;
 
     /* Diff colors */
     --diff-add: 142 70% 50%;
@@ -67,6 +73,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
@@ -89,4 +96,140 @@
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-muted-foreground/50;
+}
+
+/* Syntax Highlighting Overrides */
+/* Light Theme (Default) */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: hsl(224 40% 25%);
+  /* Default text */
+  text-shadow: none;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #848cb5;
+  /* Grey-blue comment */
+}
+
+.token.punctuation {
+  color: #343b58;
+  /* Dark grey punctuation */
+}
+
+.token.namespace {
+  opacity: .7;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #b15c00;
+  /* Orange/Brown for values */
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #485e30;
+  /* Greenish for strings */
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: #0f4b6e;
+  /* Dark cyan/blue */
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #9854cb;
+  /* Purple keywords */
+}
+
+.token.function,
+.token.class-name {
+  color: #2e3c64;
+  /* Dark blue functions */
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #b15c00;
+}
+
+/* Dark Theme Overrides */
+:root[data-theme="dark"] code[class*="language-"],
+:root[data-theme="dark"] pre[class*="language-"] {
+  color: #a9b1d6;
+}
+
+:root[data-theme="dark"] .token.comment,
+:root[data-theme="dark"] .token.prolog,
+:root[data-theme="dark"] .token.doctype,
+:root[data-theme="dark"] .token.cdata {
+  color: #565f89;
+}
+
+:root[data-theme="dark"] .token.punctuation {
+  color: #a9b1d6;
+}
+
+:root[data-theme="dark"] .token.property,
+:root[data-theme="dark"] .token.tag,
+:root[data-theme="dark"] .token.boolean,
+:root[data-theme="dark"] .token.number,
+:root[data-theme="dark"] .token.constant,
+:root[data-theme="dark"] .token.symbol,
+:root[data-theme="dark"] .token.deleted {
+  color: #ff9e64;
+}
+
+:root[data-theme="dark"] .token.selector,
+:root[data-theme="dark"] .token.attr-name,
+:root[data-theme="dark"] .token.string,
+:root[data-theme="dark"] .token.char,
+:root[data-theme="dark"] .token.builtin,
+:root[data-theme="dark"] .token.inserted {
+  color: #9ece6a;
+}
+
+:root[data-theme="dark"] .token.operator,
+:root[data-theme="dark"] .token.entity,
+:root[data-theme="dark"] .token.url,
+:root[data-theme="dark"] .language-css .token.string,
+:root[data-theme="dark"] .style .token.string {
+  color: #89ddff;
+}
+
+:root[data-theme="dark"] .token.atrule,
+:root[data-theme="dark"] .token.attr-value,
+:root[data-theme="dark"] .token.keyword {
+  color: #bb9af7;
+}
+
+:root[data-theme="dark"] .token.function,
+:root[data-theme="dark"] .token.class-name {
+  color: #7aa2f7;
+}
+
+:root[data-theme="dark"] .token.regex,
+:root[data-theme="dark"] .token.important,
+:root[data-theme="dark"] .token.variable {
+  color: #c0caf5;
 }
