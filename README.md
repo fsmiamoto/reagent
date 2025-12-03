@@ -33,7 +33,7 @@ ReAgent is a lightweight MCP server that opens a familiar, GitHub-style review i
   "mcpServers": {
     "reagent": {
       "command": "npx",
-      "args": ["@fsmiamoto/reagent"]
+      "args": ["@fsmiamoto/reagent@latest"]
     }
   }
 }

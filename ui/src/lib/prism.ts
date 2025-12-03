@@ -14,13 +14,12 @@ import 'prismjs/components/prism-rust';
 import 'prismjs/components/prism-java';
 
 export type Token = {
-    type: string;
+    types: string[];
     content: string;
 };
 
 const fallbackTokenization = (code: string): Token[][] => {
-    // Handles languages that are not registered or when no language is provided
-    return code.split('\n').map(line => [{ type: 'text', content: line }]);
+    return code.split('\n').map(line => [{ types: ['text'], content: line }]);
 };
 
 export const tokenizeToLines = (code: string, language?: string): Token[][] => {
@@ -32,7 +31,7 @@ export const tokenizeToLines = (code: string, language?: string): Token[][] => {
     const lines: Token[][] = [];
     let currentLine: Token[] = [];
 
-    const addToken = (token: Prism.Token | string) => {
+    const processToken = (token: Prism.Token | string, accumulatedTypes: string[] = []) => {
         if (typeof token === 'string') {
             const parts = token.split('\n');
             parts.forEach((part, index) => {
@@ -41,25 +40,22 @@ export const tokenizeToLines = (code: string, language?: string): Token[][] => {
                     currentLine = [];
                 }
                 if (part) {
-                    currentLine.push({ type: 'text', content: part });
+                    currentLine.push({ types: accumulatedTypes.length ? accumulatedTypes : ['text'], content: part });
                 }
             });
         } else {
-            const content = Prism.Token.stringify(token.content, language);
-            const parts = content.split('\n');
-            parts.forEach((part, index) => {
-                if (index > 0) {
-                    lines.push(currentLine);
-                    currentLine = [];
-                }
-                if (part) {
-                    currentLine.push({ type: token.type, content: part });
-                }
-            });
+            const newTypes = [...accumulatedTypes, token.type];
+            if (Array.isArray(token.content)) {
+                token.content.forEach(subToken => processToken(subToken, newTypes));
+            } else if (typeof token.content === 'string') {
+                processToken(token.content, newTypes);
+            } else {
+                processToken(token.content, newTypes);
+            }
         }
     };
 
-    tokens.forEach(addToken);
+    tokens.forEach(token => processToken(token));
     lines.push(currentLine);
 
     return lines;

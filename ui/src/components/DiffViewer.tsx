@@ -335,7 +335,10 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                             {(row.type === 'removed'
                               ? oldTokens[(row.oldLineNumber || 0) - 1]
                               : newTokens[(row.newLineNumber || 0) - 1])?.map((token, i) => (
-                                <span key={i} className={token.type !== 'text' ? `token ${token.type}` : undefined}>
+                                <span
+                                  key={i}
+                                  className={token.types.length > 1 || token.types[0] !== 'text' ? `token ${token.types.join(' ')}` : undefined}
+                                >
                                   {token.content}
                                 </span>
                               )) || row.content || ' '}
@@ -355,7 +358,10 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                           {row.type !== 'added' && (
                             <code className={cn("whitespace-pre block min-w-full", row.type === 'removed' ? textClass : "text-foreground")}>
                               {oldTokens[(row.oldLineNumber || 0) - 1]?.map((token, i) => (
-                                <span key={i} className={token.type !== 'text' ? `token ${token.type}` : undefined}>
+                                <span
+                                  key={i}
+                                  className={token.types.length > 1 || token.types[0] !== 'text' ? `token ${token.types.join(' ')}` : undefined}
+                                >
                                   {token.content}
                                 </span>
                               )) || row.content || ' '}
@@ -391,7 +397,10 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                           {row.type !== 'removed' && (
                             <code className={cn("whitespace-pre block min-w-full", row.type === 'added' ? textClass : "text-foreground")}>
                               {newTokens[(row.newLineNumber || 0) - 1]?.map((token, i) => (
-                                <span key={i} className={token.type !== 'text' ? `token ${token.type}` : undefined}>
+                                <span
+                                  key={i}
+                                  className={token.types.length > 1 || token.types[0] !== 'text' ? `token ${token.types.join(' ')}` : undefined}
+                                >
                                   {token.content}
                                 </span>
                               )) || row.content || ' '}
