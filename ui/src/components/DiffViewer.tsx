@@ -164,9 +164,9 @@ export const DiffViewer: FC<DiffViewerProps> = ({
   });
 
   return (
-    <div className="flex-1 overflow-auto bg-card border border-border rounded-lg shadow-sm">
+    <div className="flex-1 overflow-auto bg-card/50 backdrop-blur-sm border border-border/60 rounded-lg shadow-md hover:shadow-lg transition-shadow">
       <div
-        className="p-3 border-b border-border bg-muted/30 sticky top-0 z-10 flex items-center justify-between"
+        className="p-3 border-b border-border/60 bg-card/80 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between"
       >
         <div
           className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors"
@@ -413,13 +413,13 @@ export const DiffViewer: FC<DiffViewerProps> = ({
 
                   {/* Comments (Shared for both views for now, spanning full width) */}
                   {lineComments.length > 0 && (
-                    <div className="flex bg-muted/10 border-t border-border/30">
-                      <div className="w-[88px] border-r border-border/50" />
+                    <div className="flex bg-card/20 backdrop-blur-sm border-t border-border/60">
+                      <div className="w-[88px] border-r border-border/60" />
                       <div className="flex-1 p-4 space-y-3">
                         {lineComments.map((comment) => (
                           <div
                             key={comment.id}
-                            className="flex items-start justify-between group/comment bg-card border border-border rounded p-3 shadow-sm"
+                            className="flex items-start justify-between group/comment bg-card/60 backdrop-blur-sm border border-border/60 rounded p-3 shadow-sm"
                           >
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
@@ -443,10 +443,10 @@ export const DiffViewer: FC<DiffViewerProps> = ({
 
                   {/* Comment input */}
                   {isCommenting && (
-                    <div className="flex bg-muted/10 border-t border-border/30">
-                      <div className="w-[88px] border-r border-border/50" />
+                    <div className="flex bg-card/20 backdrop-blur-sm border-t border-border/60">
+                      <div className="w-[88px] border-r border-border/60" />
                       <div className="flex-1 p-4">
-                        <div className="bg-card border border-border rounded-lg shadow-sm p-3 space-y-3 ring-1 ring-primary/20">
+                        <div className="bg-card/60 backdrop-blur-sm border border-border/60 rounded-lg shadow-sm p-3 space-y-3 ring-1 ring-primary/20">
                           <textarea
                             value={commentText}
                             onChange={(e) => setCommentText(e.target.value)}
@@ -455,7 +455,7 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                             autoFocus
                             onKeyDown={handleKeyDown}
                           />
-                          <div className="flex gap-2 justify-end border-t border-border pt-3">
+                          <div className="flex gap-2 justify-end border-t border-border/60 pt-3">
                             <Button
                               variant="ghost"
                               size="sm"

@@ -70,7 +70,7 @@ const FileTreeNode: FC<{
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "w-full px-2 py-1 text-left text-sm hover:bg-muted/50 flex items-center gap-1.5 select-none transition-colors",
+            "w-full px-2 py-1 text-left text-sm hover:bg-muted/50 flex items-center gap-1.5 select-none transition-all duration-200",
             "text-muted-foreground hover:text-foreground"
           )}
           style={{ paddingLeft: `${level * 12 + 8}px` }}
@@ -119,10 +119,10 @@ const FileTreeNode: FC<{
     <button
       onClick={() => onFileSelect(node.path)}
       className={cn(
-        "w-full px-2 py-1 text-left text-sm transition-colors flex items-center gap-2 group border-l-2",
+        "w-full px-2 py-1 text-left text-sm transition-all duration-200 flex items-center gap-2 group border-l-2",
         isSelected
-          ? "bg-accent text-accent-foreground border-primary"
-          : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+          ? "bg-accent text-accent-foreground border-primary font-medium"
+          : "hover:bg-accent/50 border-transparent"
       )}
       style={{ paddingLeft: `${level * 12 + 20}px` }}
     >
@@ -159,9 +159,9 @@ export const FileTree: FC<FileTreeProps> = ({
   }, {} as Record<string, number>), [comments]);
 
   return (
-    <div className="flex flex-col h-full bg-card">
-      <div className="p-4 border-b border-border">
-        <h2 className="text-sm font-semibold text-foreground">Files Changed</h2>
+    <div className="flex flex-col h-full bg-card/30 backdrop-blur-sm">
+      <div className="p-4 border-b border-border/60 bg-card/20 backdrop-blur-sm">
+        <h2 className="text-sm font-display font-semibold text-foreground">Files Changed</h2>
         <p className="text-xs text-muted-foreground mt-1">{files.length} files</p>
       </div>
 

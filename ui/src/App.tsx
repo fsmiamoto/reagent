@@ -164,7 +164,7 @@ function App() {
             key={file.path}
             ref={(el) => setFileRef(file.path, el)}
             data-file-path={file.path}
-            className="scroll-mt-20"
+            className="scroll-mt-20 animate-fade-in"
           >
             <DiffViewer
               file={file}

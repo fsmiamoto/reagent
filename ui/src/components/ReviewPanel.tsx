@@ -22,7 +22,7 @@ export const ReviewPanel: FC<ReviewPanelProps> = ({
   return (
     <div className="flex flex-col gap-4">
       <div className="space-y-1">
-        <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+        <h2 className="text-sm font-display font-semibold text-foreground flex items-center gap-2">
           <MessageSquare className="h-4 w-4" />
           Review Summary
         </h2>
@@ -37,7 +37,7 @@ export const ReviewPanel: FC<ReviewPanelProps> = ({
           value={generalFeedback}
           onChange={(e) => onFeedbackChange(e.target.value)}
           placeholder="Add your overall feedback..."
-          className="w-full h-32 bg-input text-foreground border border-input rounded-md p-3 text-sm resize-none focus:ring-2 focus:ring-ring focus:border-input focus:outline-none placeholder:text-muted-foreground"
+          className="w-full h-32 bg-background/50 backdrop-blur-sm text-foreground border border-border/60 rounded-md p-3 text-sm resize-none focus:ring-2 focus:ring-primary/50 focus:outline-none focus:border-primary/30 placeholder:text-muted-foreground transition-all duration-200"
         />
       </div>
 
@@ -46,7 +46,7 @@ export const ReviewPanel: FC<ReviewPanelProps> = ({
           <Button
             onClick={onApprove}
             disabled={isSubmitting}
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            className="w-full bg-success hover:bg-success/90 text-success-foreground"
             loading={isSubmitting}
           >
             {!isSubmitting && <Check className="mr-2 h-4 w-4" />}

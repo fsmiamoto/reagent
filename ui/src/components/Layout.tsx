@@ -13,7 +13,7 @@ export function Layout({ sidebar, rightSidebar, header, children, className }: L
     return (
         <div className={cn("flex h-screen w-full overflow-hidden bg-background text-foreground", className)}>
             {sidebar && (
-                <aside className="w-64 flex-shrink-0 border-r border-border bg-card">
+                <aside className="w-64 lg:w-72 flex-shrink-0 border-r border-border bg-card/50 backdrop-blur-sm">
                     {sidebar}
                 </aside>
             )}

@@ -20,7 +20,7 @@ export function Header({
     className
 }: HeaderProps) {
     return (
-        <header className={cn("flex h-14 items-center gap-4 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0", className)}>
+        <header className={cn("flex h-16 items-center gap-4 border-b border-border/60 bg-background/80 px-6 backdrop-blur-xl shadow-sm flex-shrink-0", className)}>
             <div className="flex items-center gap-2">
                 <Button
                     variant="ghost"
@@ -41,11 +41,11 @@ export function Header({
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2 text-primary">
                         <FlaskConical className="h-5 w-5" />
-                        <span className="font-bold tracking-tight hidden sm:inline-block">Re<span className="text-secondary">Agent</span></span>
+                        <span className="font-display font-bold tracking-tight hidden sm:inline-block text-base">Re<span className="text-secondary">Agent</span></span>
                     </div>
                     <span className="text-muted-foreground">/</span>
                     <div className="flex flex-col justify-center">
-                        <h1 className="text-sm font-medium leading-none">{title}</h1>
+                        <h1 className="text-sm font-display font-semibold leading-none">{title}</h1>
                         {description && (
                             <p className="text-[10px] text-muted-foreground line-clamp-1 max-w-[300px] mt-0.5" title={description}>
                                 {description}
