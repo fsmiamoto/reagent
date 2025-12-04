@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 
+import { Command } from 'commander';
 import { Server } from 'http';
 import { startMCPServer } from './mcp/server.js';
 import { startWebServer } from './web/server.js';
 import { sessionStore } from './core/SessionStore.js';
 import { setActualPort } from './mcp/tools/reviewHelpers.js';
+import { spawn } from 'child_process';
+
+const program = new Command();
 
 let webServer: Server | null = null;
 let isCleaningUp = false;
@@ -14,6 +18,9 @@ function cleanup() {
   if (isCleaningUp) return;
   isCleaningUp = true;
 
+  // Only log if we are not in a detached child process that ignores stdio,
+  // but here we are in the main process or attached child.
+  // If we are the MCP server, we should log to stderr.
   console.error('\n[Reagent] Shutting down...');
 
   if (!webServer) {
@@ -33,32 +40,248 @@ function cleanup() {
   });
 }
 
-async function main() {
-  try {
-    const port = parseInt(process.env.REAGENT_PORT || '3636', 10);
-    const maxAttempts = parseInt(process.env.REAGENT_MAX_ATTEMPTS || '10', 10);
-
-    const { server, port: actualPort } = await startWebServer(port, maxAttempts);
-    webServer = server;
-    setActualPort(actualPort);
-
-    setInterval(() => {
-      const cleaned = sessionStore.cleanupOldSessions();
-      if (cleaned > 0) {
-        console.error(`[Reagent] Cleaned up ${cleaned} old session(s)`);
-      }
-    }, 60 * 60 * 1000);
-
-    process.stdin.on('end', cleanup);
-
-    await startMCPServer();
-  } catch (error) {
-    console.error('[Reagent] Failed to start:', error);
-    process.exit(1);
-  }
-}
-
 process.on('SIGINT', cleanup);
 process.on('SIGTERM', cleanup);
 
-main();
+program
+  .name('reagent')
+  .description('Reagent: MCP server for local code reviews with GitHub-style UI')
+  .version('0.0.9');
+
+program
+  .command('mcp')
+  .description('Start the MCP server (stdio)')
+  .action(async () => {
+    try {
+      process.stdin.on('end', cleanup);
+      await startMCPServer();
+    } catch (error) {
+      console.error('[Reagent] Failed to start MCP server:', error);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('start')
+  .description('Start the ReAgent Web Server')
+  .option('-p, --port <number>', 'Port to run on', '3636')
+  .option('-d, --detach', 'Run in the background (daemon mode)')
+  .action(async (options) => {
+    if (options.detach) {
+      // Remove -d/--detach from args to prevent infinite loop in child
+      const args = process.argv.slice(2).filter((arg) => arg !== '-d' && arg !== '--detach');
+
+      const child = spawn(process.argv[0], [process.argv[1], ...args], {
+        detached: true,
+        stdio: 'ignore',
+      });
+
+      child.unref();
+      console.error(`[Reagent] Server started in background (PID: ${child.pid})`);
+      process.exit(0);
+      return;
+    }
+
+    try {
+      const port = parseInt(options.port, 10);
+      const maxAttempts = parseInt(process.env.REAGENT_MAX_ATTEMPTS || '10', 10);
+
+      const { server, port: actualPort } = await startWebServer(port, maxAttempts);
+      webServer = server;
+      setActualPort(actualPort);
+
+      // Cleanup old sessions periodically
+      setInterval(() => {
+        const cleaned = sessionStore.cleanupOldSessions();
+        if (cleaned > 0) {
+          console.error(`[Reagent] Cleaned up ${cleaned} old session(s)`);
+        }
+      }, 60 * 60 * 1000);
+
+      // Keep process alive
+    } catch (error) {
+      console.error('[Reagent] Failed to start web server:', error);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('list')
+  .description('List active review sessions')
+  .action(async () => {
+    try {
+      const port = parseInt(process.env.REAGENT_PORT || '3636', 10);
+      const response = await fetch(`http://localhost:${port}/api/sessions`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch sessions: ${response.statusText}`);
+      }
+
+      const sessions = (await response.json()) as any[];
+
+      if (sessions.length === 0) {
+        console.log('No active review sessions found.');
+        return;
+      }
+
+      console.table(
+        sessions.map((s: any) => ({
+          ID: s.id,
+          Status: s.status,
+          Files: s.filesCount,
+          Title: s.title || '(no title)',
+          Created: new Date(s.createdAt).toLocaleString(),
+        }))
+      );
+    } catch (error) {
+      console.error('[Reagent] Failed to list sessions. Is the server running?');
+      process.exit(1);
+    }
+  });
+
+program
+  .command('review [files...]')
+  .description('Create a new review session')
+  .option('-s, --source <type>', 'Review source (uncommitted, commit, branch, local)', 'uncommitted')
+  .option('--base <ref>', 'Base ref for branch comparison')
+  .option('--head <ref>', 'Head ref for branch comparison')
+  .option('--commit <hash>', 'Commit hash for commit review')
+  .option('--title <string>', 'Review title')
+  .option('--description <string>', 'Review description')
+  .option('--no-open', 'Do not open the browser automatically')
+  .option('--auto-start', 'Start the server if it is not running')
+  .action(async (files, options) => {
+    const port = parseInt(process.env.REAGENT_PORT || '3636', 10);
+    const apiUrl = `http://localhost:${port}/api`;
+
+    // Check if server is running
+    let isRunning = false;
+    try {
+      const res = await fetch(`${apiUrl}/health`);
+      if (res.ok) isRunning = true;
+    } catch (e) {
+      // ignore
+    }
+
+    if (!isRunning) {
+      if (options.autoStart) {
+        console.log('[Reagent] Server not running. Starting...');
+        const child = spawn(process.argv[0], [process.argv[1], 'start', '--detach'], {
+          detached: true,
+          stdio: 'ignore',
+        });
+        child.unref();
+
+        // Wait for server to be ready
+        let attempts = 0;
+        while (attempts < 20) {
+          await new Promise((r) => setTimeout(r, 500));
+          try {
+            const res = await fetch(`${apiUrl}/health`);
+            if (res.ok) {
+              isRunning = true;
+              break;
+            }
+          } catch (e) {
+            // ignore
+          }
+          attempts++;
+        }
+
+        if (!isRunning) {
+          console.error('[Reagent] Failed to start server.');
+          process.exit(1);
+        }
+      } else {
+        console.error('[Reagent] Server is not running. Use --auto-start or run "reagent start" first.');
+        process.exit(1);
+      }
+    }
+
+    // Prepare request body
+    const body = {
+      source: options.source,
+      files: files.length > 0 ? files : undefined,
+      base: options.base,
+      head: options.head,
+      commitHash: options.commit,
+      title: options.title,
+      description: options.description,
+      openBrowser: options.open,
+      workingDirectory: process.cwd(),
+    };
+
+    try {
+      const response = await fetch(`${apiUrl}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const error = (await response.json()) as any;
+        throw new Error(error.error || response.statusText);
+      }
+
+      const result = (await response.json()) as any;
+      console.log(`[Reagent] Review created: ${result.reviewUrl}`);
+    } catch (error: any) {
+      console.error('[Reagent] Failed to create review:', error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('get <sessionId>')
+  .description('Get review status and results')
+  .option('--wait', 'Wait for the review to complete')
+  .option('--json', 'Output result as JSON')
+  .action(async (sessionId, options) => {
+    const port = parseInt(process.env.REAGENT_PORT || '3636', 10);
+    const apiUrl = `http://localhost:${port}/api`;
+
+    try {
+      let session;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const response = await fetch(`${apiUrl}/sessions/${sessionId}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            console.error('[Reagent] Session not found.');
+          } else {
+            console.error(`[Reagent] Failed to fetch session: ${response.statusText}`);
+          }
+          process.exit(1);
+        }
+
+        session = (await response.json()) as any;
+
+        if (!options.wait || session.status !== 'pending') {
+          break;
+        }
+
+        // Wait 1 second before polling again
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+
+      if (options.json) {
+        console.log(JSON.stringify(session, null, 2));
+      } else {
+        console.log(`Review Status: ${session.status}`);
+        if (session.status === 'pending') {
+          console.log('Review is still in progress.');
+        } else {
+          console.log(`\nGeneral Feedback:\n${session.generalFeedback || '(none)'}`);
+          console.log(`\nComments (${session.comments.length}):`);
+          session.comments.forEach((c: any) => {
+            console.log(`- ${c.filePath}:${c.lineNumber}: ${c.text}`);
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error('[Reagent] Error:', error.message);
+      process.exit(1);
+    }
+  });
+
+program.parse();

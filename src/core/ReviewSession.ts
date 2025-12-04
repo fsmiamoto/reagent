@@ -9,10 +9,6 @@ import type {
 
 /**
  * Represents a code review session with deferred promise pattern
- *
- * The key innovation here is the deferred promise - we create a promise
- * and capture its resolve/reject functions so they can be called externally
- * when the user completes their review in the browser.
  */
 export class ReviewSession {
   public readonly id: string;

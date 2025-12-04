@@ -1,9 +1,47 @@
 import { Router } from 'express';
 import { sessionStore } from '../../core/SessionStore.js';
-import { AddCommentRequestSchema, CompleteReviewRequestSchema } from '../../shared/schemas.js';
+import { AddCommentRequestSchema, CompleteReviewRequestSchema, CreateReviewInputSchema } from '../../shared/schemas.js';
+import { createReview } from '../../mcp/tools/createReview.js';
 import type { AddCommentRequest, CompleteReviewRequest } from '../../shared/types.js';
 
 export const apiRouter = Router();
+
+/**
+ * GET /api/sessions
+ * List all active review sessions
+ */
+apiRouter.get('/sessions', (_req, res) => {
+  const sessions = sessionStore.getAllSessions().map((session) => ({
+    id: session.id,
+    status: session.status,
+    filesCount: session.files.length,
+    title: session.title,
+    description: session.description,
+    createdAt: session.createdAt,
+  }));
+
+  res.json(sessions);
+});
+
+/**
+ * POST /api/reviews
+ * Create a new review session
+ */
+apiRouter.post('/reviews', async (req, res) => {
+  try {
+    const input = CreateReviewInputSchema.parse(req.body);
+    const result = await createReview(input);
+
+    res.status(201).json(result);
+  } catch (error) {
+    console.error('Failed to create review:', error);
+    if (error instanceof Error) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
+    res.status(400).json({ error: 'Invalid request' });
+  }
+});
 
 /**
  * GET /api/sessions/:id
