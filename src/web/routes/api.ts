@@ -30,7 +30,9 @@ apiRouter.get('/sessions', (_req, res) => {
 apiRouter.post('/reviews', async (req, res) => {
   try {
     const input = CreateReviewInputSchema.parse(req.body);
-    const result = await createReview(input);
+    const host = req.get('host');
+
+    const result = await createReview({ ...input, _host: host });
 
     res.status(201).json(result);
   } catch (error) {

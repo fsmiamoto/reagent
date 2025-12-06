@@ -3,6 +3,7 @@ import { ReviewSession } from '../../core/ReviewSession.js';
 import { sessionStore } from '../../core/SessionStore.js';
 import type { CreateReviewInput, CreateReviewResult } from '../../shared/types.js';
 import { extractReviewFiles, buildReviewUrl } from './reviewHelpers.js';
+import { getPort } from '../../config.js';
 
 export async function createReview(input: CreateReviewInput): Promise<CreateReviewResult> {
   try {
@@ -21,7 +22,9 @@ export async function createReview(input: CreateReviewInput): Promise<CreateRevi
     // Store the session so the web UI can access it
     sessionStore.set(session);
 
-    const reviewUrl = buildReviewUrl(session.id);
+    // Use explicit host if provided, otherwise construct from getPort()
+    const host = input._host ?? `localhost:${getPort()}`;
+    const reviewUrl = buildReviewUrl(session.id, host);
 
     // Optionally open browser (can be disabled for remote scenarios)
     const shouldOpenBrowser = input.openBrowser ?? true;

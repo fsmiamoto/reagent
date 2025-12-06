@@ -3,6 +3,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { createReview } from './tools/createReview.js';
 import { getReview } from './tools/getReview.js';
+import { ensureServerRunning } from '../web/lifecycle.js';
 import {
   CreateReviewInputSchema,
   GetReviewInputSchema,
@@ -189,6 +190,8 @@ export function createMCPServer() {
  * Start the MCP server with stdio transport
  */
 export async function startMCPServer() {
+  await ensureServerRunning();
+
   const server = createMCPServer();
   const transport = new StdioServerTransport();
 

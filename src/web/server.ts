@@ -8,6 +8,20 @@ import { apiRouter } from './routes/api.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+export const DEFAULT_WEB_SERVER_PORT = 3636;
+
+export function getWebServerPort(): number {
+  const portFromEnv = process.env.REAGENT_PORT && Number.parseInt(process.env.REAGENT_PORT, 10);
+
+  if (portFromEnv && Number.isNaN(portFromEnv)) {
+    throw new Error(`Couldn't parse port from envvar: ${process.env.REAGENT_PORT}`);
+  }
+
+  return portFromEnv || DEFAULT_WEB_SERVER_PORT;
+}
+
+export { DEFAULT_PORT, getPort } from '../config.js';
+
 export function createWebServer() {
   const app = express();
 
@@ -34,28 +48,22 @@ export function createWebServer() {
 }
 
 export async function startWebServer(
-  preferredPort: number,
-  maxAttempts: number
+  port: number
 ): Promise<{ server: Server; port: number }> {
   const app = createWebServer();
 
-  for (let i = 0; i < maxAttempts; i++) {
-    const port = preferredPort + i;
+  try {
+    const server = await new Promise<Server>((resolve, reject) => {
+      const srv = app.listen(port, () => resolve(srv));
+      srv.on('error', reject);
+    });
 
-    try {
-      const server = await new Promise<Server>((resolve, reject) => {
-        const srv = app.listen(port, () => resolve(srv));
-        srv.on('error', reject);
-      });
-
-      console.error(`[Reagent] Web server running on http://localhost:${port}`);
-      return { server, port };
-    } catch (error: any) {
-      if (error.code === 'EADDRINUSE' && i < maxAttempts - 1) {
-        continue;
-      }
+    console.error(`[Reagent] Web server running on http://localhost:${port}`);
+    return { server, port };
+  } catch (error: any) {
+    if (error.code === 'EADDRINUSE') {
+      throw new Error(`Port ${port} is already in use`);
     }
+    throw error;
   }
-
-  throw new Error(`Failed to start web server after ${maxAttempts} attempts`);
 }
