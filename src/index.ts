@@ -15,8 +15,6 @@ let webServer: Server | null = null;
 let isCleaningUp = false;
 
 function resolvePort(portOption?: string): number {
-  // If no explicit port provided, or it matches the CLI default,
-  // use getPort() which respects REAGENT_PORT env var
   if (!portOption || portOption === DEFAULT_PORT.toString()) {
     return getPort();
   }
@@ -30,13 +28,9 @@ function resolvePort(portOption?: string): number {
 }
 
 function cleanup() {
-  // We're in Node so this is fine although is not properly atomic
   if (isCleaningUp) return;
   isCleaningUp = true;
 
-  // Only log if we are not in a detached child process that ignores stdio,
-  // but here we are in the main process or attached child.
-  // If we are the MCP server, we should log to stderr.
   console.error('\n[Reagent] Shutting down...');
 
   if (!webServer) {
@@ -84,7 +78,6 @@ program
   .option('-d, --detach', 'Run in the background (daemon mode)')
   .action(async (options) => {
     if (options.detach) {
-      // Remove -d/--detach from args to prevent infinite loop in child
       const args = process.argv.slice(2).filter((arg) => arg !== '-d' && arg !== '--detach');
 
       const child = spawn(process.argv[0], [process.argv[1], ...args], {
@@ -104,15 +97,12 @@ program
       const { server } = await startWebServer(port);
       webServer = server;
 
-      // Cleanup old sessions periodically
       setInterval(() => {
         const cleaned = sessionStore.cleanupOldSessions();
         if (cleaned > 0) {
           console.error(`[Reagent] Cleaned up ${cleaned} old session(s)`);
         }
       }, 60 * 60 * 1000);
-
-      // Keep process alive
     } catch (error) {
       console.error('[Reagent] Failed to start web server:', error);
       process.exit(1);
@@ -173,7 +163,6 @@ program
     if (options.autoStart) {
       await ensureServerRunning(port);
     } else {
-      // Just check if running, don't start
       try {
         const res = await fetch(`${apiUrl}/health`);
         if (!res.ok) throw new Error();
@@ -183,7 +172,6 @@ program
       }
     }
 
-    // Prepare request body
     const body = {
       source: options.source,
       files: files.length > 0 ? files : undefined,
@@ -246,7 +234,6 @@ program
           break;
         }
 
-        // Wait 1 second before polling again
         await new Promise((r) => setTimeout(r, 1000));
       }
 

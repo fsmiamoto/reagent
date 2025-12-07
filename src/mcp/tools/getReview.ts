@@ -14,7 +14,6 @@ export async function getReview(input: GetReviewInput): Promise<ReviewResult | G
   );
 
   try {
-    // Poll for completion if wait=true
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const response = await fetch(`${apiUrl}/sessions/${sessionId}`);
@@ -42,13 +41,11 @@ export async function getReview(input: GetReviewInput): Promise<ReviewResult | G
         }>;
       };
 
-      // Non-blocking mode or review is complete
       if (!wait || session.status !== 'pending') {
         const result: GetReviewResult = {
           status: session.status,
         };
 
-        // Include feedback/comments if review is completed
         if (session.status === 'approved' || session.status === 'changes_requested') {
           result.generalFeedback = session.generalFeedback;
           result.comments = session.comments;
@@ -65,7 +62,6 @@ export async function getReview(input: GetReviewInput): Promise<ReviewResult | G
         return result;
       }
 
-      // Wait 1 second before polling again
       await new Promise((r) => setTimeout(r, 1000));
     }
   } catch (error) {

@@ -33,7 +33,6 @@ export const DiffViewer: FC<DiffViewerProps> = ({
     onAddComment,
     onDeleteComment,
 }) => {
-    // Validation
     const validationError = validateReviewFile(file);
     if (validationError) {
         return (

@@ -82,7 +82,6 @@ export class ReviewSession {
     this.status = status;
     this.generalFeedback = generalFeedback;
 
-    // Clear timeout
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
     }
@@ -94,7 +93,6 @@ export class ReviewSession {
       timestamp: new Date(),
     };
 
-    // Resolve the promise - this unblocks the MCP tool
     this.resolvePromise(result);
   }
 
@@ -103,17 +101,15 @@ export class ReviewSession {
    */
   cancel(reason: string = 'Review cancelled'): void {
     if (this.status !== 'pending') {
-      return; // Already completed
+      return;
     }
 
     this.status = 'cancelled';
 
-    // Clear timeout
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
     }
 
-    // Reject the promise - this will error in the MCP tool
     this.rejectPromise(new Error(reason));
   }
 

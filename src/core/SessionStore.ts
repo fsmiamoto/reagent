@@ -79,5 +79,4 @@ export class SessionStore {
   }
 }
 
-// Export a singleton instance
 export const sessionStore = new SessionStore();

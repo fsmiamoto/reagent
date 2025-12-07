@@ -90,11 +90,9 @@ describe('ReviewSession', () => {
         const session = new ReviewSession(mockFiles);
         session.complete('approved');
 
-        // This should not reject because status is already approved
         session.cancel();
         expect(session.status).toBe('approved');
 
-        // Verify promise is resolved, not rejected
         await expect(session.completionPromise).resolves.toEqual(expect.objectContaining({
             status: 'approved'
         }));

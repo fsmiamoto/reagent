@@ -27,7 +27,6 @@ export const CommentableBlock = ({ children, node, ...props }: any) => {
         [comments, file.path]
     );
 
-    // Filter comments for this specific line
     const lineComments = line ? fileComments.filter(c => c.lineNumber === line) : [];
     const hasComments = lineComments.length > 0;
     const isCommenting = commentingLine === line;

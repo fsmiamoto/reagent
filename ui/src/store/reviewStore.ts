@@ -9,7 +9,6 @@ interface ReviewStore {
   error: string | null;
   isSubmitting: boolean;
 
-  // Actions
   loadSession: (sessionId: string) => Promise<void>;
   setSelectedFile: (filePath: string) => void;
   addComment: (filePath: string, lineNumber: number, text: string) => Promise<void>;
