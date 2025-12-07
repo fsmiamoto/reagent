@@ -1,17 +1,33 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import { spawn } from 'child_process';
 import { Server } from 'http';
 import { startMCPServer } from './mcp/server.js';
 import { startWebServer } from './web/server.js';
 import { sessionStore } from './core/SessionStore.js';
-import { setActualPort } from './mcp/tools/reviewHelpers.js';
-import { spawn } from 'child_process';
+import { ensureServerRunning } from './web/lifecycle.js';
+import { DEFAULT_PORT, getPort } from './config.js';
 
 const program = new Command();
 
 let webServer: Server | null = null;
 let isCleaningUp = false;
+
+function resolvePort(portOption?: string): number {
+  // If no explicit port provided, or it matches the CLI default,
+  // use getPort() which respects REAGENT_PORT env var
+  if (!portOption || portOption === DEFAULT_PORT.toString()) {
+    return getPort();
+  }
+
+  const port = Number.parseInt(portOption, 10);
+  if (Number.isNaN(port)) {
+    throw new Error('Invalid port provided');
+  }
+
+  return port;
+}
 
 function cleanup() {
   // We're in Node so this is fine although is not properly atomic
@@ -64,7 +80,7 @@ program
 program
   .command('start')
   .description('Start the ReAgent Web Server')
-  .option('-p, --port <number>', 'Port to run on', '3636')
+  .option('-p, --port <number>', 'Port to run on', DEFAULT_PORT.toString())
   .option('-d, --detach', 'Run in the background (daemon mode)')
   .action(async (options) => {
     if (options.detach) {
@@ -83,12 +99,10 @@ program
     }
 
     try {
-      const port = parseInt(options.port, 10);
-      const maxAttempts = parseInt(process.env.REAGENT_MAX_ATTEMPTS || '10', 10);
+      const port = resolvePort(options.port);
 
-      const { server, port: actualPort } = await startWebServer(port, maxAttempts);
+      const { server } = await startWebServer(port);
       webServer = server;
-      setActualPort(actualPort);
 
       // Cleanup old sessions periodically
       setInterval(() => {
@@ -108,9 +122,10 @@ program
 program
   .command('list')
   .description('List active review sessions')
-  .action(async () => {
+  .option('-p, --port <number>', 'Port to connect to', DEFAULT_PORT.toString())
+  .action(async (options) => {
     try {
-      const port = parseInt(process.env.REAGENT_PORT || '3636', 10);
+      const port = resolvePort(options.port);
       const response = await fetch(`http://localhost:${port}/api/sessions`);
 
       if (!response.ok) {
@@ -143,6 +158,7 @@ program
   .command('review [files...]')
   .description('Create a new review session')
   .option('-s, --source <type>', 'Review source (uncommitted, commit, branch, local)', 'uncommitted')
+  .option('-p, --port <number>', 'Port to connect to', DEFAULT_PORT.toString())
   .option('--base <ref>', 'Base ref for branch comparison')
   .option('--head <ref>', 'Head ref for branch comparison')
   .option('--commit <hash>', 'Commit hash for commit review')
@@ -151,48 +167,17 @@ program
   .option('--no-open', 'Do not open the browser automatically')
   .option('--auto-start', 'Start the server if it is not running')
   .action(async (files, options) => {
-    const port = parseInt(process.env.REAGENT_PORT || '3636', 10);
+    const port = resolvePort(options.port);
     const apiUrl = `http://localhost:${port}/api`;
 
-    // Check if server is running
-    let isRunning = false;
-    try {
-      const res = await fetch(`${apiUrl}/health`);
-      if (res.ok) isRunning = true;
-    } catch (e) {
-      // ignore
-    }
-
-    if (!isRunning) {
-      if (options.autoStart) {
-        console.log('[Reagent] Server not running. Starting...');
-        const child = spawn(process.argv[0], [process.argv[1], 'start', '--detach'], {
-          detached: true,
-          stdio: 'ignore',
-        });
-        child.unref();
-
-        // Wait for server to be ready
-        let attempts = 0;
-        while (attempts < 20) {
-          await new Promise((r) => setTimeout(r, 500));
-          try {
-            const res = await fetch(`${apiUrl}/health`);
-            if (res.ok) {
-              isRunning = true;
-              break;
-            }
-          } catch (e) {
-            // ignore
-          }
-          attempts++;
-        }
-
-        if (!isRunning) {
-          console.error('[Reagent] Failed to start server.');
-          process.exit(1);
-        }
-      } else {
+    if (options.autoStart) {
+      await ensureServerRunning(port);
+    } else {
+      // Just check if running, don't start
+      try {
+        const res = await fetch(`${apiUrl}/health`);
+        if (!res.ok) throw new Error();
+      } catch (e) {
         console.error('[Reagent] Server is not running. Use --auto-start or run "reagent start" first.');
         process.exit(1);
       }
@@ -234,10 +219,11 @@ program
 program
   .command('get <sessionId>')
   .description('Get review status and results')
+  .option('-p, --port <number>', 'Port to connect to', DEFAULT_PORT.toString())
   .option('--wait', 'Wait for the review to complete')
   .option('--json', 'Output result as JSON')
   .action(async (sessionId, options) => {
-    const port = parseInt(process.env.REAGENT_PORT || '3636', 10);
+    const port = resolvePort(options.port);
     const apiUrl = `http://localhost:${port}/api`;
 
     try {

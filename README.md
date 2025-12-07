@@ -33,7 +33,11 @@ ReAgent is a lightweight MCP server that opens a familiar, GitHub-style review i
   "mcpServers": {
     "reagent": {
       "command": "npx",
-      "args": ["@fsmiamoto/reagent@latest"]
+      "args": [
+        "-y"
+        "@fsmiamoto/reagent@latest",
+        "mcp"
+      ]
     }
   }
 }
@@ -125,6 +129,46 @@ Review every file inside a directory (recursively):
   ],
   "timestamp": "2025-11-29T10:30:00Z"
 }
+```
+
+## CLI Usage
+
+ReAgent also provides a command-line interface for creating and managing code reviews without an AI assistant.
+
+### Installation
+
+Install ReAgent globally to use the CLI:
+
+```bash
+npm install -g @fsmiamoto/reagent
+```
+
+Verify installation:
+
+```bash
+reagent --version
+```
+
+Alternatively, use `npx` without installation:
+
+```bash
+npx @fsmiamoto/reagent review src/app.ts
+```
+
+### Creating a Review
+
+The most common CLI workflow is creating a review of your code:
+
+```bash
+reagent review src/app.ts src/utils.ts --auto-start
+```
+
+The `--auto-start` flag automatically starts the server if it's not already running. By default, the review URL will open in your browser.
+
+To create a review of uncommitted changes in a directory:
+
+```bash
+reagent review src/ --auto-start
 ```
 
 ## License

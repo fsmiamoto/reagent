@@ -3,10 +3,6 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 import { resolveReviewSource, type ReviewFile, type ReviewInput } from '../shared/types.js';
 
-/**
- * Git utilities for extracting file content and diffs
- */
-
 interface GitFileChange {
   path: string;
   status: 'added' | 'modified' | 'deleted';
@@ -14,9 +10,6 @@ interface GitFileChange {
   newContent?: string;
 }
 
-/**
- * Execute a git command and return stdout
- */
 function execGit(command: string, cwd?: string): string {
   try {
     return execSync(command, {
@@ -29,9 +22,6 @@ function execGit(command: string, cwd?: string): string {
   }
 }
 
-/**
- * Check if a directory is a git repository
- */
 export function isGitRepository(cwd?: string): boolean {
   try {
     execGit('git rev-parse --git-dir', cwd);
@@ -41,9 +31,6 @@ export function isGitRepository(cwd?: string): boolean {
   }
 }
 
-/**
- * Get the language/file extension from a file path
- */
 function getLanguageFromPath(filePath: string): string | undefined {
   const ext = path.extname(filePath).slice(1).toLowerCase();
   const languageMap: Record<string, string> = {

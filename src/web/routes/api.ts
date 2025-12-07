@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { sessionStore } from '../../core/SessionStore.js';
 import { AddCommentRequestSchema, CompleteReviewRequestSchema, CreateReviewInputSchema } from '../../shared/schemas.js';
-import { createReview } from '../../mcp/tools/createReview.js';
+import { createReviewSession } from '../../core/reviewService.js';
 import type { AddCommentRequest, CompleteReviewRequest } from '../../shared/types.js';
 
 export const apiRouter = Router();
@@ -30,7 +30,9 @@ apiRouter.get('/sessions', (_req, res) => {
 apiRouter.post('/reviews', async (req, res) => {
   try {
     const input = CreateReviewInputSchema.parse(req.body);
-    const result = await createReview(input);
+    const host = req.get('host') || 'localhost:3636';
+
+    const result = createReviewSession(input, host);
 
     res.status(201).json(result);
   } catch (error) {

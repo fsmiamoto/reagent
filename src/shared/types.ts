@@ -60,6 +60,8 @@ export type AskForReviewInput = ReviewInput;
  */
 export interface CreateReviewInput extends ReviewInput {
   openBrowser?: boolean; // Default: true
+  /** Internal: host for URL generation, not exposed in MCP schema */
+  _host?: string;
 }
 
 /**

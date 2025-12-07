@@ -1,72 +1,75 @@
-import { sessionStore } from '../../core/SessionStore.js';
 import type { GetReviewInput, GetReviewResult, ReviewResult } from '../../shared/types.js';
+import { getPort } from '../../config.js';
 
+/**
+ * Get review status/results via the HTTP API.
+ */
 export async function getReview(input: GetReviewInput): Promise<ReviewResult | GetReviewResult> {
   const { sessionId, wait = true } = input;
-
-  // Retrieve session from store
-  const session = sessionStore.get(sessionId);
-
-  if (!session) {
-    throw new Error(
-      `Review session not found: ${sessionId}. ` +
-      `Session may have been completed and cleaned up, or the ID is invalid.`
-    );
-  }
+  const port = getPort();
+  const apiUrl = `http://localhost:${port}/api`;
 
   console.error(
-    `[Reagent] Retrieving review ${sessionId} ` +
-    `(status: ${session.status}, wait: ${wait})`
+    `[Reagent] Getting review ${sessionId} via API (wait: ${wait})`
   );
 
-  // Non-blocking mode: return current state immediately
-  if (!wait) {
-    const result: GetReviewResult = {
-      status: session.status,
-    };
-
-    // Only include feedback/comments if review is completed
-    if (session.status === 'approved' || session.status === 'changes_requested') {
-      result.generalFeedback = session.generalFeedback;
-      result.comments = session.comments;
-      result.timestamp = new Date();
-    }
-
-    console.error(`[Reagent] Returning current state: ${session.status}`);
-    return result;
-  }
-
-  // Blocking mode: wait for completion
-  console.error('[Reagent] Waiting for review to complete...');
-
-  // If already completed, return immediately
-  if (session.status !== 'pending') {
-    const result: ReviewResult = {
-      status: session.status as 'approved' | 'changes_requested',
-      generalFeedback: session.generalFeedback,
-      comments: session.comments,
-      timestamp: new Date(),
-    };
-
-    console.error(`[Reagent] Review already completed: ${session.status}`);
-    return result;
-  }
-
   try {
-    // Block here until review completes
-    // The promise will resolve when session.complete() is called
-    // or reject when session.cancel() is called
-    const result = await session.completionPromise;
+    // Poll for completion if wait=true
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const response = await fetch(`${apiUrl}/sessions/${sessionId}`);
 
-    console.error(
-      `[Reagent] Review completed with status: ${result.status}, ` +
-      `${result.comments.length} comment(s)`
-    );
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error(
+            `Review session not found: ${sessionId}. ` +
+            `Session may have been completed and cleaned up, or the ID is invalid.`
+          );
+        }
+        throw new Error(`API error: ${response.statusText}`);
+      }
 
-    return result;
+      const session = (await response.json()) as {
+        id: string;
+        status: 'pending' | 'approved' | 'changes_requested' | 'cancelled';
+        generalFeedback: string;
+        comments: Array<{
+          id: string;
+          filePath: string;
+          lineNumber: number;
+          text: string;
+          createdAt: Date;
+        }>;
+      };
+
+      // Non-blocking mode or review is complete
+      if (!wait || session.status !== 'pending') {
+        const result: GetReviewResult = {
+          status: session.status,
+        };
+
+        // Include feedback/comments if review is completed
+        if (session.status === 'approved' || session.status === 'changes_requested') {
+          result.generalFeedback = session.generalFeedback;
+          result.comments = session.comments;
+          result.timestamp = new Date();
+
+          console.error(
+            `[Reagent] Review completed: ${session.status}, ` +
+            `${session.comments.length} comment(s)`
+          );
+        } else {
+          console.error(`[Reagent] Review status: ${session.status}`);
+        }
+
+        return result;
+      }
+
+      // Wait 1 second before polling again
+      await new Promise((r) => setTimeout(r, 1000));
+    }
   } catch (error) {
-    // Review was cancelled or timed out
-    console.error('[Reagent] Review cancelled or timed out:', error);
+    console.error('[Reagent] Failed to get review:', error);
     throw error;
   }
 }
