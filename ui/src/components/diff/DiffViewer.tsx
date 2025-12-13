@@ -15,6 +15,7 @@ interface DiffViewerProps {
     comments: ReviewComment[];
     onAddComment: (startLine: number, endLine: number, text: string) => Promise<void>;
     onDeleteComment: (commentId: string) => Promise<void>;
+    readOnly?: boolean;
 }
 
 const COLLAPSED_FILES = [
@@ -32,6 +33,7 @@ export const DiffViewer: FC<DiffViewerProps> = ({
     comments,
     onAddComment,
     onDeleteComment,
+    readOnly = false,
 }) => {
     const validationError = validateReviewFile(file);
     if (validationError) {
@@ -71,6 +73,7 @@ export const DiffViewer: FC<DiffViewerProps> = ({
     });
 
     const handleSelectionComplete = (range: { startLine: number; endLine: number }) => {
+        if (readOnly) return;
         setCommentingRange(range);
     };
 

@@ -3,10 +3,11 @@ import { useReviewStore } from '../store/reviewStore';
 import { FileTree } from './FileTree';
 import { DiffViewer } from './DiffViewer';
 import { ReviewPanel } from './ReviewPanel';
+import { ReviewSummaryBanner } from './ReviewSummaryBanner';
 import { ThemeToggle } from './ThemeToggle';
 import { Layout } from './Layout';
 import { Header } from './Header';
-import { Loader2, AlertCircle, CheckCircle2, Home } from 'lucide-react';
+import { Loader2, AlertCircle, Home } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/Popover';
 import { useScrollSpy } from '../hooks/useScrollSpy';
@@ -104,23 +105,7 @@ export function ReviewView({ sessionId }: ReviewViewProps) {
         );
     }
 
-    if (session.status !== 'pending') {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="text-center max-w-md">
-                    <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto" />
-                    <h2 className="mt-4 text-lg font-semibold text-foreground">Review Completed</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                        This review has been {session.status === 'approved' ? 'approved' : 'submitted with change requests'}.
-                    </p>
-                    <Button variant="default" onClick={navigateToDashboard} className="mt-4">
-                        <Home className="h-4 w-4 mr-2" />
-                        Back to Dashboard
-                    </Button>
-                </div>
-            </div>
-        );
-    }
+    const isCompleted = session.status !== 'pending';
 
     return (
         <Layout
@@ -128,27 +113,30 @@ export function ReviewView({ sessionId }: ReviewViewProps) {
                 <Header
                     title={session.title || 'Code Review'}
                     description={session.description}
+                    status={session.status}
                     isSidebarOpen={isLeftSidebarOpen}
                     onToggleSidebar={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
                 >
                     <ThemeToggle />
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button variant="default" className="bg-green-600 hover:bg-green-700 text-white">
-                                Review changes
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-96" align="end">
-                            <ReviewPanel
-                                generalFeedback={session.generalFeedback}
-                                onFeedbackChange={updateGeneralFeedback}
-                                onApprove={handleApprove}
-                                onRequestChanges={handleRequestChanges}
-                                isSubmitting={isSubmitting}
-                                commentCount={session.comments.length}
-                            />
-                        </PopoverContent>
-                    </Popover>
+                    {!isCompleted && (
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="default" className="bg-green-600 hover:bg-green-700 text-white">
+                                    Review changes
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-96" align="end">
+                                <ReviewPanel
+                                    generalFeedback={session.generalFeedback}
+                                    onFeedbackChange={updateGeneralFeedback}
+                                    onApprove={handleApprove}
+                                    onRequestChanges={handleRequestChanges}
+                                    isSubmitting={isSubmitting}
+                                    commentCount={session.comments.length}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    )}
                 </Header>
             }
             sidebar={
@@ -162,6 +150,13 @@ export function ReviewView({ sessionId }: ReviewViewProps) {
                 ) : null
             }
         >
+            {isCompleted && (
+                <ReviewSummaryBanner
+                    status={session.status}
+                    generalFeedback={session.generalFeedback}
+                    commentCount={session.comments.length}
+                />
+            )}
             <div className="flex flex-col gap-8 p-6 pb-20">
                 {session.files.map((file) => (
                     <div
@@ -177,6 +172,7 @@ export function ReviewView({ sessionId }: ReviewViewProps) {
                                 await addComment(file.path, startLine, endLine, text);
                             }}
                             onDeleteComment={deleteComment}
+                            readOnly={isCompleted}
                         />
                     </div>
                 ))}
