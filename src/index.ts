@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import { spawn } from 'child_process';
 import { Server } from 'http';
+import open from 'open';
 import { startMCPServer } from './mcp/server.js';
 import { startWebServer } from './web/server.js';
 import { sessionStore } from './core/SessionStore.js';
@@ -180,7 +181,6 @@ program
       commitHash: options.commit,
       title: options.title,
       description: options.description,
-      openBrowser: options.open,
       workingDirectory: process.cwd(),
     };
 
@@ -198,6 +198,19 @@ program
 
       const result = (await response.json()) as any;
       console.log(`[Reagent] Review created: ${result.reviewUrl}`);
+
+      const shouldOpenBrowser = options.open !== false;
+      if (shouldOpenBrowser) {
+        console.error(`[Reagent] Opening browser: ${result.reviewUrl}`);
+        try {
+          await open(result.reviewUrl);
+        } catch (browserError) {
+          console.error('[Reagent] Failed to open browser:', browserError);
+          console.error('[Reagent] You can manually open the review at:', result.reviewUrl);
+        }
+      } else {
+        console.error('[Reagent] Browser opening disabled (--no-open). Access review at:', result.reviewUrl);
+      }
     } catch (error: any) {
       console.error('[Reagent] Failed to create review:', error.message);
       process.exit(1);

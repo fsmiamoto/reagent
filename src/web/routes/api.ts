@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { sessionStore } from '../../core/SessionStore.js';
-import { AddCommentRequestSchema, CompleteReviewRequestSchema, CreateReviewInputSchema } from '../../shared/schemas.js';
+import { AddCommentRequestSchema, CompleteReviewRequestSchema, ReviewInputSchema } from '../../shared/schemas.js';
 import { createReviewSession } from '../../core/reviewService.js';
 import type { AddCommentRequest, CompleteReviewRequest } from '../../shared/types.js';
 
@@ -29,7 +29,7 @@ apiRouter.get('/sessions', (_req, res) => {
  */
 apiRouter.post('/reviews', async (req, res) => {
   try {
-    const input = CreateReviewInputSchema.parse(req.body);
+    const input = ReviewInputSchema.parse(req.body);
     const host = req.get('host') || 'localhost:3636';
 
     const result = createReviewSession(input, host);

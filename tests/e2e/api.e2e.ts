@@ -75,7 +75,7 @@ describe('HTTP API', () => {
                 TEST_PORT,
                 'POST',
                 '/api/reviews',
-                { source: 'local', files: ['package.json'], openBrowser: false }
+                { source: 'local', files: ['package.json'] }
             );
 
             expect(status).toBe(201);
@@ -103,7 +103,7 @@ describe('HTTP API', () => {
                 TEST_PORT,
                 'POST',
                 '/api/reviews',
-                { source: 'local', files: ['package.json'], openBrowser: false }
+                { source: 'local', files: ['package.json'] }
             );
 
             const sessionId = createResult.data.sessionId;
@@ -155,7 +155,6 @@ describe('HTTP API', () => {
                 {
                     source: 'local',
                     files: ['package.json'],
-                    openBrowser: false,
                 }
             );
 

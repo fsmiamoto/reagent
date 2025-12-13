@@ -74,7 +74,7 @@ describe('Port Configuration', () => {
             testPort,
             'POST',
             '/api/reviews',
-            { source: 'local', files: ['package.json'], openBrowser: false }
+            { source: 'local', files: ['package.json'] }
         );
 
         expect(status).toBe(201);
