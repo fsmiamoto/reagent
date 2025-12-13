@@ -40,7 +40,7 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
     onCancelComment,
 }) => {
     return (
-        <div className="font-mono text-sm">
+        <div className="text-sm">
             {visibleRows.map((row, index) => {
                 const lineNumber = row.newLineNumber;
                 const lineComments = lineNumber ? comments.filter((c) => c.lineNumber === lineNumber) : [];

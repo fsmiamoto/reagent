@@ -20,7 +20,7 @@ export const CommentList: FC<CommentListProps> = ({
     if (lineComments.length === 0) return null;
 
     return (
-        <div className="flex bg-muted/10 border-t border-border/30">
+        <div className="flex bg-muted/10 border-t border-border/30 font-sans">
             <div className="w-[88px] border-r border-border/50" />
             <div className="flex-1 p-4 space-y-3">
                 {lineComments.map((comment) => (
