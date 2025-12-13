@@ -39,10 +39,14 @@ export function Header({
                 <div className="h-4 w-[1px] bg-border mx-2" />
 
                 <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 text-primary">
+                    <a
+                        href="/"
+                        className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity"
+                        title="Back to Dashboard"
+                    >
                         <FlaskConical className="h-5 w-5" />
                         <span className="font-display font-bold tracking-tight hidden sm:inline-block text-base">Re<span className="text-secondary">Agent</span></span>
-                    </div>
+                    </a>
                     <span className="text-muted-foreground">/</span>
                     <div className="flex flex-col justify-center">
                         <h1 className="text-sm font-display font-semibold leading-none">{title}</h1>

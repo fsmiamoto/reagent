@@ -1,4 +1,4 @@
-import type { ReviewSession, ReviewComment } from '../types';
+import type { ReviewSession, ReviewComment, SessionSummary } from '../types';
 
 const API_BASE = '/api';
 
@@ -6,6 +6,19 @@ const API_BASE = '/api';
  * API client for communicating with the Reagent backend
  */
 export const api = {
+  /**
+   * Fetch all review sessions for the dashboard
+   */
+  async getSessions(): Promise<SessionSummary[]> {
+    const response = await fetch(`${API_BASE}/sessions`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch sessions: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
   /**
    * Fetch a review session by ID
    */
