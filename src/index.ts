@@ -57,7 +57,7 @@ process.on('SIGTERM', cleanup);
 program
   .name('reagent')
   .description('Reagent: MCP server for local code reviews with GitHub-style UI')
-  .version('0.0.9');
+  .version('0.0.10');
 
 program
   .command('mcp')
