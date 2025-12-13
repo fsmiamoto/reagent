@@ -25,6 +25,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "preversion": "npm test",
+    "version": "node scripts/update-cli-version.js && git add src/index.ts",
     "bump:patch": "npm version patch --message \"chore(release): %s\"",
     "bump:minor": "npm version minor --message \"chore(release): %s\"",
     "bump:major": "npm version major --message \"chore(release): %s\""
