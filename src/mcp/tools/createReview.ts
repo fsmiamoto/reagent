@@ -8,6 +8,7 @@ import { getPort } from '../../config.js';
 export async function createReview(input: CreateReviewInput): Promise<CreateReviewResult> {
   const port = getPort();
   const apiUrl = `http://localhost:${port}/api`;
+  const { openBrowser: requestedOpenBrowser, _host: _ignoredHost, ...requestPayload } = input;
 
   try {
     console.error(`[Reagent] Creating review via API`);
@@ -15,10 +16,7 @@ export async function createReview(input: CreateReviewInput): Promise<CreateRevi
     const response = await fetch(`${apiUrl}/reviews`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...input,
-        openBrowser: false, // We'll handle browser opening ourselves
-      }),
+      body: JSON.stringify(requestPayload),
     });
 
     if (!response.ok) {
@@ -31,7 +29,7 @@ export async function createReview(input: CreateReviewInput): Promise<CreateRevi
     console.error(`[Reagent] Review session created: ${result.sessionId} (${result.filesCount} file(s))`);
 
     // Handle browser opening
-    const shouldOpenBrowser = input.openBrowser ?? true;
+    const shouldOpenBrowser = requestedOpenBrowser ?? true;
     if (shouldOpenBrowser) {
       console.error(`[Reagent] Opening browser: ${result.reviewUrl}`);
       try {

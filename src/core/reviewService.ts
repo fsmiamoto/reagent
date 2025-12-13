@@ -1,6 +1,6 @@
 import { ReviewSession } from './ReviewSession.js';
 import { sessionStore } from './SessionStore.js';
-import type { CreateReviewInput, CreateReviewResult, ReviewFile } from '../shared/types.js';
+import type { CreateReviewResult, ReviewFile, ReviewInput } from '../shared/types.js';
 import { resolveReviewSource } from '../shared/types.js';
 import { getReviewFilesFromGit } from '../utils/git.js';
 import { getLocalFiles } from '../utils/files.js';
@@ -15,7 +15,7 @@ export function buildReviewUrl(sessionId: string, host: string): string {
 /**
  * Extract review files from input based on source type
  */
-export function extractReviewFiles(input: CreateReviewInput): {
+export function extractReviewFiles(input: ReviewInput): {
     files: ReviewFile[];
     title?: string;
     description?: string;
@@ -46,7 +46,7 @@ export function extractReviewFiles(input: CreateReviewInput): {
  * Core service for creating review sessions.
  */
 export function createReviewSession(
-    input: CreateReviewInput,
+    input: ReviewInput,
     host: string
 ): CreateReviewResult {
     const { files, title, description } = extractReviewFiles(input);
