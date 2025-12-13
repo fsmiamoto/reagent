@@ -1,10 +1,13 @@
 import { FlaskConical, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
+import { StatusBadge } from './StatusBadge';
+import type { ReviewStatus } from '../types';
 
 interface HeaderProps {
     title: string;
     description?: string;
+    status?: ReviewStatus;
     isSidebarOpen: boolean;
     onToggleSidebar: () => void;
     children?: React.ReactNode;
@@ -14,6 +17,7 @@ interface HeaderProps {
 export function Header({
     title,
     description,
+    status,
     isSidebarOpen,
     onToggleSidebar,
     children,
@@ -56,6 +60,11 @@ export function Header({
                             </p>
                         )}
                     </div>
+                    {status && (
+                        <div className="ml-2">
+                            <StatusBadge status={status} />
+                        </div>
+                    )}
                 </div>
             </div>
 
