@@ -29,7 +29,7 @@ describe('ReviewSession', () => {
     it('should add single-line comments correctly', () => {
         const session = new ReviewSession(mockFiles);
 
-        const comment = session.addComment('test.ts', 1, 1, 'Great code');
+        const comment = session.addComment('test.ts', 1, 1, 'new', 'Great code');
 
         expect(comment).toBeDefined();
         expect(comment.filePath).toBe('test.ts');
@@ -43,7 +43,7 @@ describe('ReviewSession', () => {
     it('should add multi-line range comments correctly', () => {
         const session = new ReviewSession(mockFiles);
 
-        const comment = session.addComment('test.ts', 5, 10, 'Review this block');
+        const comment = session.addComment('test.ts', 5, 10, 'new', 'Review this block');
 
         expect(comment).toBeDefined();
         expect(comment.filePath).toBe('test.ts');

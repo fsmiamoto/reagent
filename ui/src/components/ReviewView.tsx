@@ -168,8 +168,8 @@ export function ReviewView({ sessionId }: ReviewViewProps) {
                         <DiffViewer
                             file={file}
                             comments={session.comments}
-                            onAddComment={async (startLine, endLine, text) => {
-                                await addComment(file.path, startLine, endLine, text);
+                            onAddComment={async (startLine, endLine, side, text) => {
+                                await addComment(file.path, startLine, endLine, side, text);
                             }}
                             onDeleteComment={deleteComment}
                             readOnly={isCompleted}

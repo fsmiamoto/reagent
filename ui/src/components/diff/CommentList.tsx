@@ -1,10 +1,11 @@
 import { type FC } from 'react';
 import { Trash2 } from 'lucide-react';
-import { ReviewComment } from '../../types';
+import { ReviewComment, CommentSide } from '../../types';
 
 interface CommentListProps {
     comments: ReviewComment[];
     lineNumber: number;
+    side: CommentSide;
     filePath: string;
     onDeleteComment: (commentId: string) => Promise<void>;
 }
@@ -12,19 +13,25 @@ interface CommentListProps {
 export const CommentList: FC<CommentListProps> = ({
     comments,
     lineNumber,
+    side,
     filePath,
     onDeleteComment,
 }) => {
-    // Filter comments where this line falls within the range, only show on startLine
-    const lineComments = comments.filter((c) => c.filePath === filePath && c.startLine === lineNumber);
+    // Filter comments where this line falls within the range, on the correct side, only show on startLine
+    const lineComments = comments.filter((c) =>
+        c.filePath === filePath &&
+        c.side === side &&
+        c.startLine === lineNumber
+    );
 
     if (lineComments.length === 0) return null;
 
     const formatLineRange = (comment: ReviewComment) => {
+        const sideLabel = comment.side === 'old' ? ' (removed)' : '';
         if (comment.startLine === comment.endLine) {
-            return `on line ${comment.startLine}`;
+            return `on line ${comment.startLine}${sideLabel}`;
         }
-        return `on lines ${comment.startLine}-${comment.endLine}`;
+        return `on lines ${comment.startLine}-${comment.endLine}${sideLabel}`;
     };
 
     return (
@@ -56,3 +63,4 @@ export const CommentList: FC<CommentListProps> = ({
         </div>
     );
 };
+

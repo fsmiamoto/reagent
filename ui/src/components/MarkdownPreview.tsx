@@ -1,14 +1,14 @@
 import { useState, type FC } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { ReviewFile, ReviewComment } from '../types';
+import type { ReviewFile, ReviewComment, CommentSide } from '../types';
 import { MarkdownContext } from './markdown/MarkdownContext';
 import { markdownComponents } from './markdown/MarkdownComponents';
 
 interface MarkdownPreviewProps {
     file: ReviewFile;
     comments: ReviewComment[];
-    onAddComment: (startLine: number, endLine: number, text: string) => Promise<void>;
+    onAddComment: (startLine: number, endLine: number, side: CommentSide, text: string) => Promise<void>;
     onDeleteComment: (commentId: string) => Promise<void>;
 }
 

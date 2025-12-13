@@ -4,7 +4,7 @@ import { cn } from '../../lib/utils';
 import { DiffRow } from '../../hooks/useDiff';
 import { Token } from '../../lib/prism';
 import { CodeLine } from './CodeLine';
-import { ReviewComment } from '../../types';
+import { ReviewComment, CommentSide } from '../../types';
 import { CommentList } from './CommentList';
 import { CommentInput } from './CommentInput';
 import { useDragSelection, LineRange } from '../../hooks/useDragSelection';
@@ -21,8 +21,23 @@ interface UnifiedDiffViewProps {
     onShowMore: () => void;
     filePath: string;
     onDeleteComment: (commentId: string) => Promise<void>;
-    onAddComment: (startLine: number, endLine: number, text: string) => Promise<void>;
+    onAddComment: (startLine: number, endLine: number, side: CommentSide, text: string) => Promise<void>;
     onCancelComment: () => void;
+}
+
+/**
+ * Get the line number and side for a diff row.
+ * - For removed lines: use oldLineNumber with side 'old'
+ * - For added/unchanged: use newLineNumber with side 'new'
+ */
+function getRowLineInfo(row: DiffRow): { lineNumber: number; side: CommentSide } | null {
+    if (row.type === 'removed' && row.oldLineNumber) {
+        return { lineNumber: row.oldLineNumber, side: 'old' };
+    }
+    if (row.newLineNumber) {
+        return { lineNumber: row.newLineNumber, side: 'new' };
+    }
+    return null;
 }
 
 export const UnifiedDiffView: FC<UnifiedDiffViewProps> = ({
@@ -45,15 +60,11 @@ export const UnifiedDiffView: FC<UnifiedDiffViewProps> = ({
     });
 
     // Determine if a line is in the active selection (either dragging or confirmed range)
-    const isLineInRange = (lineNumber: number | undefined): boolean => {
-        if (!lineNumber) return false;
+    const isLineInRange = (lineNumber: number, side: CommentSide): boolean => {
         const activeRange = isDragging ? selection : commentingRange;
         if (!activeRange) return false;
-        return lineNumber >= activeRange.startLine && lineNumber <= activeRange.endLine;
+        return activeRange.side === side && lineNumber >= activeRange.startLine && lineNumber <= activeRange.endLine;
     };
-
-    // Find the last line of the commenting range to show CommentInput there
-    const showCommentInputAfterLine = commentingRange?.endLine;
 
     return (
         <div
@@ -62,10 +73,27 @@ export const UnifiedDiffView: FC<UnifiedDiffViewProps> = ({
             onMouseLeave={handlers.onMouseUp}
         >
             {visibleRows.map((row, index) => {
-                const lineNumber = row.newLineNumber;
-                const lineComments = lineNumber ? comments.filter((c) => lineNumber >= c.startLine && lineNumber <= c.endLine) : [];
+                const lineInfo = getRowLineInfo(row);
+                const lineNumber = lineInfo?.lineNumber;
+                const side = lineInfo?.side;
+
+                // Filter comments for this line on this side
+                const lineComments = lineInfo
+                    ? comments.filter((c) =>
+                        c.filePath === filePath &&
+                        c.side === side &&
+                        lineNumber! >= c.startLine &&
+                        lineNumber! <= c.endLine
+                    )
+                    : [];
                 const hasComment = lineComments.length > 0;
-                const isInSelection = isLineInRange(lineNumber);
+                const isInSelection = lineInfo ? isLineInRange(lineNumber!, side!) : false;
+
+                // Show CommentInput after the endLine of the commenting range
+                const showCommentInputHere = commentingRange &&
+                    lineInfo &&
+                    commentingRange.side === side &&
+                    lineNumber === commentingRange.endLine;
 
                 const bgClass =
                     row.type === 'added' ? 'bg-green-500/10' :
@@ -96,8 +124,8 @@ export const UnifiedDiffView: FC<UnifiedDiffViewProps> = ({
                                 bgClass,
                                 isInSelection && "bg-primary/10 border-l-2 border-l-primary"
                             )}
-                            onMouseDown={() => lineNumber && handlers.onMouseDown(lineNumber)}
-                            onMouseEnter={() => lineNumber && handlers.onMouseEnter(lineNumber)}
+                            onMouseDown={() => lineInfo && handlers.onMouseDown(lineNumber!, side!)}
+                            onMouseEnter={() => lineInfo && handlers.onMouseEnter(lineNumber!, side!)}
                         >
                             <div className="flex">
                                 <div className="flex items-center bg-muted/20 border-r border-border/50 sticky left-0 h-full select-none">
@@ -109,11 +137,11 @@ export const UnifiedDiffView: FC<UnifiedDiffViewProps> = ({
                                     </span>
 
                                     <div className="w-8 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {lineNumber && (
+                                        {lineInfo && (
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    onSelectionComplete({ startLine: lineNumber, endLine: lineNumber });
+                                                    onSelectionComplete({ startLine: lineNumber!, endLine: lineNumber!, side: side! });
                                                 }}
                                                 className={cn(
                                                     "w-5 h-5 flex items-center justify-center rounded hover:bg-primary/10 hover:text-primary transition-colors",
@@ -145,20 +173,22 @@ export const UnifiedDiffView: FC<UnifiedDiffViewProps> = ({
                                 </div>
                             </div>
 
-                            {lineNumber && (
+                            {lineInfo && (
                                 <CommentList
                                     comments={comments}
-                                    lineNumber={lineNumber}
+                                    lineNumber={lineNumber!}
+                                    side={side!}
                                     filePath={filePath}
                                     onDeleteComment={onDeleteComment}
                                 />
                             )}
-                            {lineNumber === showCommentInputAfterLine && commentingRange && (
+                            {showCommentInputHere && (
                                 <CommentInput
                                     startLine={commentingRange.startLine}
                                     endLine={commentingRange.endLine}
+                                    side={commentingRange.side}
                                     onCancel={onCancelComment}
-                                    onSubmit={(text) => onAddComment(commentingRange.startLine, commentingRange.endLine, text)}
+                                    onSubmit={(text) => onAddComment(commentingRange.startLine, commentingRange.endLine, commentingRange.side, text)}
                                 />
                             )}
                         </div>

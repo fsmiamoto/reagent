@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ReviewSession } from '../types';
+import type { ReviewSession, CommentSide } from '../types';
 import { api } from '../api/client';
 
 interface ReviewStore {
@@ -11,7 +11,7 @@ interface ReviewStore {
 
   loadSession: (sessionId: string) => Promise<void>;
   setSelectedFile: (filePath: string) => void;
-  addComment: (filePath: string, startLine: number, endLine: number, text: string) => Promise<void>;
+  addComment: (filePath: string, startLine: number, endLine: number, side: CommentSide, text: string) => Promise<void>;
   deleteComment: (commentId: string) => Promise<void>;
   updateGeneralFeedback: (feedback: string) => void;
   completeReview: (status: 'approved' | 'changes_requested') => Promise<void>;
@@ -46,12 +46,12 @@ export const useReviewStore = create<ReviewStore>((set, get) => ({
     set({ selectedFile: filePath });
   },
 
-  addComment: async (filePath: string, startLine: number, endLine: number, text: string) => {
+  addComment: async (filePath: string, startLine: number, endLine: number, side: CommentSide, text: string) => {
     const { session } = get();
     if (!session) return;
 
     try {
-      const comment = await api.addComment(session.id, filePath, startLine, endLine, text);
+      const comment = await api.addComment(session.id, filePath, startLine, endLine, side, text);
 
       set({
         session: {

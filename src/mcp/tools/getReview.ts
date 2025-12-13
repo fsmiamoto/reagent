@@ -37,6 +37,7 @@ export async function getReview(input: GetReviewInput): Promise<ReviewResult | G
           filePath: string;
           startLine: number;
           endLine: number;
+          side: 'old' | 'new';
           text: string;
           createdAt: Date;
         }>;

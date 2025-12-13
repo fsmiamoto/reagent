@@ -1,6 +1,6 @@
 import { useState, useMemo, type FC } from 'react';
 import { FileJson } from 'lucide-react';
-import { ReviewFile, ReviewComment } from '../../types';
+import { ReviewFile, ReviewComment, CommentSide } from '../../types';
 import { Button } from '../ui/Button';
 import { MarkdownPreview } from '../MarkdownPreview';
 import { useDiff } from '../../hooks/useDiff';
@@ -9,11 +9,12 @@ import { FileHeader } from './FileHeader';
 import { UnifiedDiffView } from './UnifiedDiffView';
 import { SplitDiffView } from './SplitDiffView';
 import { validateReviewFile } from './validators';
+import { LineRange } from '../../hooks/useDragSelection';
 
 interface DiffViewerProps {
     file: ReviewFile;
     comments: ReviewComment[];
-    onAddComment: (startLine: number, endLine: number, text: string) => Promise<void>;
+    onAddComment: (startLine: number, endLine: number, side: CommentSide, text: string) => Promise<void>;
     onDeleteComment: (commentId: string) => Promise<void>;
     readOnly?: boolean;
 }
@@ -52,10 +53,7 @@ export const DiffViewer: FC<DiffViewerProps> = ({
     const [isExpanded, setIsExpanded] = useState(!isCollapsedByDefault);
     const [viewMode, setViewMode] = useState<'unified' | 'split'>('unified');
     const [showAllLines, setShowAllLines] = useState(false);
-    const [commentingRange, setCommentingRange] = useState<{
-        startLine: number;
-        endLine: number;
-    } | null>(null);
+    const [commentingRange, setCommentingRange] = useState<LineRange | null>(null);
     const [previewMode, setPreviewMode] = useState(false);
 
     const { oldTokens, newTokens, diffRows } = useDiff({
@@ -72,13 +70,13 @@ export const DiffViewer: FC<DiffViewerProps> = ({
         file,
     });
 
-    const handleSelectionComplete = (range: { startLine: number; endLine: number }) => {
+    const handleSelectionComplete = (range: LineRange) => {
         if (readOnly) return;
         setCommentingRange(range);
     };
 
-    const handleAddComment = async (startLine: number, endLine: number, text: string) => {
-        await onAddComment(startLine, endLine, text);
+    const handleAddComment = async (startLine: number, endLine: number, side: CommentSide, text: string) => {
+        await onAddComment(startLine, endLine, side, text);
         setCommentingRange(null);
     };
 

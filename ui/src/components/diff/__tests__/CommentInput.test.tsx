@@ -6,6 +6,7 @@ describe('CommentInput', () => {
     const defaultProps = {
         startLine: 1,
         endLine: 1,
+        side: 'new' as const,
         onCancel: vi.fn(),
         onSubmit: vi.fn().mockResolvedValue(undefined)
     };
