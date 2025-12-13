@@ -20,6 +20,18 @@ export interface ReviewComment {
 
 export type ReviewStatus = 'pending' | 'approved' | 'changes_requested' | 'cancelled';
 
+/**
+ * Lightweight session summary for dashboard listing
+ */
+export interface SessionSummary {
+  id: string;
+  status: ReviewStatus;
+  filesCount: number;
+  title?: string;
+  description?: string;
+  createdAt: string | Date;
+}
+
 export interface ReviewSession {
   id: string;
   title?: string;

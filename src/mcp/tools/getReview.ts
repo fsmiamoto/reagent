@@ -35,7 +35,8 @@ export async function getReview(input: GetReviewInput): Promise<ReviewResult | G
         comments: Array<{
           id: string;
           filePath: string;
-          lineNumber: number;
+          startLine: number;
+          endLine: number;
           text: string;
           createdAt: Date;
         }>;
