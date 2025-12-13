@@ -40,7 +40,7 @@ export const UnifiedDiffView: FC<UnifiedDiffViewProps> = ({
     onCancelComment,
 }) => {
     return (
-        <div className="font-mono text-sm">
+        <div className="text-sm">
             {visibleRows.map((row, index) => {
                 const lineNumber = row.newLineNumber;
                 const lineComments = lineNumber ? comments.filter((c) => c.lineNumber === lineNumber) : [];

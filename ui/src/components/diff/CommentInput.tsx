@@ -14,7 +14,8 @@ export const CommentInput: FC<CommentInputProps> = ({
     const [commentText, setCommentText] = useState('');
 
     const handleSubmit = async () => {
-        if (!commentText.trim()) return;
+        if (!commentText.trim())
+            return;
         await onSubmit(commentText.trim());
         setCommentText('');
     };
@@ -27,7 +28,7 @@ export const CommentInput: FC<CommentInputProps> = ({
     });
 
     return (
-        <div className="flex bg-muted/10 border-t border-border/30">
+        <div className="flex bg-muted/10 border-t border-border/30 font-sans">
             <div className="w-[88px] border-r border-border/50" />
             <div className="flex-1 p-4">
                 <div className="bg-card border border-border rounded-lg shadow-sm p-3 space-y-3 ring-1 ring-primary/20">

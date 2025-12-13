@@ -54,7 +54,7 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
         )}
       </div>
 
-      <div className="font-mono text-sm">
+      <div className="text-sm">
         {lines.map((line, index) => {
           const lineNumber = index + 1;
           const lineComments = fileComments.filter((c) => c.lineNumber === lineNumber);
@@ -66,7 +66,7 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
               <div className="flex hover:bg-muted/30 transition-colors">
                 {/* Line number + comment button */}
                 <div className="flex items-center bg-muted/20 border-r border-border/50 sticky left-0 h-full">
-                  <span className="w-12 text-right pr-2 text-muted-foreground select-none flex-shrink-0 text-xs py-1">
+                  <span className="w-12 text-right pr-2 text-muted-foreground select-none flex-shrink-0 text-xs py-1 font-mono">
                     {lineNumber}
                   </span>
                   <div className="w-8 flex justify-center">
@@ -88,7 +88,7 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
 
                 {/* Code line */}
                 <div className="flex-1 px-4 py-1 overflow-x-auto">
-                  <code className="text-foreground whitespace-pre">{line || ' '}</code>
+                  <code className="font-mono text-foreground whitespace-pre">{line || ' '}</code>
                 </div>
               </div>
 
@@ -96,7 +96,7 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
               {lineComments.length > 0 && (
                 <div className="flex">
                   <div className="w-20 bg-muted/5 border-r border-border/50" />
-                  <div className="flex-1 px-4 py-3 bg-muted/30 border-l-4 border-primary space-y-2">
+                  <div className="flex-1 px-4 py-3 bg-muted/30 border-l-4 border-primary space-y-2 font-sans">
                     {lineComments.map((comment) => (
                       <div
                         key={comment.id}
@@ -120,7 +120,7 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
               {isCommenting && (
                 <div className="flex">
                   <div className="w-20 bg-muted/5 border-r border-border/50" />
-                  <div className="flex-1 px-4 py-3 bg-muted/30 border-l-4 border-primary space-y-2">
+                  <div className="flex-1 px-4 py-3 bg-muted/30 border-l-4 border-primary space-y-2 font-sans">
                     <textarea
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}

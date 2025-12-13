@@ -86,7 +86,7 @@ export const CommentableBlock = ({ children, node, ...props }: any) => {
 
                 {/* Comments Section */}
                 {(hasComments || isCommenting) && (
-                    <div className="mt-2 mb-4 ml-4 pl-4 border-l-2 border-border/50 space-y-3">
+                    <div className="mt-2 mb-4 ml-4 pl-4 border-l-2 border-border/50 space-y-3 font-sans">
                         {lineComments.map((comment) => (
                             <div
                                 key={comment.id}
@@ -111,7 +111,7 @@ export const CommentableBlock = ({ children, node, ...props }: any) => {
 
                         {/* Comment Input */}
                         {isCommenting && (
-                            <div className="bg-card border border-border rounded-lg shadow-sm p-3 space-y-3 ring-1 ring-primary/20">
+                            <div className="bg-card border border-border rounded-lg shadow-sm p-3 space-y-3 ring-1 ring-primary/20 font-sans">
                                 <textarea
                                     value={commentText}
                                     onChange={(e) => setCommentText(e.target.value)}

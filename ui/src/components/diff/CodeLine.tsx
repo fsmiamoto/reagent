@@ -11,7 +11,7 @@ interface CodeLineProps {
 
 export const CodeLine: FC<CodeLineProps> = ({ content, tokens, className }) => {
     return (
-        <code className={cn("whitespace-pre block min-w-full", className)}>
+        <code className={cn("font-mono whitespace-pre block min-w-full", className)}>
             {tokens?.map((token, i) => (
                 <TokenRenderer key={i} token={token} />
             )) || content || ' '}
