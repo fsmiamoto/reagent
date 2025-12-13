@@ -1,10 +1,12 @@
 import { type FC, useState } from 'react';
 import { Button } from '../ui/Button';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { CommentSide } from '../../types';
 
 interface CommentInputProps {
     startLine: number;
     endLine: number;
+    side: CommentSide;
     onCancel: () => void;
     onSubmit: (text: string) => Promise<void>;
 }
@@ -12,6 +14,7 @@ interface CommentInputProps {
 export const CommentInput: FC<CommentInputProps> = ({
     startLine,
     endLine,
+    side,
     onCancel,
     onSubmit,
 }) => {
@@ -31,9 +34,10 @@ export const CommentInput: FC<CommentInputProps> = ({
         },
     });
 
+    const sideLabel = side === 'old' ? 'removed ' : '';
     const rangeText = startLine === endLine
-        ? `Commenting on line ${startLine}`
-        : `Commenting on lines ${startLine}-${endLine}`;
+        ? `Commenting on ${sideLabel}line ${startLine}`
+        : `Commenting on ${sideLabel}lines ${startLine}-${endLine}`;
 
     return (
         <div className="flex bg-muted/10 border-t border-border/30 font-sans">
@@ -75,3 +79,4 @@ export const CommentInput: FC<CommentInputProps> = ({
         </div>
     );
 };
+

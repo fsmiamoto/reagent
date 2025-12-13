@@ -66,6 +66,7 @@ export const api = {
     filePath: string,
     startLine: number,
     endLine: number,
+    side: 'old' | 'new',
     text: string
   ): Promise<ReviewComment> {
     const response = await fetch(`${API_BASE}/sessions/${sessionId}/comments`, {
@@ -77,6 +78,7 @@ export const api = {
         filePath,
         startLine,
         endLine,
+        side,
         text,
       }),
     });

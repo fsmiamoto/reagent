@@ -4,13 +4,13 @@
 
 ## Why is this useful?
 
-In the age of AI coding assistants, ensuring their output code is high quality is essencial. 
+In the era of AI coding assistants, ensuring their output code is high quality is essencial for maintaining a healthy codebase. 
 
 For that, you often need to provide detailed, line-specific feedback, just like you would do with a human teammate's code.
 
-But pointing to specific lines through chat is clunky, and setting up GitHub PRs for local work-in-progress is overkill.
+But pointing to specific lines through chat is clunky, and setting up GitHub PRs for local work-in-progress is really overkill.
 
-ReAgent is a lightweight MCP server that opens a familiar, GitHub-style review interface right in your browser to speed your feedback cycles.
+ReAgent tackles that by creating a lightweight MCP server that opens a familiar, GitHub-style review interface right in your browser to speed your feedback cycles.
 
 ![ReAgent Usage](./docs/usage.png)
 
@@ -48,92 +48,13 @@ ReAgent is a lightweight MCP server that opens a familiar, GitHub-style review i
 ReAgent uses a two-step workflow to enable interactive browser-based code reviews:
 
 1. **create_review**: Initiates a review session and returns a URL.
-  * Optionally the it can open the browser with the review
 2. **get_review**: Retrieves the completed review results
-
-#### Individual Usage Examples
-
-Review uncommitted changes:
-```json
-{
-  "files": ["src/app.ts", "src/utils.ts"],
-  "source": "uncommitted"
-}
-```
-
-Review a specific commit:
-```json
-{
-  "files": ["src/app.ts"],
-  "source": "commit",
-  "commitHash": "abc123"
-}
-```
-
-> When `commitHash` or `base/head` are provided, Reagent automatically switches to commit or
-> branch comparison mode even if you omit the `source` field.
-
-Compare branches:
-```json
-{
-  "files": ["src/app.ts"],
-  "source": "branch",
-  "base": "main",
-  "head": "feature-branch"
-}
-```
-
-Review local files without Git:
-```json
-{
-  "files": ["src/app.ts", "README.md"],
-  "source": "local"
-}
-```
-
-> Note: Local mode is useful for reviewing things like implementation plans for agents which you don't want to commit to the repo.
-
-Review every file inside a directory (recursively):
-```json
-{
-  "files": ["src/ui"],
-  "source": "uncommitted"
-}
-```
-
-### Return Values
-
-**create_review returns:**
-
-```typescript
-{
-  "sessionId": "unique-session-id",
-  "reviewUrl": "http://localhost:3000/review/unique-session-id",
-  "filesCount": 5,
-  "title": "Review title"
-}
-```
-
-**get_review returns:**
-
-```typescript
-{
-  "status": "approved" | "changes_requested",
-  "generalFeedback": "Overall review comments",
-  "comments": [
-    {
-      "filePath": "src/example.ts",
-      "lineNumber": 42,
-      "text": "Comment text"
-    }
-  ],
-  "timestamp": "2025-11-29T10:30:00Z"
-}
-```
 
 ## CLI Usage
 
-ReAgent also provides a command-line interface for creating and managing code reviews without an AI assistant.
+ReAgent also provides a command-line interface for creating and managing reviews sessions.
+
+For advanced users, this also means you can [skip the MCP altogether](https://mariozechner.at/posts/2025-11-02-what-if-you-dont-need-mcp/) and teach your agent how to use the bare CLI commands.
 
 ### Installation
 
@@ -152,7 +73,7 @@ reagent --version
 Alternatively, use `npx` without installation:
 
 ```bash
-npx @fsmiamoto/reagent review src/app.ts
+npx @fsmiamoto/reagent review
 ```
 
 ### Creating a Review
@@ -160,16 +81,13 @@ npx @fsmiamoto/reagent review src/app.ts
 The most common CLI workflow is creating a review of your code:
 
 ```bash
-reagent review src/app.ts src/utils.ts --auto-start
+# This will review all the uncommited changes in your Git repo.
+reagent review --auto-start
 ```
 
-The `--auto-start` flag automatically starts the server if it's not already running. By default, the review URL will open in your browser.
+The `--auto-start` flag automatically starts the server if it's not already running. 
 
-To create a review of uncommitted changes in a directory:
-
-```bash
-reagent review src/ --auto-start
-```
+By default, the review URL will open in your browser.
 
 ## License
 

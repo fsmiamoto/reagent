@@ -4,7 +4,7 @@ import { cn } from '../../lib/utils';
 import { DiffRow } from '../../hooks/useDiff';
 import { Token } from '../../lib/prism';
 import { CodeLine } from './CodeLine';
-import { ReviewComment } from '../../types';
+import { ReviewComment, CommentSide } from '../../types';
 import { CommentList } from './CommentList';
 import { CommentInput } from './CommentInput';
 import { useDragSelection, LineRange } from '../../hooks/useDragSelection';
@@ -21,8 +21,25 @@ interface SplitDiffViewProps {
     onShowMore: () => void;
     filePath: string;
     onDeleteComment: (commentId: string) => Promise<void>;
-    onAddComment: (startLine: number, endLine: number, text: string) => Promise<void>;
+    onAddComment: (startLine: number, endLine: number, side: CommentSide, text: string) => Promise<void>;
     onCancelComment: () => void;
+}
+
+/**
+ * Get the line number and side for a diff row.
+ * For split view, comment buttons appear only on the side where the line exists:
+ * - For removed lines: left side (old)
+ * - For added lines: right side (new)
+ * - For unchanged: right side (new) - to match GitHub behavior
+ */
+function getRowLineInfo(row: DiffRow): { lineNumber: number; side: CommentSide } | null {
+    if (row.type === 'removed' && row.oldLineNumber) {
+        return { lineNumber: row.oldLineNumber, side: 'old' };
+    }
+    if (row.newLineNumber) {
+        return { lineNumber: row.newLineNumber, side: 'new' };
+    }
+    return null;
 }
 
 export const SplitDiffView: FC<SplitDiffViewProps> = ({
@@ -45,15 +62,11 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
     });
 
     // Determine if a line is in the active selection (either dragging or confirmed range)
-    const isLineInRange = (lineNumber: number | undefined): boolean => {
-        if (!lineNumber) return false;
+    const isLineInRange = (lineNumber: number, side: CommentSide): boolean => {
         const activeRange = isDragging ? selection : commentingRange;
         if (!activeRange) return false;
-        return lineNumber >= activeRange.startLine && lineNumber <= activeRange.endLine;
+        return activeRange.side === side && lineNumber >= activeRange.startLine && lineNumber <= activeRange.endLine;
     };
-
-    // Find the last line of the commenting range to show CommentInput there
-    const showCommentInputAfterLine = commentingRange?.endLine;
 
     return (
         <div
@@ -62,10 +75,27 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
             onMouseLeave={handlers.onMouseUp}
         >
             {visibleRows.map((row, index) => {
-                const lineNumber = row.newLineNumber;
-                const lineComments = lineNumber ? comments.filter((c) => lineNumber >= c.startLine && lineNumber <= c.endLine) : [];
+                const lineInfo = getRowLineInfo(row);
+                const lineNumber = lineInfo?.lineNumber;
+                const side = lineInfo?.side;
+
+                // Filter comments for this line on this side
+                const lineComments = lineInfo
+                    ? comments.filter((c) =>
+                        c.filePath === filePath &&
+                        c.side === side &&
+                        lineNumber! >= c.startLine &&
+                        lineNumber! <= c.endLine
+                    )
+                    : [];
                 const hasComment = lineComments.length > 0;
-                const isInSelection = isLineInRange(lineNumber);
+                const isInSelection = lineInfo ? isLineInRange(lineNumber!, side!) : false;
+
+                // Show CommentInput after the endLine of the commenting range
+                const showCommentInputHere = commentingRange &&
+                    lineInfo &&
+                    commentingRange.side === side &&
+                    lineNumber === commentingRange.endLine;
 
                 const bgClass =
                     row.type === 'added' ? 'bg-green-500/10' :
@@ -82,6 +112,10 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
                     ((row.oldLineNumber && prevRow.oldLineNumber && row.oldLineNumber > prevRow.oldLineNumber + 1) ||
                         (row.newLineNumber && prevRow.newLineNumber && row.newLineNumber > prevRow.newLineNumber + 1));
 
+                // For split view: removed lines show button on left, added/unchanged on right
+                const showButtonOnLeft = row.type === 'removed' && row.oldLineNumber;
+                const showButtonOnRight = row.type !== 'removed' && row.newLineNumber;
+
                 return (
                     <div key={index}>
                         {isGap && (
@@ -96,15 +130,34 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
                                 bgClass,
                                 isInSelection && "bg-primary/10 border-l-2 border-l-primary"
                             )}
-                            onMouseDown={() => lineNumber && handlers.onMouseDown(lineNumber)}
-                            onMouseEnter={() => lineNumber && handlers.onMouseEnter(lineNumber)}
+                            onMouseDown={() => lineInfo && handlers.onMouseDown(lineNumber!, side!)}
+                            onMouseEnter={() => lineInfo && handlers.onMouseEnter(lineNumber!, side!)}
                         >
                             <div className="flex">
                                 {/* Left Side (Old/Removed/Unchanged) */}
-                                <div className="w-1/2 flex border-r border-border/50">
+                                <div className="w-1/2 flex border-r border-border/50 relative">
                                     <div className="w-10 text-right pr-2 text-muted-foreground text-xs py-1 font-mono opacity-50 bg-muted/20 border-r border-border/50 select-none">
                                         {row.oldLineNumber || ''}
                                     </div>
+                                    {/* Comment button on left side for removed lines */}
+                                    {showButtonOnLeft && (
+                                        <div className="w-8 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity absolute right-0 z-10">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onSelectionComplete({ startLine: row.oldLineNumber!, endLine: row.oldLineNumber!, side: 'old' });
+                                                }}
+                                                className={cn(
+                                                    "w-5 h-5 flex items-center justify-center rounded hover:bg-primary/10 hover:text-primary transition-colors bg-card shadow-sm border border-border",
+                                                    hasComment ? "text-primary opacity-100" : "text-muted-foreground",
+                                                    isInSelection && "bg-primary/10 text-primary opacity-100"
+                                                )}
+                                                title={hasComment ? 'View comments' : 'Add comment'}
+                                            >
+                                                {hasComment ? <MessageSquare className="h-3 w-3" /> : <Plus className="h-3.5 w-3.5" />}
+                                            </button>
+                                        </div>
+                                    )}
                                     <div className={cn("flex-1 px-3 py-1 overflow-x-auto", row.type === 'added' && "bg-muted/5 opacity-30")}>
                                         {row.type !== 'added' && (
                                             <CodeLine
@@ -121,12 +174,13 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
                                     <div className="w-10 text-right pr-2 text-muted-foreground text-xs py-1 font-mono opacity-50 bg-muted/20 border-r border-border/50 select-none">
                                         {row.newLineNumber || ''}
                                     </div>
-                                    <div className="w-8 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity absolute right-0 z-10">
-                                        {lineNumber && (
+                                    {/* Comment button on right side for added/unchanged lines */}
+                                    {showButtonOnRight && (
+                                        <div className="w-8 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity absolute right-0 z-10">
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    onSelectionComplete({ startLine: lineNumber, endLine: lineNumber });
+                                                    onSelectionComplete({ startLine: row.newLineNumber!, endLine: row.newLineNumber!, side: 'new' });
                                                 }}
                                                 className={cn(
                                                     "w-5 h-5 flex items-center justify-center rounded hover:bg-primary/10 hover:text-primary transition-colors bg-card shadow-sm border border-border",
@@ -137,8 +191,8 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
                                             >
                                                 {hasComment ? <MessageSquare className="h-3 w-3" /> : <Plus className="h-3.5 w-3.5" />}
                                             </button>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
                                     <div className={cn("flex-1 px-3 py-1 overflow-x-auto", row.type === 'removed' && "bg-muted/5 opacity-30")}>
                                         {row.type !== 'removed' && (
                                             <CodeLine
@@ -151,20 +205,22 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
                                 </div>
                             </div>
 
-                            {lineNumber && (
+                            {lineInfo && (
                                 <CommentList
                                     comments={comments}
-                                    lineNumber={lineNumber}
+                                    lineNumber={lineNumber!}
+                                    side={side!}
                                     filePath={filePath}
                                     onDeleteComment={onDeleteComment}
                                 />
                             )}
-                            {lineNumber === showCommentInputAfterLine && commentingRange && (
+                            {showCommentInputHere && (
                                 <CommentInput
                                     startLine={commentingRange.startLine}
                                     endLine={commentingRange.endLine}
+                                    side={commentingRange.side}
                                     onCancel={onCancelComment}
-                                    onSubmit={(text) => onAddComment(commentingRange.startLine, commentingRange.endLine, text)}
+                                    onSubmit={(text) => onAddComment(commentingRange.startLine, commentingRange.endLine, commentingRange.side, text)}
                                 />
                             )}
                         </div>

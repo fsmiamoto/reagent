@@ -9,11 +9,14 @@ export interface ReviewFile {
   language?: string;
 }
 
+export type CommentSide = 'old' | 'new';
+
 export interface ReviewComment {
   id: string;
   filePath: string;
   startLine: number;
   endLine: number;
+  side: CommentSide;
   text: string;
   createdAt: Date;
 }
@@ -98,6 +101,7 @@ export interface AddCommentRequest {
   filePath: string;
   startLine: number;
   endLine: number;
+  side: CommentSide;
   text: string;
 }
 

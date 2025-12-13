@@ -90,6 +90,7 @@ apiRouter.post('/sessions/:id/comments', (req, res) => {
       commentData.filePath,
       commentData.startLine,
       commentData.endLine,
+      commentData.side,
       commentData.text
     );
 

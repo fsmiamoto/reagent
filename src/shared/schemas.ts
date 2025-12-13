@@ -63,6 +63,7 @@ export const AddCommentRequestSchema = z.object({
   filePath: z.string().min(1),
   startLine: z.number().int().positive(),
   endLine: z.number().int().positive(),
+  side: z.enum(['old', 'new']),
   text: z.string().min(1, 'Comment text is required'),
 }).refine(
   data => data.endLine >= data.startLine,

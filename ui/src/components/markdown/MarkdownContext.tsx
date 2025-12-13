@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { ReviewComment, ReviewFile } from '../../types';
+import type { ReviewComment, ReviewFile, CommentSide } from '../../types';
 
 interface MarkdownContextType {
     file: ReviewFile;
@@ -8,7 +8,7 @@ interface MarkdownContextType {
     commentText: string;
     setCommentingLine: (line: number | null) => void;
     setCommentText: (text: string) => void;
-    onAddComment: (startLine: number, endLine: number, text: string) => Promise<void>;
+    onAddComment: (startLine: number, endLine: number, side: CommentSide, text: string) => Promise<void>;
     onDeleteComment: (commentId: string) => Promise<void>;
 }
 
@@ -26,3 +26,4 @@ export const useMarkdownContext = () => {
 export const NestingContext = createContext<boolean>(false);
 
 export const useNestingContext = () => useContext(NestingContext);
+

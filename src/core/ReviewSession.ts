@@ -57,12 +57,13 @@ export class ReviewSession {
   /**
    * Add a comment to a line or range of lines in a file
    */
-  addComment(filePath: string, startLine: number, endLine: number, text: string): ReviewComment {
+  addComment(filePath: string, startLine: number, endLine: number, side: 'old' | 'new', text: string): ReviewComment {
     const comment: ReviewComment = {
       id: uuidv4(),
       filePath,
       startLine,
       endLine,
+      side,
       text,
       createdAt: new Date(),
     };

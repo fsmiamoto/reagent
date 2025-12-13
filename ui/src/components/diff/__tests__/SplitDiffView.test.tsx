@@ -39,27 +39,29 @@ describe('SplitDiffView', () => {
         expect(screen.getByText('line 3')).toBeDefined();
     });
 
-    it('should handle line click for commenting', () => {
+    it('should handle line click for commenting on new side', () => {
         render(<SplitDiffView {...defaultProps} />);
 
         const buttons = screen.getAllByTitle('Add comment');
         fireEvent.click(buttons[0]);
 
-        expect(defaultProps.onSelectionComplete).toHaveBeenCalledWith({ startLine: 1, endLine: 1 });
+        // First clickable row is unchanged line with newLineNumber, so side is 'new'
+        expect(defaultProps.onSelectionComplete).toHaveBeenCalledWith({ startLine: 1, endLine: 1, side: 'new' });
     });
 
     it('should show comment input when commentingRange matches', () => {
-        render(<SplitDiffView {...defaultProps} commentingRange={{ startLine: 1, endLine: 1 }} />);
+        render(<SplitDiffView {...defaultProps} commentingRange={{ startLine: 1, endLine: 1, side: 'new' }} />);
 
         expect(screen.getByPlaceholderText('Write a comment...')).toBeDefined();
     });
 
-    it('should show comments', () => {
+    it('should show comments on new side', () => {
         const comments = [{
             id: '1',
             filePath: 'test.ts',
             startLine: 1,
             endLine: 1,
+            side: 'new' as const,
             text: 'Test comment',
             createdAt: new Date().toISOString(),
         }];
@@ -68,5 +70,20 @@ describe('SplitDiffView', () => {
 
         expect(screen.getByText('Test comment')).toBeDefined();
     });
-});
 
+    it('should show comments on old side for removed lines', () => {
+        const comments = [{
+            id: '1',
+            filePath: 'test.ts',
+            startLine: 2,
+            endLine: 2,
+            side: 'old' as const,
+            text: 'Why removing this?',
+            createdAt: new Date().toISOString(),
+        }];
+
+        render(<SplitDiffView {...defaultProps} comments={comments} />);
+
+        expect(screen.getByText('Why removing this?')).toBeDefined();
+    });
+});

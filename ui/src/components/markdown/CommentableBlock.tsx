@@ -22,8 +22,9 @@ export const CommentableBlock = ({ children, node, ...props }: any) => {
     const line = node?.position?.start?.line;
     const isHoverable = !!line && !isInsideCommentable;
 
+    // In markdown preview, we're always viewing the new version, so filter for side: 'new'
     const fileComments = useMemo(() =>
-        comments.filter((c) => c.filePath === file.path),
+        comments.filter((c) => c.filePath === file.path && c.side === 'new'),
         [comments, file.path]
     );
 
@@ -34,7 +35,8 @@ export const CommentableBlock = ({ children, node, ...props }: any) => {
     const handleSubmitComment = async () => {
         if (!commentText.trim() || !line) return;
         try {
-            await onAddComment(line, line, commentText.trim());
+            // Markdown preview is always on the new side
+            await onAddComment(line, line, 'new', commentText.trim());
             setCommentingLine(null);
             setCommentText('');
         } catch (error) {
