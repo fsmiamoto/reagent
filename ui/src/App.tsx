@@ -169,8 +169,8 @@ function App() {
             <DiffViewer
               file={file}
               comments={session.comments}
-              onAddComment={async (lineNumber, text) => {
-                await addComment(file.path, lineNumber, text);
+              onAddComment={async (startLine, endLine, text) => {
+                await addComment(file.path, startLine, endLine, text);
               }}
               onDeleteComment={deleteComment}
             />

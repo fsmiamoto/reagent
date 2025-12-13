@@ -3,11 +3,15 @@ import { Button } from '../ui/Button';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
 interface CommentInputProps {
+    startLine: number;
+    endLine: number;
     onCancel: () => void;
     onSubmit: (text: string) => Promise<void>;
 }
 
 export const CommentInput: FC<CommentInputProps> = ({
+    startLine,
+    endLine,
     onCancel,
     onSubmit,
 }) => {
@@ -27,11 +31,18 @@ export const CommentInput: FC<CommentInputProps> = ({
         },
     });
 
+    const rangeText = startLine === endLine
+        ? `Commenting on line ${startLine}`
+        : `Commenting on lines ${startLine}-${endLine}`;
+
     return (
         <div className="flex bg-muted/10 border-t border-border/30 font-sans">
             <div className="w-[88px] border-r border-border/50" />
             <div className="flex-1 p-4">
                 <div className="bg-card border border-border rounded-lg shadow-sm p-3 space-y-3 ring-1 ring-primary/20">
+                    <div className="text-xs text-muted-foreground pb-2 border-b border-border/50">
+                        {rangeText}
+                    </div>
                     <textarea
                         value={commentText}
                         onChange={(e) => setCommentText(e.target.value)}

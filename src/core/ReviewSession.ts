@@ -55,13 +55,14 @@ export class ReviewSession {
   }
 
   /**
-   * Add a comment to a specific line in a file
+   * Add a comment to a line or range of lines in a file
    */
-  addComment(filePath: string, lineNumber: number, text: string): ReviewComment {
+  addComment(filePath: string, startLine: number, endLine: number, text: string): ReviewComment {
     const comment: ReviewComment = {
       id: uuidv4(),
       filePath,
-      lineNumber,
+      startLine,
+      endLine,
       text,
       createdAt: new Date(),
     };

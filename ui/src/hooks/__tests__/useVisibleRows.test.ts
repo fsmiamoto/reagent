@@ -84,7 +84,8 @@ describe('useVisibleRows', () => {
             comments: [{
                 id: '1',
                 filePath: 'test.txt',
-                lineNumber: 5,
+                startLine: 5,
+                endLine: 5,
                 text: 'comment',
                 createdAt: new Date().toISOString(),
             }],

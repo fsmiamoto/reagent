@@ -7,7 +7,7 @@ import { cn } from '../lib/utils';
 interface SimpleDiffViewerProps {
   file: ReviewFile;
   comments: ReviewComment[];
-  onAddComment: (lineNumber: number, text: string) => Promise<void>;
+  onAddComment: (startLine: number, endLine: number, text: string) => Promise<void>;
   onDeleteComment: (commentId: string) => Promise<void>;
 }
 
@@ -37,7 +37,7 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
     if (!commentText.trim() || commentingLine === null) return;
 
     try {
-      await onAddComment(commentingLine, commentText.trim());
+      await onAddComment(commentingLine, commentingLine, commentText.trim());
       setCommentingLine(null);
       setCommentText('');
     } catch (error) {
@@ -57,7 +57,7 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
       <div className="text-sm">
         {lines.map((line, index) => {
           const lineNumber = index + 1;
-          const lineComments = fileComments.filter((c) => c.lineNumber === lineNumber);
+          const lineComments = fileComments.filter((c) => lineNumber >= c.startLine && lineNumber <= c.endLine);
           const hasComment = lineComments.length > 0;
           const isCommenting = commentingLine === lineNumber;
 

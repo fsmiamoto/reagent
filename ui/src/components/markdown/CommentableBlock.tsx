@@ -27,14 +27,14 @@ export const CommentableBlock = ({ children, node, ...props }: any) => {
         [comments, file.path]
     );
 
-    const lineComments = line ? fileComments.filter(c => c.lineNumber === line) : [];
+    const lineComments = line ? fileComments.filter(c => line >= c.startLine && line <= c.endLine) : [];
     const hasComments = lineComments.length > 0;
     const isCommenting = commentingLine === line;
 
     const handleSubmitComment = async () => {
         if (!commentText.trim() || !line) return;
         try {
-            await onAddComment(line, commentText.trim());
+            await onAddComment(line, line, commentText.trim());
             setCommentingLine(null);
             setCommentText('');
         } catch (error) {
@@ -95,7 +95,12 @@ export const CommentableBlock = ({ children, node, ...props }: any) => {
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className="text-xs font-semibold text-primary">Comment</span>
-                                        <span className="text-xs text-muted-foreground">on line {line}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                            {comment.startLine === comment.endLine
+                                                ? `on line ${comment.startLine}`
+                                                : `on lines ${comment.startLine}-${comment.endLine}`
+                                            }
+                                        </span>
                                     </div>
                                     <p className="text-sm text-foreground leading-relaxed">{comment.text}</p>
                                 </div>

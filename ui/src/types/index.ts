@@ -12,7 +12,8 @@ export interface ReviewFile {
 export interface ReviewComment {
   id: string;
   filePath: string;
-  lineNumber: number;
+  startLine: number;
+  endLine: number;
   text: string;
   createdAt: string | Date;
 }

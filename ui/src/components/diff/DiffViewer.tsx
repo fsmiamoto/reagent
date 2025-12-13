@@ -13,7 +13,7 @@ import { validateReviewFile } from './validators';
 interface DiffViewerProps {
     file: ReviewFile;
     comments: ReviewComment[];
-    onAddComment: (lineNumber: number, text: string) => Promise<void>;
+    onAddComment: (startLine: number, endLine: number, text: string) => Promise<void>;
     onDeleteComment: (commentId: string) => Promise<void>;
 }
 
@@ -50,7 +50,10 @@ export const DiffViewer: FC<DiffViewerProps> = ({
     const [isExpanded, setIsExpanded] = useState(!isCollapsedByDefault);
     const [viewMode, setViewMode] = useState<'unified' | 'split'>('unified');
     const [showAllLines, setShowAllLines] = useState(false);
-    const [commentingLine, setCommentingLine] = useState<number | null>(null);
+    const [commentingRange, setCommentingRange] = useState<{
+        startLine: number;
+        endLine: number;
+    } | null>(null);
     const [previewMode, setPreviewMode] = useState(false);
 
     const { oldTokens, newTokens, diffRows } = useDiff({
@@ -67,17 +70,13 @@ export const DiffViewer: FC<DiffViewerProps> = ({
         file,
     });
 
-    const handleLineClick = (lineNumber: number) => {
-        if (commentingLine === lineNumber) {
-            setCommentingLine(null);
-        } else {
-            setCommentingLine(lineNumber);
-        }
+    const handleSelectionComplete = (range: { startLine: number; endLine: number }) => {
+        setCommentingRange(range);
     };
 
-    const handleAddComment = async (lineNumber: number, text: string) => {
-        await onAddComment(lineNumber, text);
-        setCommentingLine(null);
+    const handleAddComment = async (startLine: number, endLine: number, text: string) => {
+        await onAddComment(startLine, endLine, text);
+        setCommentingRange(null);
     };
 
     return (
@@ -121,14 +120,14 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                     newTokens={newTokens}
                     visibleRows={visibleRows}
                     comments={comments}
-                    commentingLine={commentingLine}
-                    onLineClick={handleLineClick}
+                    commentingRange={commentingRange}
+                    onSelectionComplete={handleSelectionComplete}
                     showAllLines={showAllLines}
                     onShowMore={() => setShowAllLines(true)}
                     filePath={file.path}
                     onDeleteComment={onDeleteComment}
                     onAddComment={handleAddComment}
-                    onCancelComment={() => setCommentingLine(null)}
+                    onCancelComment={() => setCommentingRange(null)}
                 />
             ) : (
                 <SplitDiffView
@@ -137,14 +136,14 @@ export const DiffViewer: FC<DiffViewerProps> = ({
                     newTokens={newTokens}
                     visibleRows={visibleRows}
                     comments={comments}
-                    commentingLine={commentingLine}
-                    onLineClick={handleLineClick}
+                    commentingRange={commentingRange}
+                    onSelectionComplete={handleSelectionComplete}
                     showAllLines={showAllLines}
                     onShowMore={() => setShowAllLines(true)}
                     filePath={file.path}
                     onDeleteComment={onDeleteComment}
                     onAddComment={handleAddComment}
-                    onCancelComment={() => setCommentingLine(null)}
+                    onCancelComment={() => setCommentingRange(null)}
                 />
             )}
         </div>

@@ -61,9 +61,13 @@ export const GetReviewInputSchema = z.object({
 
 export const AddCommentRequestSchema = z.object({
   filePath: z.string().min(1),
-  lineNumber: z.number().int().positive(),
+  startLine: z.number().int().positive(),
+  endLine: z.number().int().positive(),
   text: z.string().min(1, 'Comment text is required'),
-});
+}).refine(
+  data => data.endLine >= data.startLine,
+  { message: 'endLine must be >= startLine', path: ['endLine'] }
+);
 
 export const CompleteReviewRequestSchema = z.object({
   status: z.enum(['approved', 'changes_requested']),

@@ -35,15 +35,18 @@ export const useVisibleRows = ({
             }
         });
 
-        // Add lines around comments
+        // Add lines around comments (including all lines within range)
         const fileComments = comments.filter((c) => c.filePath === file.path);
         fileComments.forEach(comment => {
-            const rowIndex = diffRows.findIndex(r => r.newLineNumber === comment.lineNumber);
-            if (rowIndex !== -1) {
-                const start = Math.max(0, rowIndex - contextLines);
-                const end = Math.min(diffRows.length - 1, rowIndex + contextLines);
-                for (let i = start; i <= end; i++) {
-                    visibleIndices.add(i);
+            // Find rows for all lines in the comment range
+            for (let line = comment.startLine; line <= comment.endLine; line++) {
+                const rowIndex = diffRows.findIndex(r => r.newLineNumber === line);
+                if (rowIndex !== -1) {
+                    const start = Math.max(0, rowIndex - contextLines);
+                    const end = Math.min(diffRows.length - 1, rowIndex + contextLines);
+                    for (let i = start; i <= end; i++) {
+                        visibleIndices.add(i);
+                    }
                 }
             }
         });
