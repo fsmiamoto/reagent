@@ -15,9 +15,17 @@ export const CommentList: FC<CommentListProps> = ({
     filePath,
     onDeleteComment,
 }) => {
-    const lineComments = comments.filter((c) => c.filePath === filePath && c.lineNumber === lineNumber);
+    // Filter comments where this line falls within the range, only show on startLine
+    const lineComments = comments.filter((c) => c.filePath === filePath && c.startLine === lineNumber);
 
     if (lineComments.length === 0) return null;
+
+    const formatLineRange = (comment: ReviewComment) => {
+        if (comment.startLine === comment.endLine) {
+            return `on line ${comment.startLine}`;
+        }
+        return `on lines ${comment.startLine}-${comment.endLine}`;
+    };
 
     return (
         <div className="flex bg-muted/10 border-t border-border/30 font-sans">
@@ -31,7 +39,7 @@ export const CommentList: FC<CommentListProps> = ({
                         <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                                 <span className="text-xs font-semibold text-primary">Comment</span>
-                                <span className="text-xs text-muted-foreground">on line {lineNumber}</span>
+                                <span className="text-xs text-muted-foreground">{formatLineRange(comment)}</span>
                             </div>
                             <p className="text-sm text-foreground leading-relaxed">{comment.text}</p>
                         </div>

@@ -247,7 +247,10 @@ program
           console.log(`\nGeneral Feedback:\n${session.generalFeedback || '(none)'}`);
           console.log(`\nComments (${session.comments.length}):`);
           session.comments.forEach((c: any) => {
-            console.log(`- ${c.filePath}:${c.lineNumber}: ${c.text}`);
+            const lineInfo = c.startLine === c.endLine
+              ? `${c.startLine}`
+              : `${c.startLine}-${c.endLine}`;
+            console.log(`- ${c.filePath}:${lineInfo}: ${c.text}`);
           });
         }
       }

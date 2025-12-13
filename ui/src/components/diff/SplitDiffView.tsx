@@ -7,6 +7,7 @@ import { CodeLine } from './CodeLine';
 import { ReviewComment } from '../../types';
 import { CommentList } from './CommentList';
 import { CommentInput } from './CommentInput';
+import { useDragSelection, LineRange } from '../../hooks/useDragSelection';
 
 interface SplitDiffViewProps {
     diffRows: DiffRow[];
@@ -14,13 +15,13 @@ interface SplitDiffViewProps {
     newTokens: Token[][];
     visibleRows: DiffRow[];
     comments: ReviewComment[];
-    commentingLine: number | null;
-    onLineClick: (lineNumber: number) => void;
+    commentingRange: LineRange | null;
+    onSelectionComplete: (range: LineRange) => void;
     showAllLines: boolean;
     onShowMore: () => void;
     filePath: string;
     onDeleteComment: (commentId: string) => Promise<void>;
-    onAddComment: (lineNumber: number, text: string) => Promise<void>;
+    onAddComment: (startLine: number, endLine: number, text: string) => Promise<void>;
     onCancelComment: () => void;
 }
 
@@ -30,8 +31,8 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
     newTokens,
     visibleRows,
     comments,
-    commentingLine,
-    onLineClick,
+    commentingRange,
+    onSelectionComplete,
     showAllLines,
     onShowMore,
     filePath,
@@ -39,13 +40,32 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
     onAddComment,
     onCancelComment,
 }) => {
+    const { isDragging, selection, handlers } = useDragSelection({
+        onSelectionComplete,
+    });
+
+    // Determine if a line is in the active selection (either dragging or confirmed range)
+    const isLineInRange = (lineNumber: number | undefined): boolean => {
+        if (!lineNumber) return false;
+        const activeRange = isDragging ? selection : commentingRange;
+        if (!activeRange) return false;
+        return lineNumber >= activeRange.startLine && lineNumber <= activeRange.endLine;
+    };
+
+    // Find the last line of the commenting range to show CommentInput there
+    const showCommentInputAfterLine = commentingRange?.endLine;
+
     return (
-        <div className="text-sm">
+        <div
+            className="text-sm select-none"
+            onMouseUp={handlers.onMouseUp}
+            onMouseLeave={handlers.onMouseUp}
+        >
             {visibleRows.map((row, index) => {
                 const lineNumber = row.newLineNumber;
-                const lineComments = lineNumber ? comments.filter((c) => c.lineNumber === lineNumber) : [];
+                const lineComments = lineNumber ? comments.filter((c) => lineNumber >= c.startLine && lineNumber <= c.endLine) : [];
                 const hasComment = lineComments.length > 0;
-                const isCommenting = lineNumber !== undefined && commentingLine === lineNumber;
+                const isInSelection = isLineInRange(lineNumber);
 
                 const bgClass =
                     row.type === 'added' ? 'bg-green-500/10' :
@@ -70,7 +90,15 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
                             </div>
                         )}
 
-                        <div className={cn("group border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors", bgClass)}>
+                        <div
+                            className={cn(
+                                "group border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors cursor-pointer",
+                                bgClass,
+                                isInSelection && "bg-primary/10 border-l-2 border-l-primary"
+                            )}
+                            onMouseDown={() => lineNumber && handlers.onMouseDown(lineNumber)}
+                            onMouseEnter={() => lineNumber && handlers.onMouseEnter(lineNumber)}
+                        >
                             <div className="flex">
                                 {/* Left Side (Old/Removed/Unchanged) */}
                                 <div className="w-1/2 flex border-r border-border/50">
@@ -98,12 +126,12 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    onLineClick(lineNumber);
+                                                    onSelectionComplete({ startLine: lineNumber, endLine: lineNumber });
                                                 }}
                                                 className={cn(
                                                     "w-5 h-5 flex items-center justify-center rounded hover:bg-primary/10 hover:text-primary transition-colors bg-card shadow-sm border border-border",
                                                     hasComment ? "text-primary opacity-100" : "text-muted-foreground",
-                                                    isCommenting && "bg-primary/10 text-primary opacity-100"
+                                                    isInSelection && "bg-primary/10 text-primary opacity-100"
                                                 )}
                                                 title={hasComment ? 'View comments' : 'Add comment'}
                                             >
@@ -131,10 +159,12 @@ export const SplitDiffView: FC<SplitDiffViewProps> = ({
                                     onDeleteComment={onDeleteComment}
                                 />
                             )}
-                            {isCommenting && lineNumber && (
+                            {lineNumber === showCommentInputAfterLine && commentingRange && (
                                 <CommentInput
+                                    startLine={commentingRange.startLine}
+                                    endLine={commentingRange.endLine}
                                     onCancel={onCancelComment}
-                                    onSubmit={(text) => onAddComment(lineNumber, text)}
+                                    onSubmit={(text) => onAddComment(commentingRange.startLine, commentingRange.endLine, text)}
                                 />
                             )}
                         </div>

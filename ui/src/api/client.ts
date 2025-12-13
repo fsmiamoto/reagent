@@ -46,12 +46,13 @@ export const api = {
   },
 
   /**
-   * Add a comment to a specific line
+   * Add a comment to a line or range of lines
    */
   async addComment(
     sessionId: string,
     filePath: string,
-    lineNumber: number,
+    startLine: number,
+    endLine: number,
     text: string
   ): Promise<ReviewComment> {
     const response = await fetch(`${API_BASE}/sessions/${sessionId}/comments`, {
@@ -61,7 +62,8 @@ export const api = {
       },
       body: JSON.stringify({
         filePath,
-        lineNumber,
+        startLine,
+        endLine,
         text,
       }),
     });

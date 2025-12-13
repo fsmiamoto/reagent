@@ -26,17 +26,31 @@ describe('ReviewSession', () => {
         expect(session.comments).toEqual([]);
     });
 
-    it('should add comments correctly', () => {
+    it('should add single-line comments correctly', () => {
         const session = new ReviewSession(mockFiles);
 
-        const comment = session.addComment('test.ts', 1, 'Great code');
+        const comment = session.addComment('test.ts', 1, 1, 'Great code');
 
         expect(comment).toBeDefined();
         expect(comment.filePath).toBe('test.ts');
-        expect(comment.lineNumber).toBe(1);
+        expect(comment.startLine).toBe(1);
+        expect(comment.endLine).toBe(1);
         expect(comment.text).toBe('Great code');
         expect(session.comments).toHaveLength(1);
         expect(session.comments[0]).toEqual(comment);
+    });
+
+    it('should add multi-line range comments correctly', () => {
+        const session = new ReviewSession(mockFiles);
+
+        const comment = session.addComment('test.ts', 5, 10, 'Review this block');
+
+        expect(comment).toBeDefined();
+        expect(comment.filePath).toBe('test.ts');
+        expect(comment.startLine).toBe(5);
+        expect(comment.endLine).toBe(10);
+        expect(comment.text).toBe('Review this block');
+        expect(session.comments).toHaveLength(1);
     });
 
     it('should complete successfully', async () => {

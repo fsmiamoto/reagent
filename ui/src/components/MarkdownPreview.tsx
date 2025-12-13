@@ -8,7 +8,7 @@ import { markdownComponents } from './markdown/MarkdownComponents';
 interface MarkdownPreviewProps {
     file: ReviewFile;
     comments: ReviewComment[];
-    onAddComment: (lineNumber: number, text: string) => Promise<void>;
+    onAddComment: (startLine: number, endLine: number, text: string) => Promise<void>;
     onDeleteComment: (commentId: string) => Promise<void>;
 }
 

@@ -8,7 +8,7 @@ interface MarkdownContextType {
     commentText: string;
     setCommentingLine: (line: number | null) => void;
     setCommentText: (text: string) => void;
-    onAddComment: (lineNumber: number, text: string) => Promise<void>;
+    onAddComment: (startLine: number, endLine: number, text: string) => Promise<void>;
     onDeleteComment: (commentId: string) => Promise<void>;
 }
 

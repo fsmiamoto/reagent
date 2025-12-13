@@ -169,7 +169,8 @@ describe('HTTP API', () => {
                 `/api/sessions/${sessionId}/comments`,
                 {
                     filePath: 'package.json',
-                    lineNumber: 1,
+                    startLine: 1,
+                    endLine: 1,
                     text: 'Test comment from e2e',
                 }
             );

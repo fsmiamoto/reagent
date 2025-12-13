@@ -21,8 +21,8 @@ describe('SplitDiffView', () => {
         newTokens: [],
         visibleRows: mockDiffRows,
         comments: [],
-        commentingLine: null,
-        onLineClick: vi.fn(),
+        commentingRange: null,
+        onSelectionComplete: vi.fn(),
         showAllLines: true,
         onShowMore: vi.fn(),
         filePath: 'test.ts',
@@ -45,11 +45,11 @@ describe('SplitDiffView', () => {
         const buttons = screen.getAllByTitle('Add comment');
         fireEvent.click(buttons[0]);
 
-        expect(defaultProps.onLineClick).toHaveBeenCalledWith(1);
+        expect(defaultProps.onSelectionComplete).toHaveBeenCalledWith({ startLine: 1, endLine: 1 });
     });
 
-    it('should show comment input when commentingLine matches', () => {
-        render(<SplitDiffView {...defaultProps} commentingLine={1} />);
+    it('should show comment input when commentingRange matches', () => {
+        render(<SplitDiffView {...defaultProps} commentingRange={{ startLine: 1, endLine: 1 }} />);
 
         expect(screen.getByPlaceholderText('Write a comment...')).toBeDefined();
     });
@@ -58,7 +58,8 @@ describe('SplitDiffView', () => {
         const comments = [{
             id: '1',
             filePath: 'test.ts',
-            lineNumber: 1,
+            startLine: 1,
+            endLine: 1,
             text: 'Test comment',
             createdAt: new Date().toISOString(),
         }];
@@ -68,3 +69,4 @@ describe('SplitDiffView', () => {
         expect(screen.getByText('Test comment')).toBeDefined();
     });
 });
+

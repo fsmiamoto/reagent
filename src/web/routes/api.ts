@@ -88,7 +88,8 @@ apiRouter.post('/sessions/:id/comments', (req, res) => {
     // Add the comment
     const comment = session.addComment(
       commentData.filePath,
-      commentData.lineNumber,
+      commentData.startLine,
+      commentData.endLine,
       commentData.text
     );
 
