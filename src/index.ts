@@ -4,11 +4,11 @@ import { Command } from 'commander';
 import { spawn } from 'child_process';
 import { Server } from 'http';
 import open from 'open';
-import { startMCPServer } from './mcp/server.js';
-import { startWebServer } from './web/server.js';
-import { sessionStore } from './core/SessionStore.js';
-import { ensureServerRunning } from './web/lifecycle.js';
-import { DEFAULT_PORT, getPort } from './config.js';
+import { startMCPServer } from './mcp/server';
+import { startWebServer } from './web/server';
+import { sessionStore } from './core/SessionStore';
+import { ensureServerRunning } from './web/lifecycle';
+import { DEFAULT_PORT, getPort } from './config';
 
 const program = new Command();
 
@@ -89,7 +89,6 @@ program
       child.unref();
       console.error(`[Reagent] Server started in background (PID: ${child.pid})`);
       process.exit(0);
-      return;
     }
 
     try {
@@ -97,13 +96,6 @@ program
 
       const { server } = await startWebServer(port);
       webServer = server;
-
-      setInterval(() => {
-        const cleaned = sessionStore.cleanupOldSessions();
-        if (cleaned > 0) {
-          console.error(`[Reagent] Cleaned up ${cleaned} old session(s)`);
-        }
-      }, 60 * 60 * 1000);
     } catch (error) {
       console.error('[Reagent] Failed to start web server:', error);
       process.exit(1);

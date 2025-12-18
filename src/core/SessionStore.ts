@@ -1,4 +1,4 @@
-import { ReviewSession } from './ReviewSession.js';
+import { ReviewSession } from './ReviewSession';
 
 /**
  * In-memory store for active review sessions
@@ -55,27 +55,6 @@ export class SessionStore {
       }
     }
     this.sessions.clear();
-  }
-
-  /**
-   * Clean up old completed sessions
-   * Call this periodically to prevent memory leaks
-   */
-  cleanupOldSessions(maxAgeMs: number = 24 * 60 * 60 * 1000): number {
-    const now = new Date().getTime();
-    let cleaned = 0;
-
-    for (const [id, session] of this.sessions.entries()) {
-      const age = now - session.createdAt.getTime();
-
-      // Remove completed/cancelled sessions older than maxAge
-      if (session.status !== 'pending' && age > maxAgeMs) {
-        this.sessions.delete(id);
-        cleaned++;
-      }
-    }
-
-    return cleaned;
   }
 }
 

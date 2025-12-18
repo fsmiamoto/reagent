@@ -1,7 +1,7 @@
-import { getReviewFilesFromGit } from '../../utils/git.js';
-import { getLocalFiles } from '../../utils/files.js';
-import type { ReviewInput, ReviewFile } from '../../shared/types.js';
-import { resolveReviewSource } from '../../shared/types.js';
+import { getReviewFilesFromGit } from '../../utils/git';
+import { getLocalFiles } from '../../utils/files';
+import type { ReviewInput, ReviewFile } from '../../shared/types';
+import { resolveReviewSource } from '../../shared/types';
 
 export function extractReviewFiles(input: ReviewInput): {
   files: ReviewFile[];

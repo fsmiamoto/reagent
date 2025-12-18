@@ -5,7 +5,7 @@ import type {
   ReviewResult,
   ReviewStatus,
   ReviewSession as IReviewSession,
-} from '../shared/types.js';
+} from '../shared/types';
 
 /**
  * Represents a code review session with deferred promise pattern

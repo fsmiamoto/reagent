@@ -1,5 +1,5 @@
-import type { GetReviewInput, GetReviewResult, ReviewResult } from '../../shared/types.js';
-import { getPort } from '../../config.js';
+import type { GetReviewInput, GetReviewResult, ReviewResult } from '../../shared/types';
+import { getPort } from '../../config';
 
 /**
  * Get review status/results via the HTTP API.

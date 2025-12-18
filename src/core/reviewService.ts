@@ -1,9 +1,9 @@
-import { ReviewSession } from './ReviewSession.js';
-import { sessionStore } from './SessionStore.js';
-import type { CreateReviewResult, ReviewFile, ReviewInput } from '../shared/types.js';
-import { resolveReviewSource } from '../shared/types.js';
-import { getReviewFilesFromGit } from '../utils/git.js';
-import { getLocalFiles } from '../utils/files.js';
+import { ReviewSession } from './ReviewSession';
+import { sessionStore } from './SessionStore';
+import type { CreateReviewResult, ReviewFile, ReviewInput } from '../shared/types';
+import { resolveReviewSource } from '../shared/types';
+import { getReviewFilesFromGit } from '../utils/git';
+import { getLocalFiles } from '../utils/files';
 
 /**
  * Build review URL from session ID and host

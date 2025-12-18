@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'fs';
 import { execSync } from 'child_process';
 import * as path from 'path';
-import { getReviewFilesFromGit } from '@src/utils/git.js';
+import { getReviewFilesFromGit } from '@src/utils/git';
 
 describe('getReviewFilesFromGit', () => {
   let tempDir: string;

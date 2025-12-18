@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { SessionStore } from '@src/core/SessionStore.js';
-import { ReviewSession } from '@src/core/ReviewSession.js';
-import type { ReviewFile } from '@src/shared/types.js';
+import { SessionStore } from '@src/core/SessionStore';
+import { ReviewSession } from '@src/core/ReviewSession';
+import type { ReviewFile } from '@src/shared/types';
 
 describe('SessionStore', () => {
     let store: SessionStore;
@@ -72,29 +72,5 @@ describe('SessionStore', () => {
         expect(store.getAllSessions()).toHaveLength(0);
         expect(cancelSpy1).toHaveBeenCalledWith('Server shutting down');
         expect(cancelSpy2).toHaveBeenCalledWith('Server shutting down');
-    });
-
-    it('should cleanup old sessions', () => {
-        const session1 = createSession();
-        const session2 = createSession();
-        const session3 = createSession();
-
-        session2.complete('approved');
-        session3.complete('approved');
-
-        Object.defineProperty(session2, 'createdAt', {
-            value: new Date(Date.now() - 25 * 60 * 60 * 1000) // 25 hours ago
-        });
-
-        store.set(session1);
-        store.set(session2);
-        store.set(session3);
-
-        const cleanedCount = store.cleanupOldSessions();
-
-        expect(cleanedCount).toBe(1);
-        expect(store.has(session1.id)).toBe(true);
-        expect(store.has(session2.id)).toBe(false);
-        expect(store.has(session3.id)).toBe(true);
     });
 });

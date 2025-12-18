@@ -10,7 +10,7 @@
 
 ## Code Style
 - **TypeScript**: Strict mode enabled with ES2022 target. Use explicit types, avoid `any`.
-- **Imports**: Use `.js` extensions for local imports (ES modules). Group by: external deps, then local with `../` paths.
+- **Imports**: Use ES module imports without file extensions. Group by: external deps, then local with `../` paths.
 - **Naming**: Descriptive names (e.g., `getReviewFilesFromGit`, `ReviewSession`). Use camelCase for functions/vars, PascalCase for classes/types.
 - **Functions**: Small, focused, single responsibility. Avoid `else` keyword - use guard clauses and early returns. Prefer functional methods (`.map`, `.filter`) over imperative loops.
 - **Error Handling**: Use try-catch with descriptive error messages. Log to stderr with `console.error('[Reagent] ...')`.

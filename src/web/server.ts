@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Server } from 'http';
-import { apiRouter } from './routes/api.js';
+import { apiRouter } from './routes/api';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,7 +20,7 @@ export function getWebServerPort(): number {
   return portFromEnv || DEFAULT_WEB_SERVER_PORT;
 }
 
-export { DEFAULT_PORT, getPort } from '../config.js';
+export { DEFAULT_PORT, getPort } from '../config';
 
 export function createWebServer() {
   const app = express();

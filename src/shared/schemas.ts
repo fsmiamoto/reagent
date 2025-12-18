@@ -3,7 +3,7 @@
  */
 
 import { z } from 'zod';
-import { resolveReviewSource } from './types.js';
+import { resolveReviewSource } from './types';
 
 /**
  * Review input schema

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveReviewSource } from '@src/shared/types.js';
+import { resolveReviewSource } from '@src/shared/types';
 
 describe('resolveReviewSource', () => {
   it('should return "uncommitted" when called with an empty object', () => {

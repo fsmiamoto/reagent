@@ -1,6 +1,6 @@
 import { readFileSync, existsSync, statSync } from 'fs';
 import * as path from 'path';
-import type { ReviewFile } from '../shared/types.js';
+import type { ReviewFile } from '../shared/types';
 
 /**
  * Get the language/file extension from a file path

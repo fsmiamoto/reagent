@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import { readFileSync } from 'fs';
 import * as path from 'path';
-import { resolveReviewSource, type ReviewFile, type ReviewInput } from '../shared/types.js';
+import { resolveReviewSource, type ReviewFile, type ReviewInput } from '../shared/types';
 
 interface GitFileChange {
   path: string;

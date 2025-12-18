@@ -1,6 +1,6 @@
 import open from 'open';
-import type { CreateReviewInput, CreateReviewResult } from '../../shared/types.js';
-import { getPort } from '../../config.js';
+import type { CreateReviewInput, CreateReviewResult } from '../../shared/types';
+import { getPort } from '../../config';
 
 /**
  * Create a new review session via the HTTP API.

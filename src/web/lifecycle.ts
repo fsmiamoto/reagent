@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import { getPort } from '../config.js';
+import { getPort } from '../config';
 
 export async function isServerRunning(port: number = getPort()): Promise<boolean> {
   const apiUrl = `http://localhost:${port}/api`;

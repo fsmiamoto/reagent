@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { DEFAULT_PORT, getPort } from '@src/config.js';
+import { DEFAULT_PORT, getPort } from '@src/config';
 
 describe('config', () => {
     const originalEnv = process.env.REAGENT_PORT;

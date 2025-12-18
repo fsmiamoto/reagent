@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { sessionStore } from '../../core/SessionStore.js';
-import { AddCommentRequestSchema, CompleteReviewRequestSchema, ReviewInputSchema } from '../../shared/schemas.js';
-import { createReviewSession } from '../../core/reviewService.js';
-import type { AddCommentRequest, CompleteReviewRequest } from '../../shared/types.js';
+import { sessionStore } from '../../core/SessionStore';
+import { AddCommentRequestSchema, CompleteReviewRequestSchema, ReviewInputSchema } from '../../shared/schemas';
+import { createReviewSession } from '../../core/reviewService';
+import type { AddCommentRequest, CompleteReviewRequest } from '../../shared/types';
 
 export const apiRouter = Router();
 
