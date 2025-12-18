@@ -34,7 +34,7 @@ ReAgent tackles that by creating a lightweight MCP server that opens a familiar,
     "reagent": {
       "command": "npx",
       "args": [
-        "-y"
+        "-y",
         "@fsmiamoto/reagent@latest",
         "mcp"
       ]
