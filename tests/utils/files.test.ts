@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'fs';
 import * as path from 'path';
-import { getLocalFiles } from '@src/utils/files';
+import { getLocalFiles } from '@src/files/files';
 
 describe('getLocalFiles', () => {
     let tempDir: string;

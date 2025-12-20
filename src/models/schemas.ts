@@ -1,13 +1,6 @@
-/**
- * Zod schemas for runtime validation
- */
-
 import { z } from 'zod';
-import { resolveReviewSource } from './types';
+import { resolveReviewSource } from './api';
 
-/**
- * Review input schema
- */
 export const ReviewInputSchema = z
   .object({
     files: z.array(z.string().min(1)).optional(),

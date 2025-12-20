@@ -1,7 +1,10 @@
 import { readFileSync, existsSync, statSync } from 'fs';
 import * as path from 'path';
-import type { ReviewFile } from '../shared/types';
-import { getLanguageFromPath } from './language.js';
+import type { ReviewFile } from '../models/domain';
+import type { ReviewInput } from '../models/api';
+import { resolveReviewSource } from '../models/api';
+import { getLanguageFromPath } from '../utils/language';
+import { getReviewFilesFromGit } from '../git/git';
 
 /**
  * Get review files from local filesystem
@@ -41,4 +44,34 @@ export function getLocalFiles(files: string[], cwd?: string): ReviewFile[] {
     }
 
     return reviewFiles;
+}
+
+/**
+ * Extract review files from input, determining the source and fetching files accordingly
+ */
+export function extractReviewFiles(input: ReviewInput): {
+    files: ReviewFile[];
+    title?: string;
+    description?: string;
+} {
+    const source = resolveReviewSource(input);
+    const sourceLabel = input.source ? source : `${source} (auto-detected)`;
+    console.error(`[Reagent] Using source: ${sourceLabel}`);
+
+    const reviewInput = { ...input, source };
+    let files: ReviewFile[];
+
+    if (source === 'local') {
+        if (!reviewInput.files || reviewInput.files.length === 0) {
+            throw new Error('Files must be specified for local review');
+        }
+        files = getLocalFiles(reviewInput.files, reviewInput.workingDirectory);
+    } else {
+        files = getReviewFilesFromGit(reviewInput);
+    }
+
+    const title = reviewInput.title;
+    const description = reviewInput.description;
+
+    return { files, title, description };
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildReviewUrl } from '@src/mcp/tools/reviewHelpers';
+import { buildReviewUrl } from '@src/http/routes';
 
 describe('reviewHelpers', () => {
   describe('buildReviewUrl', () => {

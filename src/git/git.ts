@@ -1,8 +1,9 @@
 import { execSync } from 'child_process';
 import { readFileSync } from 'fs';
 import * as path from 'path';
-import { resolveReviewSource, type ReviewFile, type ReviewInput } from '../shared/types';
-import { getLanguageFromPath } from './language';
+import type { ReviewFile } from '../models/domain';
+import { resolveReviewSource, type ReviewInput } from '../models/api';
+import { getLanguageFromPath } from '../utils/language';
 
 interface GitFileChange {
   path: string;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createWebServer } from '@src/web/server';
+import { createWebServer } from '@src/http/server';
 
 describe('web server', () => {
   it('should create an express application', () => {

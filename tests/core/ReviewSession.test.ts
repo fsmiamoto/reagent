@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { ReviewSession } from '@src/core/ReviewSession';
-import type { ReviewFile } from '@src/shared/types';
+import { ReviewSession } from '@src/models/reviewSession';
+import type { ReviewFile } from '@src/models/domain';
 
 describe('ReviewSession', () => {
     const mockFiles: ReviewFile[] = [

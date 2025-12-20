@@ -1,4 +1,5 @@
-import type { GetReviewInput, GetReviewResult, ReviewResult } from '../../shared/types';
+import type { ReviewResult } from '../../models/domain';
+import type { GetReviewInput, GetReviewResult } from '../../models/api';
 import { getPort } from '../../config';
 
 /**

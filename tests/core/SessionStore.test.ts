@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { SessionStore } from '@src/core/SessionStore';
-import { ReviewSession } from '@src/core/ReviewSession';
-import type { ReviewFile } from '@src/shared/types';
+import { SessionStore } from '@src/store/session';
+import { ReviewSession } from '@src/models/reviewSession';
+import type { ReviewFile } from '@src/models/domain';
 
 describe('SessionStore', () => {
     let store: SessionStore;

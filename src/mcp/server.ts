@@ -3,11 +3,11 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { createReview } from './tools/createReview';
 import { getReview } from './tools/getReview';
-import { ensureServerRunning } from '../web/lifecycle';
+import { ensureServerRunning } from '../http/lifecycle';
 import {
   CreateReviewInputSchema,
   GetReviewInputSchema,
-} from '../shared/schemas';
+} from '../models/schemas';
 
 /**
  * Initialize and configure the MCP server

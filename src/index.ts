@@ -5,9 +5,9 @@ import { spawn } from 'child_process';
 import { Server } from 'http';
 import open from 'open';
 import { startMCPServer } from './mcp/server';
-import { startWebServer } from './web/server';
-import { sessionStore } from './core/SessionStore';
-import { ensureServerRunning } from './web/lifecycle';
+import { startWebServer } from './http/server';
+import { sessionStore } from './store/session';
+import { ensureServerRunning } from './http/lifecycle';
 import { DEFAULT_PORT, getPort } from './config';
 
 const program = new Command();

@@ -1,52 +1,37 @@
-import { ReviewSession } from './ReviewSession';
+import { ReviewSession } from '../models/reviewSession';
 
-/**
- * In-memory store for active review sessions
- *
- * In a production system, this could be backed by Redis or a database
- * for session persistence, but for the MVP an in-memory Map is sufficient.
- */
-export class SessionStore {
+export interface ISessionStore {
+  set(session: ReviewSession): void;
+  get(sessionId: string): ReviewSession | undefined;
+  has(sessionId: string): boolean;
+  delete(sessionId: string): boolean;
+  getAllSessions(): ReviewSession[];
+  clear(): void;
+}
+
+export class SessionStore implements ISessionStore {
   private sessions = new Map<string, ReviewSession>();
 
-  /**
-   * Add a new session to the store
-   */
   set(session: ReviewSession): void {
     this.sessions.set(session.id, session);
   }
 
-  /**
-   * Retrieve a session by ID
-   */
   get(sessionId: string): ReviewSession | undefined {
     return this.sessions.get(sessionId);
   }
 
-  /**
-   * Check if a session exists
-   */
   has(sessionId: string): boolean {
     return this.sessions.has(sessionId);
   }
 
-  /**
-   * Remove a session from the store
-   */
   delete(sessionId: string): boolean {
     return this.sessions.delete(sessionId);
   }
 
-  /**
-   * Get all active sessions
-   */
   getAllSessions(): ReviewSession[] {
     return Array.from(this.sessions.values());
   }
 
-  /**
-   * Clear all sessions (useful for cleanup/testing)
-   */
   clear(): void {
     // Cancel all pending sessions before clearing
     for (const session of this.sessions.values()) {
@@ -58,4 +43,4 @@ export class SessionStore {
   }
 }
 
-export const sessionStore = new SessionStore();
+export const sessionStore: ISessionStore = new SessionStore();

@@ -1,10 +1,18 @@
 import { Router } from 'express';
-import { sessionStore } from '../../core/SessionStore';
-import { AddCommentRequestSchema, CompleteReviewRequestSchema, ReviewInputSchema } from '../../shared/schemas';
-import { createReviewSession } from '../../core/reviewService';
-import type { AddCommentRequest, CompleteReviewRequest } from '../../shared/types';
+import { sessionStore } from '../store/session';
+import { AddCommentRequestSchema, CompleteReviewRequestSchema, ReviewInputSchema } from '../models/schemas';
+import { reviewService } from '../review/service';
+import { extractReviewFiles } from '../files/files';
+import type { AddCommentRequest, CompleteReviewRequest, CreateReviewResult } from '../models/api';
 
 export const apiRouter = Router();
+
+/**
+ * Build the review URL for a given session ID.
+ */
+export function buildReviewUrl(sessionId: string, host: string): string {
+  return `http://${host}/review/${sessionId}`;
+}
 
 /**
  * GET /api/sessions
@@ -32,7 +40,15 @@ apiRouter.post('/reviews', async (req, res) => {
     const input = ReviewInputSchema.parse(req.body);
     const host = req.get('host') || 'localhost:3636';
 
-    const result = createReviewSession(input, host);
+    const { files, title, description } = extractReviewFiles(input);
+    const session = reviewService.createSession(files, title, description);
+
+    const result: CreateReviewResult = {
+      sessionId: session.id,
+      reviewUrl: buildReviewUrl(session.id, host),
+      filesCount: files.length,
+      title,
+    };
 
     res.status(201).json(result);
   } catch (error) {

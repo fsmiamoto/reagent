@@ -1,5 +1,5 @@
 import open from 'open';
-import type { CreateReviewInput, CreateReviewResult } from '../../shared/types';
+import type { CreateReviewInput, CreateReviewResult } from '../../models/api';
 import { getPort } from '../../config';
 
 /**
