@@ -4,9 +4,9 @@
 
 ## Why is this useful?
 
-In the era of AI coding assistants, ensuring their output code is high quality is essencial for maintaining a healthy codebase. 
+In the era of AI coding assistants, ensuring their output code is high quality is essential for maintaining a healthy codebase. 
 
-For that, you often need to provide detailed, line-specific feedback, just like you would do with a human teammate's code.
+This often requires providing detailed, line-specific feedback, just like you would with a human teammate's code.
 
 But pointing to specific lines through chat is clunky, and setting up GitHub PRs for local work-in-progress is really overkill.
 
@@ -26,7 +26,7 @@ ReAgent tackles that by creating a lightweight MCP server that opens a familiar,
 
 ## Usage
 
-1. Add it as an MCP server to your favorite Agentic coding tool.
+1. Add it as an MCP server to your favorite agentic coding tool.
 
 ```json
 {
@@ -43,18 +43,32 @@ ReAgent tackles that by creating a lightweight MCP server that opens a familiar,
 }
 ```
 
+### Prompting
+
+The recommended way to use ReAgent is to steer your agent whenever you want to create a review session.
+
+```
+> Let's plan a change to [...]. Write the plan as a markdown file on the plans/ directory and create a review session.
+```
+
+You can also add ReAgent instructions to your AGENTS.md (or any context file your agent loads) to enforce reviews automatically:
+
+```
+- You MUST create a review session using ReAgent and get approval before proceeding to implementation.
+```
+
 ### Two-Step Workflow
 
 ReAgent uses a two-step workflow to enable interactive browser-based code reviews:
 
 1. **create_review**: Initiates a review session and returns a URL.
-2. **get_review**: Retrieves the completed review results
+2. **get_review**: Retrieves the completed review results.
 
 ## CLI Usage
 
-ReAgent also provides a command-line interface for creating and managing reviews sessions.
+ReAgent also provides a command-line interface for creating and managing review sessions.
 
-For advanced users, this also means you can [skip the MCP altogether](https://mariozechner.at/posts/2025-11-02-what-if-you-dont-need-mcp/) and teach your agent how to use the bare CLI commands.
+For advanced users, you can also use the CLI directly without MCP by teaching your agent to invoke the commands ([learn more](https://mariozechner.at/posts/2025-11-02-what-if-you-dont-need-mcp/)).
 
 ### Installation
 
@@ -81,7 +95,7 @@ npx @fsmiamoto/reagent review
 The most common CLI workflow is creating a review of your code:
 
 ```bash
-# This will review all the uncommited changes in your Git repo.
+# This will review all the uncommitted changes in your Git repo.
 reagent review --auto-start
 ```
 
