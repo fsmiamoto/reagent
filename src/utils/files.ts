@@ -1,42 +1,7 @@
 import { readFileSync, existsSync, statSync } from 'fs';
 import * as path from 'path';
 import type { ReviewFile } from '../shared/types';
-
-/**
- * Get the language/file extension from a file path
- * Duplicated from git.ts - ideally should be shared
- */
-function getLanguageFromPath(filePath: string): string | undefined {
-    const ext = path.extname(filePath).slice(1).toLowerCase();
-    const languageMap: Record<string, string> = {
-        ts: 'typescript',
-        tsx: 'typescript',
-        js: 'javascript',
-        jsx: 'javascript',
-        py: 'python',
-        rb: 'ruby',
-        go: 'go',
-        rs: 'rust',
-        java: 'java',
-        c: 'c',
-        cpp: 'cpp',
-        cs: 'csharp',
-        php: 'php',
-        swift: 'swift',
-        kt: 'kotlin',
-        md: 'markdown',
-        json: 'json',
-        yaml: 'yaml',
-        yml: 'yaml',
-        html: 'html',
-        css: 'css',
-        scss: 'scss',
-        sql: 'sql',
-        sh: 'shell',
-        bash: 'shell',
-    };
-    return languageMap[ext] || ext;
-}
+import { getLanguageFromPath } from './language.js';
 
 /**
  * Get review files from local filesystem

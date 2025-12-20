@@ -1,7 +1,3 @@
-/**
- * Shared TypeScript types used across the Reagent application
- */
-
 export interface ReviewFile {
   path: string;
   content: string;
@@ -43,11 +39,8 @@ export interface ReviewResult {
 
 export type ReviewSource = 'uncommitted' | 'commit' | 'branch' | 'local';
 
-/**
- * Review input
- */
 export interface ReviewInput {
-  files?: string[]; // Array of file paths (optional: reviews all changes when omitted)
+  files?: string[];
   source?: ReviewSource;
   commitHash?: string; // For source: 'commit'
   base?: string; // For source: 'branch'
@@ -59,18 +52,12 @@ export interface ReviewInput {
 
 export type AskForReviewInput = ReviewInput;
 
-/**
- * Input for create_review tool
- */
 export interface CreateReviewInput extends ReviewInput {
   openBrowser?: boolean; // Default: true
   /** Internal: host for URL generation, not exposed in MCP schema */
   _host?: string;
 }
 
-/**
- * Output from create_review tool
- */
 export interface CreateReviewResult {
   sessionId: string;
   reviewUrl: string;
