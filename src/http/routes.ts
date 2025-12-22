@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { sessionStore } from '../store/session';
 import { AddCommentRequestSchema, CompleteReviewRequestSchema, ReviewInputSchema } from '../models/schemas';
 import { reviewService } from '../review/service';
 import { extractReviewFiles } from '../files/files';
@@ -19,7 +18,7 @@ export function buildReviewUrl(sessionId: string, host: string): string {
  * List all active review sessions
  */
 apiRouter.get('/sessions', (_req, res) => {
-  const sessions = sessionStore.getAllSessions().map((session) => ({
+  const sessions = reviewService.listSessions().map((session) => ({
     id: session.id,
     status: session.status,
     filesCount: session.files.length,
@@ -68,7 +67,7 @@ apiRouter.post('/reviews', async (req, res) => {
 apiRouter.get('/sessions/:id', (req, res) => {
   const { id } = req.params;
 
-  const session = sessionStore.get(id);
+  const session = reviewService.getSession(id);
 
   if (!session) {
     res.status(404).json({ error: 'Review session not found' });
@@ -85,7 +84,7 @@ apiRouter.get('/sessions/:id', (req, res) => {
 apiRouter.post('/sessions/:id/comments', (req, res) => {
   const { id } = req.params;
 
-  const session = sessionStore.get(id);
+  const session = reviewService.getSession(id);
 
   if (!session) {
     res.status(404).json({ error: 'Review session not found' });
@@ -127,7 +126,7 @@ apiRouter.post('/sessions/:id/comments', (req, res) => {
 apiRouter.delete('/sessions/:id/comments/:commentId', (req, res) => {
   const { id, commentId } = req.params;
 
-  const session = sessionStore.get(id);
+  const session = reviewService.getSession(id);
 
   if (!session) {
     res.status(404).json({ error: 'Review session not found' });
@@ -160,7 +159,7 @@ apiRouter.delete('/sessions/:id/comments/:commentId', (req, res) => {
 apiRouter.post('/sessions/:id/complete', (req, res) => {
   const { id } = req.params;
 
-  const session = sessionStore.get(id);
+  const session = reviewService.getSession(id);
 
   if (!session) {
     res.status(404).json({ error: 'Review session not found' });
@@ -203,7 +202,7 @@ apiRouter.post('/sessions/:id/complete', (req, res) => {
 apiRouter.post('/sessions/:id/cancel', (req, res) => {
   const { id } = req.params;
 
-  const session = sessionStore.get(id);
+  const session = reviewService.getSession(id);
 
   if (!session) {
     res.status(404).json({ error: 'Review session not found' });
@@ -227,6 +226,6 @@ apiRouter.post('/sessions/:id/cancel', (req, res) => {
 apiRouter.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
-    activeSessions: sessionStore.getAllSessions().filter((s) => s.status === 'pending').length,
+    activeSessions: reviewService.listSessions().filter((s) => s.status === 'pending').length,
   });
 });
