@@ -170,6 +170,7 @@ describe('HTTP API', () => {
                     filePath: 'package.json',
                     startLine: 1,
                     endLine: 1,
+                    side: "old",
                     text: 'Test comment from e2e',
                 }
             );
