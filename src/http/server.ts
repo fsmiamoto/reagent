@@ -147,6 +147,53 @@ export class Server {
   getHttpServer(): HttpServer | null {
     return this.httpServer;
   }
+
+  async getServerStatus(): Promise<ServerStatus> {
+    const serverInfo = this.lock.getServerInfo();
+
+    if (!serverInfo) {
+      return {
+        running: false,
+        lockFilePath: this.lock.getLockFilePath(),
+      };
+    }
+
+    let healthy = false;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      try {
+        const response = await fetch(`http://localhost:${serverInfo.port}/api/health`, {
+          signal: controller.signal,
+        });
+        healthy = response.ok;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    } catch {
+      healthy = false;
+    }
+
+    return {
+      running: true,
+      pid: serverInfo.pid,
+      port: serverInfo.port,
+      startedAt: serverInfo.startedAt,
+      version: serverInfo.version,
+      healthy,
+      lockFilePath: this.lock.getLockFilePath(),
+    };
+  }
+}
+
+export interface ServerStatus {
+  running: boolean;
+  pid?: number;
+  port?: number;
+  startedAt?: string;
+  version?: string;
+  healthy?: boolean;
+  lockFilePath?: string;
 }
 
 export const server = new Server();

@@ -290,4 +290,37 @@ program
     }
   });
 
+program
+  .command('status')
+  .description('Show the status of the Reagent web server')
+  .option('--json', 'Output status as JSON')
+  .action(async (options) => {
+    try {
+      const server = new WebServer();
+      const info = await server.getServerStatus();
+
+      if (options.json) {
+        console.log(JSON.stringify(info, null, 2));
+        return;
+      }
+
+      if (!info.running) {
+        console.log('[Reagent] Server is not running.');
+        return;
+      }
+
+      console.log('[Reagent] Server Status:');
+      console.log(`  Status:     Running`);
+      console.log(`  PID:        ${info.pid}`);
+      console.log(`  Port:       ${info.port}`);
+      console.log(`  URL:        http://localhost:${info.port}`);
+      console.log(`  Started:    ${new Date(info.startedAt as string).toLocaleString()}`);
+      console.log(`  Version:    ${info.version}`);
+      console.log(`  Healthy:    ${info.healthy ? 'Yes' : 'No'}`);
+    } catch (error: unknown) {
+      console.error('[Reagent] Failed to get server status:', error);
+      process.exit(1);
+    }
+  });
+
 program.parse();
