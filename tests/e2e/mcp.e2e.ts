@@ -92,7 +92,7 @@ async function sendMCPRequest(
 function startMCPServer(): ChildProcess {
     const proc = spawn('node', [CLI_PATH, 'mcp'], {
         cwd: PROJECT_ROOT,
-        env: { ...process.env, REAGENT_PORT: String(TEST_PORT) },
+        env: { ...process.env },
         stdio: ['pipe', 'pipe', 'pipe'],
     });
 

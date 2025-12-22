@@ -28,7 +28,7 @@ interface ReviewResponse {
     title?: string;
 }
 
-interface SessionResponse {
+interface GetSessionResponse {
     sessionId: string;
     status: string;
     files: unknown[];
@@ -109,7 +109,7 @@ describe('HTTP API', () => {
             const sessionId = createResult.data.sessionId;
 
             // Now get the session
-            const { status, data } = await apiRequest<SessionResponse>(
+            const { status, data } = await apiRequest<GetSessionResponse>(
                 TEST_PORT,
                 'GET',
                 `/api/sessions/${sessionId}`

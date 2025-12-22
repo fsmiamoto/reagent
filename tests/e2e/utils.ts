@@ -1,8 +1,11 @@
 import { spawn, ChildProcess, execSync } from 'child_process';
+import fs from 'fs';
+import os from 'os';
 import path from 'path';
 
 const PROJECT_ROOT = path.resolve(import.meta.dirname, '../..');
 const CLI_PATH = path.join(PROJECT_ROOT, 'dist/index.js');
+const LOCK_FILE_PATH = path.join(os.homedir(), '.reagent', 'server.lock');
 
 export interface ServerOptions {
     port: number;
@@ -17,11 +20,29 @@ export interface ServerHandle {
 }
 
 /**
+ * Clean up any lock files (useful for test setup/teardown).
+ */
+export function cleanupLockFile(): void {
+    const candidates = [LOCK_FILE_PATH];
+    for (const candidate of candidates) {
+        try {
+            if (fs.existsSync(candidate)) {
+                fs.unlinkSync(candidate);
+            }
+        } catch {
+            // Ignore errors during cleanup
+        }
+    }
+}
+
+/**
  * Start the reagent server with the given options.
  * Returns a handle with a stop() function to clean up.
  */
 export async function startServer(options: ServerOptions): Promise<ServerHandle> {
     const { port, env = {}, detach = true } = options;
+
+    cleanupLockFile();
 
     const args = ['start', '--port', String(port)];
     if (detach) {
@@ -47,6 +68,7 @@ export async function startServer(options: ServerOptions): Promise<ServerHandle>
         process: detach ? undefined : proc,
         stop: async () => {
             await killServerOnPort(port);
+            cleanupLockFile();
         },
     };
 }

@@ -1,30 +1,14 @@
 import open from 'open';
 import type { CreateReviewInput, CreateReviewResult } from '../../models/api';
-import { getPort } from '../../config';
+import { apiFacade } from '../../http/facade';
 
-/**
- * Create a new review session via the HTTP API.
- */
 export async function createReview(input: CreateReviewInput): Promise<CreateReviewResult> {
-  const port = getPort();
-  const apiUrl = `http://localhost:${port}/api`;
   const { openBrowser: requestedOpenBrowser, _host: _ignoredHost, ...requestPayload } = input;
 
   try {
     console.error(`[Reagent] Creating review via API`);
 
-    const response = await fetch(`${apiUrl}/reviews`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestPayload),
-    });
-
-    if (!response.ok) {
-      const error = (await response.json()) as { error?: string };
-      throw new Error(error.error || `API error: ${response.statusText}`);
-    }
-
-    const result = (await response.json()) as CreateReviewResult;
+    const result = await apiFacade.post<CreateReviewResult>('/reviews', requestPayload);
 
     console.error(`[Reagent] Review session created: ${result.sessionId} (${result.filesCount} file(s))`);
 
@@ -38,13 +22,15 @@ export async function createReview(input: CreateReviewInput): Promise<CreateRevi
         console.error('[Reagent] Failed to open browser:', error);
         console.error('[Reagent] You can manually open the review at:', result.reviewUrl);
       }
-    } else {
-      console.error(`[Reagent] Browser opening disabled. Access review at: ${result.reviewUrl}`);
+      return result;
     }
 
+    console.error(`[Reagent] Browser opening disabled. Access review at: ${result.reviewUrl}`);
+
     return result;
-  } catch (error) {
-    console.error('[Reagent] Failed to create review:', error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Reagent] Failed to create review:', message);
     throw error;
   }
 }

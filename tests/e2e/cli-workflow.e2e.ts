@@ -43,8 +43,6 @@ describe('CLI Workflow', () => {
             '--no-open',
             '--source',
             'local',
-            '--port',
-            String(TEST_PORT),
         ]);
 
         expect(output).toContain('Review created');
@@ -55,7 +53,7 @@ describe('CLI Workflow', () => {
     });
 
     it('should list sessions', () => {
-        const output = runCli(['list', '--port', String(TEST_PORT)]);
+        const output = runCli(['list']);
 
         // Should contain at least the session we just created
         expect(output).toMatch(/[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}/i);
@@ -69,15 +67,13 @@ describe('CLI Workflow', () => {
             '--no-open',
             '--source',
             'local',
-            '--port',
-            String(TEST_PORT),
         ]);
 
         const sessionId = extractSessionId(createOutput);
         expect(sessionId).not.toBeNull();
 
         // Now get the session details
-        const getOutput = runCli(['get', sessionId!, '--json', '--port', String(TEST_PORT)]);
+        const getOutput = runCli(['get', sessionId!, '--json']);
 
         // Should be valid JSON
         const parsed = JSON.parse(getOutput);
