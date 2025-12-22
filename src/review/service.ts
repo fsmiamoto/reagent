@@ -1,6 +1,6 @@
 import type { IReviewSessionStore } from './store';
 import type { ReviewFile } from '../models/domain';
-import { ReviewSession } from '../models/reviewSession';
+import { ReviewSession } from './session';
 import { defaultSessionStore } from './store';
 
 export interface IReviewService {

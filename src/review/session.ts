@@ -4,8 +4,8 @@ import type {
   ReviewComment,
   ReviewResult,
   ReviewStatus,
-  ReviewSession as IReviewSession,
-} from './domain';
+  ReviewSessionDetails,
+} from '../models/domain';
 
 export class ReviewSession {
   public readonly id: string;
@@ -82,7 +82,7 @@ export class ReviewSession {
     this.rejectPromise(new Error(reason));
   }
 
-  toJSON(): IReviewSession {
+  toJSON(): ReviewSessionDetails {
     return {
       id: this.id,
       title: this.title,

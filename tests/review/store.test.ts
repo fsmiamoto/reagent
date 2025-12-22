@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { InMemoryReviewSessionStore } from '@src/review/store';
-import { ReviewSession } from '@src/models/reviewSession';
+import { ReviewSession } from '@src/review/session';
 import type { ReviewFile } from '@src/models/domain';
 
 describe('ReviewSessionStore', () => {

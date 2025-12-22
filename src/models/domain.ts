@@ -19,7 +19,7 @@ export interface ReviewComment {
 
 export type ReviewStatus = 'pending' | 'approved' | 'changes_requested' | 'cancelled';
 
-export interface ReviewSession {
+export interface ReviewSessionDetails {
   id: string;
   title?: string;
   description?: string;

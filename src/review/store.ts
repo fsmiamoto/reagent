@@ -1,4 +1,4 @@
-import { ReviewSession } from '../models/reviewSession';
+import { ReviewSession } from './session';
 
 export interface IReviewSessionStore {
   set(session: ReviewSession): void;
