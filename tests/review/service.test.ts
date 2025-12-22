@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReviewService, IReviewService } from '@src/review/service';
-import type { ISessionStore } from '@src/store/session';
+import type { IReviewSessionStore } from '@src/review/store';
 import type { ReviewFile } from '@src/models/domain';
 
 describe('ReviewService', () => {
-  let mockStore: ISessionStore;
+  let mockStore: IReviewSessionStore;
   let service: IReviewService;
 
   const mockFiles: ReviewFile[] = [

@@ -1,4 +1,4 @@
-import type { CommentSide, ReviewComment, ReviewSource, ReviewStatus } from './domain';
+import type { CommentSide, ReviewComment, ReviewSource, ReviewStatus } from '@src/models/domain';
 
 export interface ReviewInput {
   files?: string[];
