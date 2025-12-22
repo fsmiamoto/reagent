@@ -1,16 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { SessionStore } from '@src/store/session';
+import { InMemoryReviewSessionStore } from '@src/review/store';
 import { ReviewSession } from '@src/models/reviewSession';
 import type { ReviewFile } from '@src/models/domain';
 
-describe('SessionStore', () => {
-    let store: SessionStore;
+describe('ReviewSessionStore', () => {
+    let store: InMemoryReviewSessionStore;
     const mockFiles: ReviewFile[] = [
         { path: 'test.ts', content: 'code', language: 'typescript' }
     ];
 
     beforeEach(() => {
-        store = new SessionStore();
+        store = new InMemoryReviewSessionStore();
         vi.useFakeTimers();
     });
 

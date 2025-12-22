@@ -6,7 +6,6 @@ import { Server } from 'http';
 import open from 'open';
 import { startMCPServer } from './mcp/server';
 import { startWebServer } from './http/server';
-import { sessionStore } from './store/session';
 import { ensureServerRunning } from './http/lifecycle';
 import { DEFAULT_PORT, getPort } from './config';
 
@@ -35,7 +34,6 @@ function cleanup() {
   console.error('\n[Reagent] Shutting down...');
 
   if (!webServer) {
-    sessionStore.clear();
     process.exit(0);
   }
 
@@ -46,7 +44,6 @@ function cleanup() {
 
   webServer.close(() => {
     clearTimeout(timeout);
-    sessionStore.clear();
     process.exit(0);
   });
 }

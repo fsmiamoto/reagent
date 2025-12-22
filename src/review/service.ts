@@ -1,7 +1,7 @@
-import type { ISessionStore } from '../store/session';
+import type { IReviewSessionStore } from './store';
 import type { ReviewFile } from '../models/domain';
 import { ReviewSession } from '../models/reviewSession';
-import { sessionStore } from '../store/session';
+import { defaultSessionStore } from './store';
 
 export interface IReviewService {
   createSession(files: ReviewFile[], title?: string, description?: string): ReviewSession;
@@ -10,7 +10,7 @@ export interface IReviewService {
 }
 
 export class ReviewService implements IReviewService {
-  constructor(private readonly store: ISessionStore) {}
+  constructor(private readonly store: IReviewSessionStore) { }
 
   createSession(files: ReviewFile[], title?: string, description?: string): ReviewSession {
     if (files.length === 0) {
@@ -36,4 +36,4 @@ export class ReviewService implements IReviewService {
 }
 
 // Default instance with real session store
-export const reviewService: IReviewService = new ReviewService(sessionStore);
+export const reviewService: IReviewService = new ReviewService(defaultSessionStore);

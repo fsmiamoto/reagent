@@ -1,6 +1,6 @@
 import { ReviewSession } from '../models/reviewSession';
 
-export interface ISessionStore {
+export interface IReviewSessionStore {
   set(session: ReviewSession): void;
   get(sessionId: string): ReviewSession | undefined;
   has(sessionId: string): boolean;
@@ -9,7 +9,7 @@ export interface ISessionStore {
   clear(): void;
 }
 
-export class SessionStore implements ISessionStore {
+export class InMemoryReviewSessionStore implements IReviewSessionStore {
   private sessions = new Map<string, ReviewSession>();
 
   set(session: ReviewSession): void {
@@ -43,4 +43,4 @@ export class SessionStore implements ISessionStore {
   }
 }
 
-export const sessionStore: ISessionStore = new SessionStore();
+export const defaultSessionStore: IReviewSessionStore = new InMemoryReviewSessionStore();
