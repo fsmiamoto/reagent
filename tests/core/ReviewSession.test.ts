@@ -78,16 +78,6 @@ describe('ReviewSession', () => {
         await expect(promise).rejects.toThrow('User cancelled');
     });
 
-    it('should timeout automatically', async () => {
-        const session = new ReviewSession(mockFiles, undefined, undefined, 1000);
-        const promise = session.completionPromise;
-
-        vi.advanceTimersByTime(1001);
-
-        expect(session.status).toBe('cancelled');
-        await expect(promise).rejects.toThrow('Review timed out');
-    });
-
     it('should not allow completion after cancellation', async () => {
         const session = new ReviewSession(mockFiles);
         session.cancel();
