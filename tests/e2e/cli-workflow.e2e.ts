@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import {
-    startServer,
-    killServerOnPort,
-    runCli,
-    extractSessionId,
-    ServerHandle,
-} from './utils';
+  startServer,
+  killServerOnPort,
+  runCli,
+  extractSessionId,
+  ServerHandle,
+} from "./utils";
 
 /**
  * CLI Workflow Smoke Tests
@@ -21,63 +21,63 @@ import {
 
 const TEST_PORT = 4100;
 
-describe('CLI Workflow', () => {
-    let server: ServerHandle;
+describe("CLI Workflow", () => {
+  let server: ServerHandle;
 
-    beforeAll(async () => {
-        // Ensure no lingering server on our port
-        await killServerOnPort(TEST_PORT);
+  beforeAll(async () => {
+    // Ensure no lingering server on our port
+    await killServerOnPort(TEST_PORT);
 
-        // Start server
-        server = await startServer({ port: TEST_PORT });
-    });
+    // Start server
+    server = await startServer({ port: TEST_PORT });
+  });
 
-    afterAll(async () => {
-        await server?.stop();
-    });
+  afterAll(async () => {
+    await server?.stop();
+  });
 
-    it('should create a review for a local file', () => {
-        const output = runCli([
-            'review',
-            'package.json',
-            '--no-open',
-            '--source',
-            'local',
-        ]);
+  it("should create a review for a local file", () => {
+    const output = runCli([
+      "review",
+      "package.json",
+      "--no-open",
+      "--source",
+      "local",
+    ]);
 
-        expect(output).toContain('Review created');
-        expect(output).toContain(`localhost:${TEST_PORT}`);
+    expect(output).toContain("Review created");
+    expect(output).toContain(`localhost:${TEST_PORT}`);
 
-        const sessionId = extractSessionId(output);
-        expect(sessionId).not.toBeNull();
-    });
+    const sessionId = extractSessionId(output);
+    expect(sessionId).not.toBeNull();
+  });
 
-    it('should list sessions', () => {
-        const output = runCli(['list']);
+  it("should list sessions", () => {
+    const output = runCli(["list"]);
 
-        // Should contain at least the session we just created
-        expect(output).toMatch(/[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}/i);
-    });
+    // Should contain at least the session we just created
+    expect(output).toMatch(/[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}/i);
+  });
 
-    it('should get session details', () => {
-        // First create a review to ensure we have a session
-        const createOutput = runCli([
-            'review',
-            'package.json',
-            '--no-open',
-            '--source',
-            'local',
-        ]);
+  it("should get session details", () => {
+    // First create a review to ensure we have a session
+    const createOutput = runCli([
+      "review",
+      "package.json",
+      "--no-open",
+      "--source",
+      "local",
+    ]);
 
-        const sessionId = extractSessionId(createOutput);
-        expect(sessionId).not.toBeNull();
+    const sessionId = extractSessionId(createOutput);
+    expect(sessionId).not.toBeNull();
 
-        // Now get the session details
-        const getOutput = runCli(['get', sessionId!, '--json']);
+    // Now get the session details
+    const getOutput = runCli(["get", sessionId!, "--json"]);
 
-        // Should be valid JSON
-        const parsed = JSON.parse(getOutput);
-        expect(parsed).toHaveProperty('id', sessionId);
-        expect(parsed).toHaveProperty('status');
-    });
+    // Should be valid JSON
+    const parsed = JSON.parse(getOutput);
+    expect(parsed).toHaveProperty("id", sessionId);
+    expect(parsed).toHaveProperty("status");
+  });
 });

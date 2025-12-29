@@ -1,6 +1,6 @@
-import type { ReviewSession, ReviewComment, SessionSummary } from '../types';
+import type { ReviewSession, ReviewComment, SessionSummary } from "../types";
 
-const API_BASE = '/api';
+const API_BASE = "/api";
 
 /**
  * API client for communicating with the Reagent backend
@@ -23,29 +23,31 @@ export const api = {
    * Fetch a review session by ID
    */
   async getSession(sessionId: string): Promise<ReviewSession> {
-    if (sessionId === 'demo') {
+    if (sessionId === "demo") {
       return {
-        id: 'demo',
-        title: 'Demo Review',
-        description: 'Testing diff rendering',
-        status: 'pending',
+        id: "demo",
+        title: "Demo Review",
+        description: "Testing diff rendering",
+        status: "pending",
         createdAt: new Date().toISOString(),
-        generalFeedback: '',
+        generalFeedback: "",
         comments: [],
         files: [
           {
-            path: 'src/components/Demo.tsx',
-            language: 'typescript',
-            content: 'import React from "react";\n\nexport const Demo = () => {\n  return <div>Hello World</div>;\n};\n',
-            oldContent: 'import React from "react";\n\nexport const Demo = () => {\n  return <div>Hello</div>;\n};\n',
+            path: "src/components/Demo.tsx",
+            language: "typescript",
+            content:
+              'import React from "react";\n\nexport const Demo = () => {\n  return <div>Hello World</div>;\n};\n',
+            oldContent:
+              'import React from "react";\n\nexport const Demo = () => {\n  return <div>Hello</div>;\n};\n',
           },
           {
-            path: 'package-lock.json',
-            language: 'json',
+            path: "package-lock.json",
+            language: "json",
             content: '{\n  "name": "demo",\n  "version": "1.0.0"\n}\n',
             oldContent: '{\n  "name": "demo",\n  "version": "0.0.0"\n}\n',
-          }
-        ]
+          },
+        ],
       };
     }
 
@@ -66,13 +68,13 @@ export const api = {
     filePath: string,
     startLine: number,
     endLine: number,
-    side: 'old' | 'new',
-    text: string
+    side: "old" | "new",
+    text: string,
   ): Promise<ReviewComment> {
     const response = await fetch(`${API_BASE}/sessions/${sessionId}/comments`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         filePath,
@@ -94,9 +96,12 @@ export const api = {
    * Delete a comment
    */
   async deleteComment(sessionId: string, commentId: string): Promise<void> {
-    const response = await fetch(`${API_BASE}/sessions/${sessionId}/comments/${commentId}`, {
-      method: 'DELETE',
-    });
+    const response = await fetch(
+      `${API_BASE}/sessions/${sessionId}/comments/${commentId}`,
+      {
+        method: "DELETE",
+      },
+    );
 
     if (!response.ok) {
       throw new Error(`Failed to delete comment: ${response.statusText}`);
@@ -109,13 +114,13 @@ export const api = {
    */
   async completeReview(
     sessionId: string,
-    status: 'approved' | 'changes_requested',
-    generalFeedback: string
+    status: "approved" | "changes_requested",
+    generalFeedback: string,
   ): Promise<void> {
     const response = await fetch(`${API_BASE}/sessions/${sessionId}/complete`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         status,
@@ -133,7 +138,7 @@ export const api = {
    */
   async cancelReview(sessionId: string): Promise<void> {
     const response = await fetch(`${API_BASE}/sessions/${sessionId}/cancel`, {
-      method: 'POST',
+      method: "POST",
     });
 
     if (!response.ok) {

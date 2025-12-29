@@ -1,6 +1,6 @@
-import type { FC } from 'react';
-import { Button } from './ui/Button';
-import { Check, X, MessageSquare } from 'lucide-react';
+import type { FC } from "react";
+import { Button } from "./ui/Button";
+import { Check, X, MessageSquare } from "lucide-react";
 
 interface ReviewPanelProps {
   generalFeedback: string;
@@ -26,7 +26,9 @@ export const ReviewPanel: FC<ReviewPanelProps> = ({
           <MessageSquare className="h-4 w-4" />
           Review Summary
         </h2>
-        <p className="text-xs text-muted-foreground">{commentCount} comments in this review</p>
+        <p className="text-xs text-muted-foreground">
+          {commentCount} comments in this review
+        </p>
       </div>
 
       <div className="space-y-2">

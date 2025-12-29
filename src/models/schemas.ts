@@ -1,11 +1,11 @@
-import { z } from 'zod';
-import * as path from 'path';
-import { resolveReviewSource } from './api';
+import { z } from "zod";
+import * as path from "path";
+import { resolveReviewSource } from "./api";
 
 export const ReviewInputSchema = z
   .object({
     files: z.array(z.string().min(1)).optional(),
-    source: z.enum(['uncommitted', 'commit', 'branch', 'local']).optional(),
+    source: z.enum(["uncommitted", "commit", "branch", "local"]).optional(),
     commitHash: z.string().optional(),
     base: z.string().optional(),
     head: z.string().optional(),
@@ -16,37 +16,38 @@ export const ReviewInputSchema = z
   .superRefine((data, ctx) => {
     const source = resolveReviewSource(data);
 
-    if (source === 'commit' && !data.commitHash) {
+    if (source === "commit" && !data.commitHash) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['commitHash'],
-        message: 'commitHash is required when reviewing a commit',
+        path: ["commitHash"],
+        message: "commitHash is required when reviewing a commit",
       });
     }
 
-    if (source === 'branch' && (!data.base || !data.head)) {
+    if (source === "branch" && (!data.base || !data.head)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['base'],
-        message: 'base and head are required when comparing branches',
+        path: ["base"],
+        message: "base and head are required when comparing branches",
       });
     }
 
-    if (source === 'local' && (!data.files || data.files.length === 0)) {
+    if (source === "local" && (!data.files || data.files.length === 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['files'],
-        message: 'files are required for local review',
+        path: ["files"],
+        message: "files are required for local review",
       });
     }
 
-    if (source === 'local' && data.files && data.files.length > 0) {
-      const hasRelativePath = data.files.some(f => !path.isAbsolute(f));
+    if (source === "local" && data.files && data.files.length > 0) {
+      const hasRelativePath = data.files.some((f) => !path.isAbsolute(f));
       if (hasRelativePath && !data.workingDirectory) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ['workingDirectory'],
-          message: 'workingDirectory is required when using source: "local" with relative file paths. The MCP server cannot determine your project directory automatically.',
+          path: ["workingDirectory"],
+          message:
+            'workingDirectory is required when using source: "local" with relative file paths. The MCP server cannot determine your project directory automatically.',
         });
       }
     }
@@ -56,26 +57,28 @@ export const CreateReviewInputSchema = z.intersection(
   ReviewInputSchema,
   z.object({
     openBrowser: z.boolean().optional().default(true),
-  })
+  }),
 );
 
 export const GetReviewInputSchema = z.object({
-  sessionId: z.string().uuid('Invalid session ID format'),
+  sessionId: z.string().uuid("Invalid session ID format"),
   wait: z.boolean().optional().default(true),
 });
 
-export const AddCommentRequestSchema = z.object({
-  filePath: z.string().min(1),
-  startLine: z.number().int().positive(),
-  endLine: z.number().int().positive(),
-  side: z.enum(['old', 'new']),
-  text: z.string().min(1, 'Comment text is required'),
-}).refine(
-  data => data.endLine >= data.startLine,
-  { message: 'endLine must be >= startLine', path: ['endLine'] }
-);
+export const AddCommentRequestSchema = z
+  .object({
+    filePath: z.string().min(1),
+    startLine: z.number().int().positive(),
+    endLine: z.number().int().positive(),
+    side: z.enum(["old", "new"]),
+    text: z.string().min(1, "Comment text is required"),
+  })
+  .refine((data) => data.endLine >= data.startLine, {
+    message: "endLine must be >= startLine",
+    path: ["endLine"],
+  });
 
 export const CompleteReviewRequestSchema = z.object({
-  status: z.enum(['approved', 'changes_requested']),
-  generalFeedback: z.string().default(''),
+  status: z.enum(["approved", "changes_requested"]),
+  generalFeedback: z.string().default(""),
 });

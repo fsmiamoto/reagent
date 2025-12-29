@@ -1,4 +1,4 @@
-import { ReviewSession } from './session';
+import { ReviewSession } from "./session";
 
 export interface IReviewSessionStore {
   set(session: ReviewSession): void;
@@ -35,12 +35,13 @@ export class InMemoryReviewSessionStore implements IReviewSessionStore {
   clear(): void {
     // Cancel all pending sessions before clearing
     for (const session of this.sessions.values()) {
-      if (session.status === 'pending') {
-        session.cancel('Server shutting down');
+      if (session.status === "pending") {
+        session.cancel("Server shutting down");
       }
     }
     this.sessions.clear();
   }
 }
 
-export const defaultSessionStore: IReviewSessionStore = new InMemoryReviewSessionStore();
+export const defaultSessionStore: IReviewSessionStore =
+  new InMemoryReviewSessionStore();

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
-import { spawn } from 'child_process';
-import open from 'open';
-import { startMCPServer } from './mcp/server';
-import { apiFacade } from './http/facade';
-import { Server as WebServer } from './http/server';
-import { getReagentVersion } from './version';
-import type { GetSessionResponse } from '@src/models/api';
+import { Command } from "commander";
+import { spawn } from "child_process";
+import open from "open";
+import { startMCPServer } from "./mcp/server";
+import { apiFacade } from "./http/facade";
+import { Server as WebServer } from "./http/server";
+import { getReagentVersion } from "./version";
+import type { GetSessionResponse } from "@src/models/api";
 
 const program = new Command();
 
@@ -22,7 +22,7 @@ function resolvePort(portOption?: string): number {
 
   const port = Number.parseInt(portOption, 10);
   if (Number.isNaN(port)) {
-    throw new Error('Invalid port provided');
+    throw new Error("Invalid port provided");
   }
 
   return port;
@@ -32,46 +32,49 @@ function cleanup() {
   if (isCleaningUp) return;
   isCleaningUp = true;
 
-  console.error('\n[Reagent] Shutting down...');
+  console.error("\n[Reagent] Shutting down...");
 
   if (!webServer) {
     process.exit(0);
   }
 
   const timeout = setTimeout(() => {
-    console.error('[Reagent] Force exit after timeout');
+    console.error("[Reagent] Force exit after timeout");
     process.exit(0);
   }, 5000);
 
-  webServer.stop()
+  webServer
+    .stop()
     .then(() => {
       clearTimeout(timeout);
       process.exit(0);
     })
     .catch((error) => {
-      console.error('[Reagent] Failed to stop web server:', error);
+      console.error("[Reagent] Failed to stop web server:", error);
       clearTimeout(timeout);
       process.exit(1);
     });
 }
 
-process.on('SIGINT', cleanup);
-process.on('SIGTERM', cleanup);
+process.on("SIGINT", cleanup);
+process.on("SIGTERM", cleanup);
 
 program
-  .name('reagent')
-  .description('Reagent: MCP server for local code reviews with GitHub-style UI')
+  .name("reagent")
+  .description(
+    "Reagent: MCP server for local code reviews with GitHub-style UI",
+  )
   .version(getReagentVersion());
 
 function spawnServerInBackground(port: number): void {
-  console.error('[Reagent] Web server not running. Starting...');
+  console.error("[Reagent] Web server not running. Starting...");
   const child = spawn(
     process.argv[0],
-    [process.argv[1], 'start', '--detach', '--port', port.toString()],
+    [process.argv[1], "start", "--detach", "--port", port.toString()],
     {
       detached: true,
-      stdio: 'ignore',
-    }
+      stdio: "ignore",
+    },
   );
   child.unref();
 }
@@ -87,35 +90,39 @@ async function ensureServerRunning(): Promise<void> {
 }
 
 program
-  .command('mcp')
-  .description('Start the MCP server (stdio)')
+  .command("mcp")
+  .description("Start the MCP server (stdio)")
   .action(async () => {
     try {
-      process.stdin.on('end', cleanup);
+      process.stdin.on("end", cleanup);
       await ensureServerRunning();
       await startMCPServer();
     } catch (error: unknown) {
-      console.error('[Reagent] Failed to start MCP server:', error);
+      console.error("[Reagent] Failed to start MCP server:", error);
       process.exit(1);
     }
   });
 
 program
-  .command('start')
-  .description('Start the ReAgent Web Server')
-  .option('-p, --port <number>', 'Port to run on', DEFAULT_PORT.toString())
-  .option('-d, --detach', 'Run in the background (daemon mode)')
+  .command("start")
+  .description("Start the ReAgent Web Server")
+  .option("-p, --port <number>", "Port to run on", DEFAULT_PORT.toString())
+  .option("-d, --detach", "Run in the background (daemon mode)")
   .action(async (options) => {
     if (options.detach) {
-      const args = process.argv.slice(2).filter((arg) => arg !== '-d' && arg !== '--detach');
+      const args = process.argv
+        .slice(2)
+        .filter((arg) => arg !== "-d" && arg !== "--detach");
 
       const child = spawn(process.argv[0], [process.argv[1], ...args], {
         detached: true,
-        stdio: 'ignore',
+        stdio: "ignore",
       });
 
       child.unref();
-      console.error(`[Reagent] Server started in background (PID: ${child.pid})`);
+      console.error(
+        `[Reagent] Server started in background (PID: ${child.pid})`,
+      );
       process.exit(0);
     }
 
@@ -126,26 +133,28 @@ program
       await server.start(port);
       webServer = server;
     } catch (error: unknown) {
-      console.error('[Reagent] Failed to start web server:', error);
+      console.error("[Reagent] Failed to start web server:", error);
       process.exit(1);
     }
   });
 
 program
-  .command('list')
-  .description('List active review sessions')
+  .command("list")
+  .description("List active review sessions")
   .action(async () => {
     try {
-      const sessions = await apiFacade.get<Array<{
-        id: string;
-        status: string;
-        filesCount: number;
-        title?: string;
-        createdAt: string;
-      }>>('/sessions');
+      const sessions = await apiFacade.get<
+        Array<{
+          id: string;
+          status: string;
+          filesCount: number;
+          title?: string;
+          createdAt: string;
+        }>
+      >("/sessions");
 
       if (sessions.length === 0) {
-        console.log('No active review sessions found.');
+        console.log("No active review sessions found.");
         return;
       }
 
@@ -154,26 +163,32 @@ program
           ID: s.id,
           Status: s.status,
           Files: s.filesCount,
-          Title: s.title || '(no title)',
+          Title: s.title || "(no title)",
           Created: new Date(s.createdAt).toLocaleString(),
-        }))
+        })),
       );
     } catch (error: unknown) {
-      console.error('[Reagent] Failed to list sessions. Is the server running?');
+      console.error(
+        "[Reagent] Failed to list sessions. Is the server running?",
+      );
       process.exit(1);
     }
   });
 
 program
-  .command('review [files...]')
-  .description('Create a new review session')
-  .option('-s, --source <type>', 'Review source (uncommitted, commit, branch, local)', 'uncommitted')
-  .option('--base <ref>', 'Base ref for branch comparison')
-  .option('--head <ref>', 'Head ref for branch comparison')
-  .option('--commit <hash>', 'Commit hash for commit review')
-  .option('--title <string>', 'Review title')
-  .option('--description <string>', 'Review description')
-  .option('--no-open', 'Do not open the browser automatically')
+  .command("review [files...]")
+  .description("Create a new review session")
+  .option(
+    "-s, --source <type>",
+    "Review source (uncommitted, commit, branch, local)",
+    "uncommitted",
+  )
+  .option("--base <ref>", "Base ref for branch comparison")
+  .option("--head <ref>", "Head ref for branch comparison")
+  .option("--commit <hash>", "Commit hash for commit review")
+  .option("--title <string>", "Review title")
+  .option("--description <string>", "Review description")
+  .option("--no-open", "Do not open the browser automatically")
   .action(async (files, options) => {
     const body = {
       source: options.source,
@@ -189,7 +204,7 @@ program
     try {
       const result = await apiFacade.post<{
         reviewUrl: string;
-      }>('/reviews', body);
+      }>("/reviews", body);
       console.log(`[Reagent] Review created: ${result.reviewUrl}`);
 
       const shouldOpenBrowser = options.open !== false;
@@ -198,36 +213,45 @@ program
         try {
           await open(result.reviewUrl);
         } catch (browserError) {
-          console.error('[Reagent] Failed to open browser:', browserError);
-          console.error('[Reagent] You can manually open the review at:', result.reviewUrl);
+          console.error("[Reagent] Failed to open browser:", browserError);
+          console.error(
+            "[Reagent] You can manually open the review at:",
+            result.reviewUrl,
+          );
         }
         return;
       }
 
-      console.error('[Reagent] Browser opening disabled (--no-open). Access review at:', result.reviewUrl);
+      console.error(
+        "[Reagent] Browser opening disabled (--no-open). Access review at:",
+        result.reviewUrl,
+      );
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      console.error('[Reagent] Failed to create review:', message);
+      const message = error instanceof Error ? error.message : "Unknown error";
+      console.error("[Reagent] Failed to create review:", message);
       process.exit(1);
     }
   });
 
 program
-  .command('get <sessionId>')
-  .description('Get review status and results')
-  .option('--wait', 'Wait for the review to complete')
-  .option('--json', 'Output result as JSON')
+  .command("get <sessionId>")
+  .description("Get review status and results")
+  .option("--wait", "Wait for the review to complete")
+  .option("--json", "Output result as JSON")
   .action(async (sessionId, options) => {
     try {
       let session;
       // eslint-disable-next-line no-constant-condition
       while (true) {
         try {
-          session = await apiFacade.get<GetSessionResponse>(`/sessions/${sessionId}`);
+          session = await apiFacade.get<GetSessionResponse>(
+            `/sessions/${sessionId}`,
+          );
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Unknown error';
-          if (message.includes('404')) {
-            console.error('[Reagent] Session not found.');
+          const message =
+            error instanceof Error ? error.message : "Unknown error";
+          if (message.includes("404")) {
+            console.error("[Reagent] Session not found.");
             process.exit(1);
           }
 
@@ -235,7 +259,7 @@ program
           process.exit(1);
         }
 
-        if (!options.wait || session.status !== 'pending') {
+        if (!options.wait || session.status !== "pending") {
           break;
         }
 
@@ -249,51 +273,61 @@ program
 
       console.log(`Review Status: ${session.status}`);
 
-      if (session.status === 'pending') {
-        console.log('Review is still in progress.');
+      if (session.status === "pending") {
+        console.log("Review is still in progress.");
         return;
       }
 
-      console.log(`\nGeneral Feedback:\n${session.generalFeedback || '(none)'}`);
+      console.log(
+        `\nGeneral Feedback:\n${session.generalFeedback || "(none)"}`,
+      );
       console.log(`\nComments (${session.comments.length}):`);
-      session.comments.forEach((c: { filePath: string; startLine: number; endLine: number; text: string }) => {
-        const lineInfo = c.startLine === c.endLine
-          ? `${c.startLine}`
-          : `${c.startLine}-${c.endLine}`;
-        console.log(`- ${c.filePath}:${lineInfo}: ${c.text}`);
-      });
+      session.comments.forEach(
+        (c: {
+          filePath: string;
+          startLine: number;
+          endLine: number;
+          text: string;
+        }) => {
+          const lineInfo =
+            c.startLine === c.endLine
+              ? `${c.startLine}`
+              : `${c.startLine}-${c.endLine}`;
+          console.log(`- ${c.filePath}:${lineInfo}: ${c.text}`);
+        },
+      );
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      console.error('[Reagent] Error:', message);
+      const message = error instanceof Error ? error.message : "Unknown error";
+      console.error("[Reagent] Error:", message);
       process.exit(1);
     }
   });
 
 program
-  .command('stop')
-  .description('Stop the running Reagent web server')
-  .option('--force', 'Force stop the server')
+  .command("stop")
+  .description("Stop the running Reagent web server")
+  .option("--force", "Force stop the server")
   .action(async (options) => {
     try {
       const server = new WebServer();
       const result = await server.stopRunningProcess(Boolean(options.force));
 
-      if (result === 'not_running') {
-        console.log('[Reagent] No running server found.');
+      if (result === "not_running") {
+        console.log("[Reagent] No running server found.");
         return;
       }
 
-      console.log('[Reagent] Server stopped.');
+      console.log("[Reagent] Server stopped.");
     } catch (error: unknown) {
-      console.error('[Reagent] Failed to stop server:', error);
+      console.error("[Reagent] Failed to stop server:", error);
       process.exit(1);
     }
   });
 
 program
-  .command('status')
-  .description('Show the status of the Reagent web server')
-  .option('--json', 'Output status as JSON')
+  .command("status")
+  .description("Show the status of the Reagent web server")
+  .option("--json", "Output status as JSON")
   .action(async (options) => {
     try {
       const server = new WebServer();
@@ -305,20 +339,22 @@ program
       }
 
       if (!info.running) {
-        console.log('[Reagent] Server is not running.');
+        console.log("[Reagent] Server is not running.");
         return;
       }
 
-      console.log('[Reagent] Server Status:');
+      console.log("[Reagent] Server Status:");
       console.log(`  Status:     Running`);
       console.log(`  PID:        ${info.pid}`);
       console.log(`  Port:       ${info.port}`);
       console.log(`  URL:        http://localhost:${info.port}`);
-      console.log(`  Started:    ${new Date(info.startedAt as string).toLocaleString()}`);
+      console.log(
+        `  Started:    ${new Date(info.startedAt as string).toLocaleString()}`,
+      );
       console.log(`  Version:    ${info.version}`);
-      console.log(`  Healthy:    ${info.healthy ? 'Yes' : 'No'}`);
+      console.log(`  Healthy:    ${info.healthy ? "Yes" : "No"}`);
     } catch (error: unknown) {
-      console.error('[Reagent] Failed to get server status:', error);
+      console.error("[Reagent] Failed to get server status:", error);
       process.exit(1);
     }
   });

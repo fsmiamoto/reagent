@@ -1,13 +1,13 @@
-import { describe, it, expect } from 'vitest';
-import { ReviewInputSchema } from '../../src/models/schemas';
-import path from 'path';
+import { describe, it, expect } from "vitest";
+import { ReviewInputSchema } from "../../src/models/schemas";
+import path from "path";
 
-describe('ReviewInputSchema', () => {
-  describe('workingDirectory validation for local source', () => {
-    it('should require workingDirectory for local source with relative paths', () => {
+describe("ReviewInputSchema", () => {
+  describe("workingDirectory validation for local source", () => {
+    it("should require workingDirectory for local source with relative paths", () => {
       const input = {
-        source: 'local' as const,
-        files: ['src/index.ts', 'README.md'],
+        source: "local" as const,
+        files: ["src/index.ts", "README.md"],
       };
 
       const result = ReviewInputSchema.safeParse(input);
@@ -15,19 +15,19 @@ describe('ReviewInputSchema', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         const error = result.error.issues.find(
-          (issue) => issue.path[0] === 'workingDirectory'
+          (issue) => issue.path[0] === "workingDirectory",
         );
         expect(error).toBeDefined();
-        expect(error?.message).toContain('workingDirectory');
-        expect(error?.message).toContain('required');
+        expect(error?.message).toContain("workingDirectory");
+        expect(error?.message).toContain("required");
       }
     });
 
-    it('should succeed when workingDirectory is provided with relative paths', () => {
+    it("should succeed when workingDirectory is provided with relative paths", () => {
       const input = {
-        source: 'local' as const,
-        files: ['src/index.ts'],
-        workingDirectory: '/Users/test/project',
+        source: "local" as const,
+        files: ["src/index.ts"],
+        workingDirectory: "/Users/test/project",
       };
 
       const result = ReviewInputSchema.safeParse(input);
@@ -35,10 +35,10 @@ describe('ReviewInputSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should succeed with absolute paths and no workingDirectory', () => {
-      const absolutePath = path.join('/absolute/path', 'to', 'file.ts');
+    it("should succeed with absolute paths and no workingDirectory", () => {
+      const absolutePath = path.join("/absolute/path", "to", "file.ts");
       const input = {
-        source: 'local' as const,
+        source: "local" as const,
         files: [absolutePath],
       };
 
@@ -47,10 +47,10 @@ describe('ReviewInputSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should succeed with mix of absolute paths when all are absolute', () => {
+    it("should succeed with mix of absolute paths when all are absolute", () => {
       const input = {
-        source: 'local' as const,
-        files: ['/absolute/path/file1.ts', '/another/absolute/path/file2.ts'],
+        source: "local" as const,
+        files: ["/absolute/path/file1.ts", "/another/absolute/path/file2.ts"],
       };
 
       const result = ReviewInputSchema.safeParse(input);
@@ -58,10 +58,10 @@ describe('ReviewInputSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should fail with mix of absolute and relative paths without workingDirectory', () => {
+    it("should fail with mix of absolute and relative paths without workingDirectory", () => {
       const input = {
-        source: 'local' as const,
-        files: ['/absolute/path/file1.ts', 'relative/path/file2.ts'],
+        source: "local" as const,
+        files: ["/absolute/path/file1.ts", "relative/path/file2.ts"],
       };
 
       const result = ReviewInputSchema.safeParse(input);
@@ -69,17 +69,17 @@ describe('ReviewInputSchema', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         const error = result.error.issues.find(
-          (issue) => issue.path[0] === 'workingDirectory'
+          (issue) => issue.path[0] === "workingDirectory",
         );
         expect(error).toBeDefined();
       }
     });
 
-    it('should succeed with mix of absolute and relative paths when workingDirectory is provided', () => {
+    it("should succeed with mix of absolute and relative paths when workingDirectory is provided", () => {
       const input = {
-        source: 'local' as const,
-        files: ['/absolute/path/file1.ts', 'relative/path/file2.ts'],
-        workingDirectory: '/Users/test/project',
+        source: "local" as const,
+        files: ["/absolute/path/file1.ts", "relative/path/file2.ts"],
+        workingDirectory: "/Users/test/project",
       };
 
       const result = ReviewInputSchema.safeParse(input);
@@ -88,10 +88,10 @@ describe('ReviewInputSchema', () => {
     });
   });
 
-  describe('file source validations', () => {
-    it('should require files for local source', () => {
+  describe("file source validations", () => {
+    it("should require files for local source", () => {
       const input = {
-        source: 'local' as const,
+        source: "local" as const,
       };
 
       const result = ReviewInputSchema.safeParse(input);
@@ -99,16 +99,16 @@ describe('ReviewInputSchema', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         const error = result.error.issues.find(
-          (issue) => issue.path[0] === 'files'
+          (issue) => issue.path[0] === "files",
         );
         expect(error).toBeDefined();
-        expect(error?.message).toContain('files are required');
+        expect(error?.message).toContain("files are required");
       }
     });
 
-    it('should require commitHash for commit source', () => {
+    it("should require commitHash for commit source", () => {
       const input = {
-        source: 'commit' as const,
+        source: "commit" as const,
       };
 
       const result = ReviewInputSchema.safeParse(input);
@@ -116,15 +116,15 @@ describe('ReviewInputSchema', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         const error = result.error.issues.find(
-          (issue) => issue.path[0] === 'commitHash'
+          (issue) => issue.path[0] === "commitHash",
         );
         expect(error).toBeDefined();
       }
     });
 
-    it('should require base and head for branch source', () => {
+    it("should require base and head for branch source", () => {
       const input = {
-        source: 'branch' as const,
+        source: "branch" as const,
       };
 
       const result = ReviewInputSchema.safeParse(input);
@@ -132,7 +132,7 @@ describe('ReviewInputSchema', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         const error = result.error.issues.find(
-          (issue) => issue.path[0] === 'base'
+          (issue) => issue.path[0] === "base",
         );
         expect(error).toBeDefined();
       }

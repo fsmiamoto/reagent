@@ -1,23 +1,35 @@
-import type { IReviewSessionStore } from './store';
-import type { ReviewFile } from '../models/domain';
-import { ReviewSession } from './session';
-import { defaultSessionStore } from './store';
+import type { IReviewSessionStore } from "./store";
+import type { ReviewFile } from "../models/domain";
+import { ReviewSession } from "./session";
+import { defaultSessionStore } from "./store";
 
 export interface IReviewService {
-  createSession(files: ReviewFile[], title?: string, description?: string): ReviewSession;
+  createSession(
+    files: ReviewFile[],
+    title?: string,
+    description?: string,
+  ): ReviewSession;
   getSession(id: string): ReviewSession | undefined;
   listSessions(): ReviewSession[];
 }
 
 export class ReviewService implements IReviewService {
-  constructor(private readonly store: IReviewSessionStore) { }
+  constructor(private readonly store: IReviewSessionStore) {}
 
-  createSession(files: ReviewFile[], title?: string, description?: string): ReviewSession {
+  createSession(
+    files: ReviewFile[],
+    title?: string,
+    description?: string,
+  ): ReviewSession {
     if (files.length === 0) {
-      throw new Error('No files to review. Check your source and file filters.');
+      throw new Error(
+        "No files to review. Check your source and file filters.",
+      );
     }
 
-    console.error(`[Reagent] Creating review session for ${files.length} file(s)`);
+    console.error(
+      `[Reagent] Creating review session for ${files.length} file(s)`,
+    );
 
     const session = new ReviewSession(files, title, description);
     this.store.set(session);
@@ -36,4 +48,6 @@ export class ReviewService implements IReviewService {
 }
 
 // Default instance with real session store
-export const reviewService: IReviewService = new ReviewService(defaultSessionStore);
+export const reviewService: IReviewService = new ReviewService(
+  defaultSessionStore,
+);

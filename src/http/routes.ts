@@ -1,8 +1,16 @@
-import { Router } from 'express';
-import { AddCommentRequestSchema, CompleteReviewRequestSchema, ReviewInputSchema } from '../models/schemas';
-import { reviewService } from '../review/service';
-import { extractReviewFiles } from '../files/files';
-import type { AddCommentRequest, CompleteReviewRequest, CreateReviewResult } from '../models/api';
+import { Router } from "express";
+import {
+  AddCommentRequestSchema,
+  CompleteReviewRequestSchema,
+  ReviewInputSchema,
+} from "../models/schemas";
+import { reviewService } from "../review/service";
+import { extractReviewFiles } from "../files/files";
+import type {
+  AddCommentRequest,
+  CompleteReviewRequest,
+  CreateReviewResult,
+} from "../models/api";
 
 export const apiRouter = Router();
 
@@ -17,7 +25,7 @@ export function buildReviewUrl(sessionId: string, host: string): string {
  * GET /api/sessions
  * List all active review sessions
  */
-apiRouter.get('/sessions', (_req, res) => {
+apiRouter.get("/sessions", (_req, res) => {
   const sessions = reviewService.listSessions().map((session) => ({
     id: session.id,
     status: session.status,
@@ -34,10 +42,10 @@ apiRouter.get('/sessions', (_req, res) => {
  * POST /api/reviews
  * Create a new review session
  */
-apiRouter.post('/reviews', async (req, res) => {
+apiRouter.post("/reviews", async (req, res) => {
   try {
     const input = ReviewInputSchema.parse(req.body);
-    const host = req.get('host') || 'localhost:3636';
+    const host = req.get("host") || "localhost:3636";
 
     const { files, title, description } = extractReviewFiles(input);
     const session = reviewService.createSession(files, title, description);
@@ -51,12 +59,12 @@ apiRouter.post('/reviews', async (req, res) => {
 
     res.status(201).json(result);
   } catch (error) {
-    console.error('Failed to create review:', error);
+    console.error("Failed to create review:", error);
     if (error instanceof Error) {
       res.status(400).json({ error: error.message });
       return;
     }
-    res.status(400).json({ error: 'Invalid request' });
+    res.status(400).json({ error: "Invalid request" });
   }
 });
 
@@ -64,13 +72,13 @@ apiRouter.post('/reviews', async (req, res) => {
  * GET /api/sessions/:id
  * Retrieve a review session by ID
  */
-apiRouter.get('/sessions/:id', (req, res) => {
+apiRouter.get("/sessions/:id", (req, res) => {
   const { id } = req.params;
 
   const session = reviewService.getSession(id);
 
   if (!session) {
-    res.status(404).json({ error: 'Review session not found' });
+    res.status(404).json({ error: "Review session not found" });
     return;
   }
 
@@ -81,24 +89,26 @@ apiRouter.get('/sessions/:id', (req, res) => {
  * POST /api/sessions/:id/comments
  * Add a comment to a specific line in a file
  */
-apiRouter.post('/sessions/:id/comments', (req, res) => {
+apiRouter.post("/sessions/:id/comments", (req, res) => {
   const { id } = req.params;
 
   const session = reviewService.getSession(id);
 
   if (!session) {
-    res.status(404).json({ error: 'Review session not found' });
+    res.status(404).json({ error: "Review session not found" });
     return;
   }
 
-  if (session.status !== 'pending') {
-    res.status(400).json({ error: 'Review has already been completed' });
+  if (session.status !== "pending") {
+    res.status(400).json({ error: "Review has already been completed" });
     return;
   }
 
   try {
     // Validate request body
-    const commentData = AddCommentRequestSchema.parse(req.body) as AddCommentRequest;
+    const commentData = AddCommentRequestSchema.parse(
+      req.body,
+    ) as AddCommentRequest;
 
     // Add the comment
     const comment = session.addComment(
@@ -106,7 +116,7 @@ apiRouter.post('/sessions/:id/comments', (req, res) => {
       commentData.startLine,
       commentData.endLine,
       commentData.side,
-      commentData.text
+      commentData.text,
     );
 
     res.status(201).json(comment);
@@ -115,7 +125,7 @@ apiRouter.post('/sessions/:id/comments', (req, res) => {
       res.status(400).json({ error: error.message });
       return;
     }
-    res.status(400).json({ error: 'Invalid request' });
+    res.status(400).json({ error: "Invalid request" });
   }
 });
 
@@ -123,25 +133,25 @@ apiRouter.post('/sessions/:id/comments', (req, res) => {
  * DELETE /api/sessions/:id/comments/:commentId
  * Delete a comment (for editing functionality)
  */
-apiRouter.delete('/sessions/:id/comments/:commentId', (req, res) => {
+apiRouter.delete("/sessions/:id/comments/:commentId", (req, res) => {
   const { id, commentId } = req.params;
 
   const session = reviewService.getSession(id);
 
   if (!session) {
-    res.status(404).json({ error: 'Review session not found' });
+    res.status(404).json({ error: "Review session not found" });
     return;
   }
 
-  if (session.status !== 'pending') {
-    res.status(400).json({ error: 'Review has already been completed' });
+  if (session.status !== "pending") {
+    res.status(400).json({ error: "Review has already been completed" });
     return;
   }
 
   const commentIndex = session.comments.findIndex((c) => c.id === commentId);
 
   if (commentIndex === -1) {
-    res.status(404).json({ error: 'Comment not found' });
+    res.status(404).json({ error: "Comment not found" });
     return;
   }
 
@@ -156,30 +166,32 @@ apiRouter.delete('/sessions/:id/comments/:commentId', (req, res) => {
  * Complete the review with approval or change requests
  * This is the key endpoint that resolves the deferred promise!
  */
-apiRouter.post('/sessions/:id/complete', (req, res) => {
+apiRouter.post("/sessions/:id/complete", (req, res) => {
   const { id } = req.params;
 
   const session = reviewService.getSession(id);
 
   if (!session) {
-    res.status(404).json({ error: 'Review session not found' });
+    res.status(404).json({ error: "Review session not found" });
     return;
   }
 
-  if (session.status !== 'pending') {
-    res.status(400).json({ error: 'Review has already been completed' });
+  if (session.status !== "pending") {
+    res.status(400).json({ error: "Review has already been completed" });
     return;
   }
 
   try {
     // Validate request body
-    const completionData = CompleteReviewRequestSchema.parse(req.body) as CompleteReviewRequest;
+    const completionData = CompleteReviewRequestSchema.parse(
+      req.body,
+    ) as CompleteReviewRequest;
 
     // Complete the review - this resolves the promise and unblocks the MCP tool!
     session.complete(completionData.status, completionData.generalFeedback);
 
     res.json({
-      message: 'Review completed successfully',
+      message: "Review completed successfully",
       result: {
         status: completionData.status,
         generalFeedback: completionData.generalFeedback,
@@ -191,7 +203,7 @@ apiRouter.post('/sessions/:id/complete', (req, res) => {
       res.status(400).json({ error: error.message });
       return;
     }
-    res.status(400).json({ error: 'Invalid request' });
+    res.status(400).json({ error: "Invalid request" });
   }
 });
 
@@ -199,33 +211,35 @@ apiRouter.post('/sessions/:id/complete', (req, res) => {
  * POST /api/sessions/:id/cancel
  * Cancel the review
  */
-apiRouter.post('/sessions/:id/cancel', (req, res) => {
+apiRouter.post("/sessions/:id/cancel", (req, res) => {
   const { id } = req.params;
 
   const session = reviewService.getSession(id);
 
   if (!session) {
-    res.status(404).json({ error: 'Review session not found' });
+    res.status(404).json({ error: "Review session not found" });
     return;
   }
 
-  if (session.status !== 'pending') {
-    res.status(400).json({ error: 'Review has already been completed' });
+  if (session.status !== "pending") {
+    res.status(400).json({ error: "Review has already been completed" });
     return;
   }
 
-  session.cancel('Review cancelled by user');
+  session.cancel("Review cancelled by user");
 
-  res.json({ message: 'Review cancelled' });
+  res.json({ message: "Review cancelled" });
 });
 
 /**
  * GET /api/health
  * Health check endpoint
  */
-apiRouter.get('/health', (_req, res) => {
+apiRouter.get("/health", (_req, res) => {
   res.json({
-    status: 'ok',
-    activeSessions: reviewService.listSessions().filter((s) => s.status === 'pending').length,
+    status: "ok",
+    activeSessions: reviewService
+      .listSessions()
+      .filter((s) => s.status === "pending").length,
   });
 });

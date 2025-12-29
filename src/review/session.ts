@@ -1,11 +1,11 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import type {
   ReviewFile,
   ReviewComment,
   ReviewResult,
   ReviewStatus,
   ReviewSessionDetails,
-} from '../models/domain';
+} from "../models/domain";
 
 export class ReviewSession {
   public readonly id: string;
@@ -13,8 +13,8 @@ export class ReviewSession {
   public readonly description?: string;
   public readonly files: ReviewFile[];
   public readonly comments: ReviewComment[] = [];
-  public generalFeedback: string = '';
-  public status: ReviewStatus = 'pending';
+  public generalFeedback: string = "";
+  public status: ReviewStatus = "pending";
   public readonly createdAt: Date;
 
   private resolvePromise!: (value: ReviewResult) => void;
@@ -22,11 +22,7 @@ export class ReviewSession {
 
   public readonly completionPromise: Promise<ReviewResult>;
 
-  constructor(
-    files: ReviewFile[],
-    title?: string,
-    description?: string,
-  ) {
+  constructor(files: ReviewFile[], title?: string, description?: string) {
     this.id = uuidv4();
     this.title = title;
     this.description = description;
@@ -39,7 +35,13 @@ export class ReviewSession {
     });
   }
 
-  addComment(filePath: string, startLine: number, endLine: number, side: 'old' | 'new', text: string): ReviewComment {
+  addComment(
+    filePath: string,
+    startLine: number,
+    endLine: number,
+    side: "old" | "new",
+    text: string,
+  ): ReviewComment {
     const comment: ReviewComment = {
       id: uuidv4(),
       filePath,
@@ -54,9 +56,12 @@ export class ReviewSession {
     return comment;
   }
 
-  complete(status: 'approved' | 'changes_requested', generalFeedback: string = ''): void {
-    if (this.status !== 'pending') {
-      throw new Error('Review has already been completed or cancelled');
+  complete(
+    status: "approved" | "changes_requested",
+    generalFeedback: string = "",
+  ): void {
+    if (this.status !== "pending") {
+      throw new Error("Review has already been completed or cancelled");
     }
 
     this.status = status;
@@ -72,12 +77,12 @@ export class ReviewSession {
     this.resolvePromise(result);
   }
 
-  cancel(reason: string = 'Review cancelled'): void {
-    if (this.status !== 'pending') {
+  cancel(reason: string = "Review cancelled"): void {
+    if (this.status !== "pending") {
       return;
     }
 
-    this.status = 'cancelled';
+    this.status = "cancelled";
 
     this.rejectPromise(new Error(reason));
   }

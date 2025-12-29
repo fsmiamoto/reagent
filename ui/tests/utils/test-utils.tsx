@@ -1,9 +1,9 @@
-import type { ReactElement } from 'react';
-import { render, type RenderOptions } from '@testing-library/react';
-import { vi } from 'vitest';
-import { createStore, type StoreApi } from 'zustand/vanilla';
+import type { ReactElement } from "react";
+import { render, type RenderOptions } from "@testing-library/react";
+import { vi } from "vitest";
+import { createStore, type StoreApi } from "zustand/vanilla";
 
-import { useReviewStore } from '../../src/store/reviewStore.js';
+import { useReviewStore } from "../../src/store/reviewStore.js";
 
 type ReviewStore = ReturnType<typeof useReviewStore.getState>;
 
@@ -18,23 +18,25 @@ const createDefaultState = (overrides?: Partial<ReviewStore>): ReviewStore => ({
   isLoading: false,
   error: null,
   isSubmitting: false,
-  loadSession: vi.fn() as ReviewStore['loadSession'],
-  setSelectedFile: vi.fn() as ReviewStore['setSelectedFile'],
-  addComment: vi.fn() as ReviewStore['addComment'],
-  deleteComment: vi.fn() as ReviewStore['deleteComment'],
-  updateGeneralFeedback: vi.fn() as ReviewStore['updateGeneralFeedback'],
-  completeReview: vi.fn() as ReviewStore['completeReview'],
+  loadSession: vi.fn() as ReviewStore["loadSession"],
+  setSelectedFile: vi.fn() as ReviewStore["setSelectedFile"],
+  addComment: vi.fn() as ReviewStore["addComment"],
+  deleteComment: vi.fn() as ReviewStore["deleteComment"],
+  updateGeneralFeedback: vi.fn() as ReviewStore["updateGeneralFeedback"],
+  completeReview: vi.fn() as ReviewStore["completeReview"],
   ...overrides,
 });
 
-export function createMockStore(overrides?: Partial<ReviewStore>): StoreApi<ReviewStore> {
+export function createMockStore(
+  overrides?: Partial<ReviewStore>,
+): StoreApi<ReviewStore> {
   return createStore<ReviewStore>(() => createDefaultState(overrides));
 }
 
 export function renderWithStore(
   ui: ReactElement,
   store?: StoreApi<ReviewStore>,
-  options?: Omit<RenderOptions, 'wrapper'>,
+  options?: Omit<RenderOptions, "wrapper">,
 ): RenderWithStoreResult {
   const activeStore = store ?? createMockStore();
   const originalState = useReviewStore.getState();
@@ -70,4 +72,4 @@ export function renderWithStore(
   };
 }
 
-export * from '@testing-library/react';
+export * from "@testing-library/react";

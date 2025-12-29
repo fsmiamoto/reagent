@@ -1,7 +1,13 @@
-import { useState, useMemo, type FC } from 'react';
-import type { ReviewFile, ReviewComment } from '../types';
-import { cn } from '../lib/utils';
-import { FileCode, Folder, FolderOpen, ChevronRight, ChevronDown } from 'lucide-react';
+import { useState, useMemo, type FC } from "react";
+import type { ReviewFile, ReviewComment } from "../types";
+import { cn } from "../lib/utils";
+import {
+  FileCode,
+  Folder,
+  FolderOpen,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
 
 interface FileTreeProps {
   files: ReviewFile[];
@@ -13,27 +19,27 @@ interface FileTreeProps {
 type TreeNode = {
   name: string;
   path: string;
-  type: 'file' | 'folder';
+  type: "file" | "folder";
   children: Record<string, TreeNode>;
   file?: ReviewFile;
 };
 
 const buildTree = (files: ReviewFile[]): TreeNode => {
-  const root: TreeNode = { name: '', path: '', type: 'folder', children: {} };
+  const root: TreeNode = { name: "", path: "", type: "folder", children: {} };
 
   files.forEach((file) => {
-    const parts = file.path.split('/');
+    const parts = file.path.split("/");
     let current = root;
 
     parts.forEach((part, index) => {
       const isFile = index === parts.length - 1;
-      const path = parts.slice(0, index + 1).join('/');
+      const path = parts.slice(0, index + 1).join("/");
 
       if (!current.children[part]) {
         current.children[part] = {
           name: part,
           path,
-          type: isFile ? 'file' : 'folder',
+          type: isFile ? "file" : "folder",
           children: {},
           file: isFile ? file : undefined,
         };
@@ -53,25 +59,29 @@ const FileTreeNode: FC<{
   commentCounts: Record<string, number>;
 }> = ({ node, level, selectedFile, onFileSelect, commentCounts }) => {
   const [isOpen, setIsOpen] = useState(true);
-  const isSelected = node.type === 'file' && selectedFile === node.path;
-  const commentCount = node.type === 'file' ? commentCounts[node.path] || 0 : 0;
+  const isSelected = node.type === "file" && selectedFile === node.path;
+  const commentCount = node.type === "file" ? commentCounts[node.path] || 0 : 0;
 
   // Calculate total comments for folder
   const getFolderCommentCount = (n: TreeNode): number => {
-    if (n.type === 'file') return commentCounts[n.path] || 0;
-    return Object.values(n.children).reduce((acc, child) => acc + getFolderCommentCount(child), 0);
+    if (n.type === "file") return commentCounts[n.path] || 0;
+    return Object.values(n.children).reduce(
+      (acc, child) => acc + getFolderCommentCount(child),
+      0,
+    );
   };
 
-  const folderCommentCount = node.type === 'folder' ? getFolderCommentCount(node) : 0;
+  const folderCommentCount =
+    node.type === "folder" ? getFolderCommentCount(node) : 0;
 
-  if (node.type === 'folder') {
+  if (node.type === "folder") {
     return (
       <div>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
             "w-full px-2 py-1 text-left text-sm hover:bg-muted/50 flex items-center gap-1.5 select-none transition-all duration-200",
-            "text-muted-foreground hover:text-foreground"
+            "text-muted-foreground hover:text-foreground",
           )}
           style={{ paddingLeft: `${level * 12 + 8}px` }}
         >
@@ -97,7 +107,7 @@ const FileTreeNode: FC<{
             {Object.values(node.children)
               .sort((a, b) => {
                 if (a.type === b.type) return a.name.localeCompare(b.name);
-                return a.type === 'folder' ? -1 : 1;
+                return a.type === "folder" ? -1 : 1;
               })
               .map((child) => (
                 <FileTreeNode
@@ -122,11 +132,18 @@ const FileTreeNode: FC<{
         "w-full px-2 py-1 text-left text-sm transition-all duration-200 flex items-center gap-2 group border-l-2",
         isSelected
           ? "bg-accent text-accent-foreground border-primary font-medium"
-          : "hover:bg-accent/50 border-transparent"
+          : "hover:bg-accent/50 border-transparent",
       )}
       style={{ paddingLeft: `${level * 12 + 20}px` }}
     >
-      <FileCode className={cn("h-4 w-4 shrink-0", isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+      <FileCode
+        className={cn(
+          "h-4 w-4 shrink-0",
+          isSelected
+            ? "text-primary"
+            : "text-muted-foreground group-hover:text-foreground",
+        )}
+      />
       <span className="truncate flex-1">{node.name}</span>
       {commentCount > 0 && (
         <span
@@ -134,7 +151,7 @@ const FileTreeNode: FC<{
             "ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold",
             isSelected
               ? "bg-background/20 text-accent-foreground"
-              : "bg-muted text-muted-foreground"
+              : "bg-muted text-muted-foreground",
           )}
         >
           {commentCount}
@@ -153,23 +170,34 @@ export const FileTree: FC<FileTreeProps> = ({
   const tree = useMemo(() => buildTree(files), [files]);
 
   // Count comments per file
-  const commentCounts = useMemo(() => comments.reduce((acc, comment) => {
-    acc[comment.filePath] = (acc[comment.filePath] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>), [comments]);
+  const commentCounts = useMemo(
+    () =>
+      comments.reduce(
+        (acc, comment) => {
+          acc[comment.filePath] = (acc[comment.filePath] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+    [comments],
+  );
 
   return (
     <div className="flex flex-col h-full bg-card/30 backdrop-blur-sm">
       <div className="p-4 border-b border-border/60 bg-card/20 backdrop-blur-sm">
-        <h2 className="text-sm font-display font-semibold text-foreground">Files Changed</h2>
-        <p className="text-xs text-muted-foreground mt-1">{files.length} files</p>
+        <h2 className="text-sm font-display font-semibold text-foreground">
+          Files Changed
+        </h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          {files.length} files
+        </p>
       </div>
 
       <div className="flex-1 overflow-y-auto py-2">
         {Object.values(tree.children)
           .sort((a, b) => {
             if (a.type === b.type) return a.name.localeCompare(b.name);
-            return a.type === 'folder' ? -1 : 1;
+            return a.type === "folder" ? -1 : 1;
           })
           .map((node) => (
             <FileTreeNode

@@ -1,10 +1,10 @@
-import * as fs from 'node:fs';
-import os from 'os';
-import path from 'path';
-import { z } from 'zod';
-import { getReagentVersion } from '../version';
+import * as fs from "node:fs";
+import os from "os";
+import path from "path";
+import { z } from "zod";
+import { getReagentVersion } from "../version";
 
-const LOCK_FILE_NAME = 'server.lock';
+const LOCK_FILE_NAME = "server.lock";
 
 export interface LockFileData {
   pid: number;
@@ -15,8 +15,13 @@ export interface LockFileData {
 
 export type AcquireLockResult =
   | { success: true; port: number }
-  | { success: false; reason: 'already_running'; existingPort: number; existingPid: number }
-  | { success: false; reason: 'write_error'; error: Error };
+  | {
+      success: false;
+      reason: "already_running";
+      existingPort: number;
+      existingPid: number;
+    }
+  | { success: false; reason: "write_error"; error: Error };
 
 const LockFileSchema = z.object({
   pid: z.number().int().positive(),
@@ -31,7 +36,7 @@ export class LockManager {
   private version: string;
 
   constructor(version: string, lockDir?: string) {
-    this.lockDir = lockDir ?? path.join(os.homedir(), '.reagent');
+    this.lockDir = lockDir ?? path.join(os.homedir(), ".reagent");
     this.lockPath = path.join(this.lockDir, LOCK_FILE_NAME);
     this.version = version;
   }
@@ -46,7 +51,9 @@ export class LockManager {
         fs.mkdirSync(this.lockDir, { recursive: true });
       }
     } catch (error: unknown) {
-      throw new Error(`Failed to create lock directory at ${this.lockDir}: ${error}`);
+      throw new Error(
+        `Failed to create lock directory at ${this.lockDir}: ${error}`,
+      );
     }
   }
 
@@ -56,17 +63,17 @@ export class LockManager {
         return null;
       }
 
-      const content = fs.readFileSync(this.lockPath, 'utf-8');
+      const content = fs.readFileSync(this.lockPath, "utf-8");
       const result = LockFileSchema.safeParse(JSON.parse(content));
 
       if (!result.success) {
-        console.error('[Reagent] Corrupted lock file, ignoring');
+        console.error("[Reagent] Corrupted lock file, ignoring");
         return null;
       }
 
       return result.data;
     } catch (error: unknown) {
-      console.error('[Reagent] Failed to read lock file:', error);
+      console.error("[Reagent] Failed to read lock file:", error);
       return null;
     }
   }
@@ -90,7 +97,7 @@ export class LockManager {
       }
       fs.unlinkSync(this.lockPath);
     } catch (error: unknown) {
-      console.error('[Reagent] Failed to remove lock file:', error);
+      console.error("[Reagent] Failed to remove lock file:", error);
     }
   }
 
@@ -116,13 +123,13 @@ export class LockManager {
       if (!isStale) {
         return {
           success: false,
-          reason: 'already_running',
+          reason: "already_running",
           existingPort: existingLock.port,
           existingPid: existingLock.pid,
         };
       }
 
-      console.error('[Reagent] Cleaning up stale lock file');
+      console.error("[Reagent] Cleaning up stale lock file");
       this.removeLockFile();
     }
 
@@ -130,8 +137,9 @@ export class LockManager {
       this.writeLockFile(port);
       return { success: true, port };
     } catch (error: unknown) {
-      const typedError = error instanceof Error ? error : new Error('Unknown error');
-      return { success: false, reason: 'write_error', error: typedError };
+      const typedError =
+        error instanceof Error ? error : new Error("Unknown error");
+      return { success: false, reason: "write_error", error: typedError };
     }
   }
 
@@ -143,7 +151,7 @@ export class LockManager {
     }
 
     if (this.isLockStale(lockData)) {
-      console.error('[Reagent] Cleaning up stale lock file');
+      console.error("[Reagent] Cleaning up stale lock file");
       this.removeLockFile();
       return null;
     }
@@ -159,7 +167,7 @@ export class LockManager {
     }
 
     if (this.isLockStale(lockData)) {
-      console.error('[Reagent] Cleaning up stale lock file');
+      console.error("[Reagent] Cleaning up stale lock file");
       this.removeLockFile();
       return null;
     }

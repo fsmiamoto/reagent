@@ -9,7 +9,7 @@ export interface ReviewFile {
   language?: string;
 }
 
-export type CommentSide = 'old' | 'new';
+export type CommentSide = "old" | "new";
 
 export interface ReviewComment {
   id: string;
@@ -21,7 +21,11 @@ export interface ReviewComment {
   createdAt: string | Date;
 }
 
-export type ReviewStatus = 'pending' | 'approved' | 'changes_requested' | 'cancelled';
+export type ReviewStatus =
+  | "pending"
+  | "approved"
+  | "changes_requested"
+  | "cancelled";
 
 /**
  * Lightweight session summary for dashboard listing

@@ -1,13 +1,17 @@
-import { useState, type FC } from 'react';
-import type { ReviewFile, ReviewComment } from '../types';
-import { Button } from './ui/Button';
-import { MessageSquare, Plus, Trash2 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { useState, type FC } from "react";
+import type { ReviewFile, ReviewComment } from "../types";
+import { Button } from "./ui/Button";
+import { MessageSquare, Plus, Trash2 } from "lucide-react";
+import { cn } from "../lib/utils";
 
 interface SimpleDiffViewerProps {
   file: ReviewFile;
   comments: ReviewComment[];
-  onAddComment: (startLine: number, endLine: number, text: string) => Promise<void>;
+  onAddComment: (
+    startLine: number,
+    endLine: number,
+    text: string,
+  ) => Promise<void>;
   onDeleteComment: (commentId: string) => Promise<void>;
 }
 
@@ -18,18 +22,18 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
   onDeleteComment,
 }) => {
   const [commentingLine, setCommentingLine] = useState<number | null>(null);
-  const [commentText, setCommentText] = useState('');
+  const [commentText, setCommentText] = useState("");
 
-  const lines = file.content.split('\n');
+  const lines = file.content.split("\n");
   const fileComments = comments.filter((c) => c.filePath === file.path);
 
   const handleLineClick = (lineNumber: number) => {
     if (commentingLine === lineNumber) {
       setCommentingLine(null);
-      setCommentText('');
+      setCommentText("");
     } else {
       setCommentingLine(lineNumber);
-      setCommentText('');
+      setCommentText("");
     }
   };
 
@@ -39,9 +43,9 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
     try {
       await onAddComment(commentingLine, commentingLine, commentText.trim());
       setCommentingLine(null);
-      setCommentText('');
+      setCommentText("");
     } catch (error) {
-      console.error('Failed to submit comment:', error);
+      console.error("Failed to submit comment:", error);
     }
   };
 
@@ -50,19 +54,26 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
       <div className="p-4 border-b border-border bg-card sticky top-0 z-10">
         <h3 className="text-sm font-semibold text-foreground">{file.path}</h3>
         {file.language && (
-          <span className="text-xs text-muted-foreground mt-1">Language: {file.language}</span>
+          <span className="text-xs text-muted-foreground mt-1">
+            Language: {file.language}
+          </span>
         )}
       </div>
 
       <div className="text-sm">
         {lines.map((line, index) => {
           const lineNumber = index + 1;
-          const lineComments = fileComments.filter((c) => lineNumber >= c.startLine && lineNumber <= c.endLine);
+          const lineComments = fileComments.filter(
+            (c) => lineNumber >= c.startLine && lineNumber <= c.endLine,
+          );
           const hasComment = lineComments.length > 0;
           const isCommenting = commentingLine === lineNumber;
 
           return (
-            <div key={lineNumber} className="group border-b border-border/50 last:border-0">
+            <div
+              key={lineNumber}
+              className="group border-b border-border/50 last:border-0"
+            >
               <div className="flex hover:bg-muted/30 transition-colors">
                 {/* Line number + comment button */}
                 <div className="flex items-center bg-muted/20 border-r border-border/50 sticky left-0 h-full">
@@ -77,18 +88,25 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
                         hasComment
                           ? "text-primary opacity-100"
                           : "text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted hover:text-foreground",
-                        isCommenting && "bg-primary/10 text-primary opacity-100"
+                        isCommenting &&
+                          "bg-primary/10 text-primary opacity-100",
                       )}
-                      title={hasComment ? 'View comments' : 'Add comment'}
+                      title={hasComment ? "View comments" : "Add comment"}
                     >
-                      {hasComment ? <MessageSquare className="h-3.5 w-3.5" /> : <Plus className="h-4 w-4" />}
+                      {hasComment ? (
+                        <MessageSquare className="h-3.5 w-3.5" />
+                      ) : (
+                        <Plus className="h-4 w-4" />
+                      )}
                     </button>
                   </div>
                 </div>
 
                 {/* Code line */}
                 <div className="flex-1 px-4 py-1 overflow-x-auto">
-                  <code className="font-mono text-foreground whitespace-pre">{line || ' '}</code>
+                  <code className="font-mono text-foreground whitespace-pre">
+                    {line || " "}
+                  </code>
                 </div>
               </div>
 
@@ -102,7 +120,9 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
                         key={comment.id}
                         className="mb-2 last:mb-0 flex items-start justify-between group/comment"
                       >
-                        <p className="text-sm text-foreground flex-1">{comment.text}</p>
+                        <p className="text-sm text-foreground flex-1">
+                          {comment.text}
+                        </p>
                         <button
                           onClick={() => onDeleteComment(comment.id)}
                           className="ml-3 text-xs text-destructive opacity-0 group-hover/comment:opacity-100 transition-opacity hover:underline flex items-center gap-1"
@@ -135,7 +155,7 @@ export const SimpleDiffViewer: FC<SimpleDiffViewerProps> = ({
                         size="sm"
                         onClick={() => {
                           setCommentingLine(null);
-                          setCommentText('');
+                          setCommentText("");
                         }}
                       >
                         Cancel

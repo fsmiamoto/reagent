@@ -1,4 +1,9 @@
-import type { CommentSide, ReviewComment, ReviewSource, ReviewStatus } from '@src/models/domain';
+import type {
+  CommentSide,
+  ReviewComment,
+  ReviewSource,
+  ReviewStatus,
+} from "@src/models/domain";
 
 export interface ReviewInput {
   files?: string[];
@@ -68,7 +73,7 @@ export interface AddCommentRequest {
 }
 
 export interface CompleteReviewRequest {
-  status: 'approved' | 'changes_requested';
+  status: "approved" | "changes_requested";
   generalFeedback: string;
 }
 
@@ -80,10 +85,10 @@ export function resolveReviewSource(input: ReviewInput): ReviewSource {
     return input.source;
   }
   if (input.commitHash) {
-    return 'commit';
+    return "commit";
   }
   if (input.base || input.head) {
-    return 'branch';
+    return "branch";
   }
-  return 'uncommitted';
+  return "uncommitted";
 }

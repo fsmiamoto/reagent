@@ -1,15 +1,17 @@
-import type { ReviewResult } from '../../models/domain';
-import type { GetReviewInput, GetReviewResult } from '../../models/api';
-import { apiFacade } from '../../http/facade';
+import type { ReviewResult } from "../../models/domain";
+import type { GetReviewInput, GetReviewResult } from "../../models/api";
+import { apiFacade } from "../../http/facade";
 
 /**
  * Get review status/results via the HTTP API.
  */
-export async function getReview(input: GetReviewInput): Promise<ReviewResult | GetReviewResult> {
+export async function getReview(
+  input: GetReviewInput,
+): Promise<ReviewResult | GetReviewResult> {
   const { sessionId, wait = true } = input;
 
   console.error(
-    `[Reagent] Getting review ${sessionId} via API (wait: ${wait})`
+    `[Reagent] Getting review ${sessionId} via API (wait: ${wait})`,
   );
 
   try {
@@ -17,32 +19,35 @@ export async function getReview(input: GetReviewInput): Promise<ReviewResult | G
     while (true) {
       const session = await apiFacade.get<{
         id: string;
-        status: 'pending' | 'approved' | 'changes_requested' | 'cancelled';
+        status: "pending" | "approved" | "changes_requested" | "cancelled";
         generalFeedback: string;
         comments: Array<{
           id: string;
           filePath: string;
           startLine: number;
           endLine: number;
-          side: 'old' | 'new';
+          side: "old" | "new";
           text: string;
           createdAt: Date;
         }>;
       }>(`/sessions/${sessionId}`);
 
-      if (!wait || session.status !== 'pending') {
+      if (!wait || session.status !== "pending") {
         const result: GetReviewResult = {
           status: session.status,
         };
 
-        if (session.status === 'approved' || session.status === 'changes_requested') {
+        if (
+          session.status === "approved" ||
+          session.status === "changes_requested"
+        ) {
           result.generalFeedback = session.generalFeedback;
           result.comments = session.comments;
           result.timestamp = new Date();
 
           console.error(
             `[Reagent] Review completed: ${session.status}, ` +
-            `${session.comments.length} comment(s)`
+              `${session.comments.length} comment(s)`,
           );
           return result;
         }
@@ -54,8 +59,8 @@ export async function getReview(input: GetReviewInput): Promise<ReviewResult | G
       await new Promise((r) => setTimeout(r, 1000));
     }
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[Reagent] Failed to get review:', message);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("[Reagent] Failed to get review:", message);
     throw error;
   }
 }

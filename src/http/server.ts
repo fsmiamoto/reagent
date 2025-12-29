@@ -1,10 +1,10 @@
-import express from 'express';
-import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { Server as HttpServer } from 'http';
-import { apiRouter } from './routes';
-import { LockManager, lockManager } from './lock';
+import express from "express";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+import { Server as HttpServer } from "http";
+import { apiRouter } from "./routes";
+import { LockManager, lockManager } from "./lock";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,10 +22,10 @@ export class Server {
     const lockResult = this.lock.acquireLock(port);
 
     if (!lockResult.success) {
-      if (lockResult.reason === 'already_running') {
+      if (lockResult.reason === "already_running") {
         throw new Error(
           `Another Reagent server is already running on port ${lockResult.existingPort} ` +
-          `(PID: ${lockResult.existingPid}). Use "reagent stop" to stop it first.`
+            `(PID: ${lockResult.existingPid}). Use "reagent stop" to stop it first.`,
         );
       }
       throw lockResult.error;
@@ -36,7 +36,7 @@ export class Server {
     try {
       this.httpServer = await new Promise<HttpServer>((resolve, reject) => {
         const srv = app.listen(port, () => resolve(srv));
-        srv.on('error', reject);
+        srv.on("error", reject);
       });
 
       this.port = port;
@@ -45,7 +45,10 @@ export class Server {
     } catch (error: unknown) {
       this.lock.removeLockFile();
 
-      if (error instanceof Error && (error as NodeJS.ErrnoException).code === 'EADDRINUSE') {
+      if (
+        error instanceof Error &&
+        (error as NodeJS.ErrnoException).code === "EADDRINUSE"
+      ) {
         throw new Error(`Port ${port} is already in use`);
       }
       throw error;
@@ -61,7 +64,7 @@ export class Server {
 
     await new Promise<void>((resolve) => {
       const timeout = setTimeout(() => {
-        console.error('[Reagent] Force exit after timeout');
+        console.error("[Reagent] Force exit after timeout");
         resolve();
       }, 5000);
 
@@ -74,18 +77,20 @@ export class Server {
     });
   }
 
-  async stopRunningProcess(force: boolean): Promise<'stopped' | 'not_running'> {
+  async stopRunningProcess(force: boolean): Promise<"stopped" | "not_running"> {
     const serverInfo = this.lock.getServerInfo();
 
     if (!serverInfo) {
-      return 'not_running';
+      return "not_running";
     }
 
     const { pid, port } = serverInfo;
-    const signal = force ? 'SIGKILL' : 'SIGTERM';
+    const signal = force ? "SIGKILL" : "SIGTERM";
 
     try {
-      console.error(`[Reagent] Stopping server (PID: ${pid}, Port: ${port})...`);
+      console.error(
+        `[Reagent] Stopping server (PID: ${pid}, Port: ${port})...`,
+      );
       process.kill(pid, signal);
 
       const maxWait = force ? 1000 : 5000;
@@ -99,12 +104,17 @@ export class Server {
       }
 
       this.lock.removeLockFile();
-      return 'stopped';
+      return "stopped";
     } catch (error: unknown) {
-      if (error instanceof Error && (error as NodeJS.ErrnoException).code === 'ESRCH') {
-        console.error('[Reagent] Server process not found, cleaning up lock file.');
+      if (
+        error instanceof Error &&
+        (error as NodeJS.ErrnoException).code === "ESRCH"
+      ) {
+        console.error(
+          "[Reagent] Server process not found, cleaning up lock file.",
+        );
         this.lock.removeLockFile();
-        return 'not_running';
+        return "not_running";
       }
       throw error;
     }
@@ -114,24 +124,31 @@ export class Server {
     const app = express();
 
     app.use(cors());
-    app.use(express.json({ limit: '50mb' }));
+    app.use(express.json({ limit: "50mb" }));
 
-    app.use('/api', apiRouter);
+    app.use("/api", apiRouter);
 
-    const uiDistPath = path.join(__dirname, '../../ui/dist');
+    const uiDistPath = path.join(__dirname, "../../ui/dist");
     app.use(express.static(uiDistPath));
 
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(uiDistPath, 'index.html'));
+    app.get("*", (_req, res) => {
+      res.sendFile(path.join(uiDistPath, "index.html"));
     });
 
-    app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-      const error = err as { status?: number; message?: string };
-      console.error('[Reagent] Express error:', err);
-      res.status(error.status || 500).json({
-        error: error.message || 'Internal server error',
-      });
-    });
+    app.use(
+      (
+        err: unknown,
+        _req: express.Request,
+        res: express.Response,
+        _next: express.NextFunction,
+      ) => {
+        const error = err as { status?: number; message?: string };
+        console.error("[Reagent] Express error:", err);
+        res.status(error.status || 500).json({
+          error: error.message || "Internal server error",
+        });
+      },
+    );
 
     return app;
   }
@@ -163,9 +180,12 @@ export class Server {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 2000);
       try {
-        const response = await fetch(`http://localhost:${serverInfo.port}/api/health`, {
-          signal: controller.signal,
-        });
+        const response = await fetch(
+          `http://localhost:${serverInfo.port}/api/health`,
+          {
+            signal: controller.signal,
+          },
+        );
         healthy = response.ok;
       } finally {
         clearTimeout(timeoutId);

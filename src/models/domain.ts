@@ -5,7 +5,7 @@ export interface ReviewFile {
   language?: string;
 }
 
-export type CommentSide = 'old' | 'new';
+export type CommentSide = "old" | "new";
 
 export interface ReviewComment {
   id: string;
@@ -17,7 +17,11 @@ export interface ReviewComment {
   createdAt: Date;
 }
 
-export type ReviewStatus = 'pending' | 'approved' | 'changes_requested' | 'cancelled';
+export type ReviewStatus =
+  | "pending"
+  | "approved"
+  | "changes_requested"
+  | "cancelled";
 
 export interface ReviewSessionDetails {
   id: string;
@@ -31,10 +35,10 @@ export interface ReviewSessionDetails {
 }
 
 export interface ReviewResult {
-  status: 'approved' | 'changes_requested';
+  status: "approved" | "changes_requested";
   generalFeedback: string;
   comments: ReviewComment[];
   timestamp: Date;
 }
 
-export type ReviewSource = 'uncommitted' | 'commit' | 'branch' | 'local';
+export type ReviewSource = "uncommitted" | "commit" | "branch" | "local";

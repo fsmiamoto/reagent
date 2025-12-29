@@ -1,13 +1,13 @@
-import { execSync } from 'child_process';
-import { readFileSync } from 'fs';
-import * as path from 'path';
-import type { ReviewFile } from '../models/domain';
-import { resolveReviewSource, type ReviewInput } from '../models/api';
-import { getLanguageFromPath } from '../utils/language';
+import { execSync } from "child_process";
+import { readFileSync } from "fs";
+import * as path from "path";
+import type { ReviewFile } from "../models/domain";
+import { resolveReviewSource, type ReviewInput } from "../models/api";
+import { getLanguageFromPath } from "../utils/language";
 
 interface GitFileChange {
   path: string;
-  status: 'added' | 'modified' | 'deleted';
+  status: "added" | "modified" | "deleted";
   oldContent?: string;
   newContent?: string;
 }
@@ -16,7 +16,7 @@ function execGit(command: string, cwd?: string): string {
   try {
     return execSync(command, {
       cwd: cwd || process.cwd(),
-      encoding: 'utf-8',
+      encoding: "utf-8",
       maxBuffer: 10 * 1024 * 1024, // 10MB buffer for large files
     });
   } catch (error: any) {
@@ -26,7 +26,7 @@ function execGit(command: string, cwd?: string): string {
 
 export function isGitRepository(cwd?: string): boolean {
   try {
-    execGit('git rev-parse --git-dir', cwd);
+    execGit("git rev-parse --git-dir", cwd);
     return true;
   } catch {
     return false;
@@ -36,7 +36,11 @@ export function isGitRepository(cwd?: string): boolean {
 /**
  * Get file content at a specific git reference
  */
-function getFileContent(filePath: string, ref: string, cwd?: string): string | null {
+function getFileContent(
+  filePath: string,
+  ref: string,
+  cwd?: string,
+): string | null {
   try {
     return execGit(`git show ${ref}:${filePath}`, cwd);
   } catch {
@@ -51,7 +55,7 @@ function getFileContent(filePath: string, ref: string, cwd?: string): string | n
 function getWorkingTreeContent(filePath: string, cwd?: string): string | null {
   try {
     const fullPath = path.join(cwd || process.cwd(), filePath);
-    return readFileSync(fullPath, 'utf-8');
+    return readFileSync(fullPath, "utf-8");
   } catch {
     return null;
   }
@@ -60,7 +64,10 @@ function getWorkingTreeContent(filePath: string, cwd?: string): string | null {
 /**
  * Get list of changed files for uncommitted changes
  */
-function shouldIncludeFile(filePath: string, specifiedFiles?: string[]): boolean {
+function shouldIncludeFile(
+  filePath: string,
+  specifiedFiles?: string[],
+): boolean {
   if (!specifiedFiles || specifiedFiles.length === 0) {
     return true;
   }
@@ -70,7 +77,7 @@ function shouldIncludeFile(filePath: string, specifiedFiles?: string[]): boolean
       return true;
     }
 
-    const normalized = entry.replace(/\/+$/, '');
+    const normalized = entry.replace(/\/+$/, "");
 
     if (!normalized) {
       return true;
@@ -84,12 +91,18 @@ function shouldIncludeFile(filePath: string, specifiedFiles?: string[]): boolean
   });
 }
 
-function getUncommittedFiles(specifiedFiles?: string[], cwd?: string): GitFileChange[] {
+function getUncommittedFiles(
+  specifiedFiles?: string[],
+  cwd?: string,
+): GitFileChange[] {
   const changes: GitFileChange[] = [];
 
   // Get staged, unstaged, and untracked files (including in subdirectories)
-  const statusOutput = execGit('git status --porcelain=v1 --untracked-files=all', cwd);
-  const lines = statusOutput.split('\n').filter((line) => line.trim());
+  const statusOutput = execGit(
+    "git status --porcelain=v1 --untracked-files=all",
+    cwd,
+  );
+  const lines = statusOutput.split("\n").filter((line) => line.trim());
 
   for (const line of lines) {
     const status = line.substring(0, 2);
@@ -100,23 +113,25 @@ function getUncommittedFiles(specifiedFiles?: string[], cwd?: string): GitFileCh
       continue;
     }
 
-    let changeStatus: 'added' | 'modified' | 'deleted';
-    if (status.includes('D')) {
-      changeStatus = 'deleted';
-    } else if (status.includes('A') || status.includes('?')) {
-      changeStatus = 'added';
+    let changeStatus: "added" | "modified" | "deleted";
+    if (status.includes("D")) {
+      changeStatus = "deleted";
+    } else if (status.includes("A") || status.includes("?")) {
+      changeStatus = "added";
     } else {
-      changeStatus = 'modified';
+      changeStatus = "modified";
     }
 
-    const newContent = changeStatus !== 'deleted' ? getWorkingTreeContent(filePath, cwd) : null;
+    const newContent =
+      changeStatus !== "deleted" ? getWorkingTreeContent(filePath, cwd) : null;
 
     // Skip entries where content is null (directories or unreadable files)
     if (newContent === null) {
       continue;
     }
 
-    const oldContent = changeStatus !== 'added' ? getFileContent(filePath, 'HEAD', cwd) : null;
+    const oldContent =
+      changeStatus !== "added" ? getFileContent(filePath, "HEAD", cwd) : null;
 
     changes.push({
       path: filePath,
@@ -132,33 +147,45 @@ function getUncommittedFiles(specifiedFiles?: string[], cwd?: string): GitFileCh
 /**
  * Get list of changed files in a specific commit
  */
-function getCommitFiles(commitHash: string, specifiedFiles?: string[], cwd?: string): GitFileChange[] {
+function getCommitFiles(
+  commitHash: string,
+  specifiedFiles?: string[],
+  cwd?: string,
+): GitFileChange[] {
   const changes: GitFileChange[] = [];
 
   // Get list of files changed in the commit
-  const diffOutput = execGit(`git diff-tree --no-commit-id --name-status -r ${commitHash}`, cwd);
-  const lines = diffOutput.split('\n').filter((line) => line.trim());
+  const diffOutput = execGit(
+    `git diff-tree --no-commit-id --name-status -r ${commitHash}`,
+    cwd,
+  );
+  const lines = diffOutput.split("\n").filter((line) => line.trim());
 
   for (const line of lines) {
-    const [status, filePath] = line.split('\t');
+    const [status, filePath] = line.split("\t");
 
     // If specific files are specified, only include those
     if (!shouldIncludeFile(filePath, specifiedFiles)) {
       continue;
     }
 
-    let changeStatus: 'added' | 'modified' | 'deleted';
-    if (status === 'D') {
-      changeStatus = 'deleted';
-    } else if (status === 'A') {
-      changeStatus = 'added';
+    let changeStatus: "added" | "modified" | "deleted";
+    if (status === "D") {
+      changeStatus = "deleted";
+    } else if (status === "A") {
+      changeStatus = "added";
     } else {
-      changeStatus = 'modified';
+      changeStatus = "modified";
     }
 
-    const newContent = changeStatus !== 'deleted' ? getFileContent(filePath, commitHash, cwd) : null;
+    const newContent =
+      changeStatus !== "deleted"
+        ? getFileContent(filePath, commitHash, cwd)
+        : null;
     const oldContent =
-      changeStatus !== 'added' ? getFileContent(filePath, `${commitHash}^`, cwd) : null;
+      changeStatus !== "added"
+        ? getFileContent(filePath, `${commitHash}^`, cwd)
+        : null;
 
     changes.push({
       path: filePath,
@@ -178,33 +205,35 @@ function getBranchFiles(
   base: string,
   head: string,
   specifiedFiles?: string[],
-  cwd?: string
+  cwd?: string,
 ): GitFileChange[] {
   const changes: GitFileChange[] = [];
 
   // Get list of files changed between base and head
   const diffOutput = execGit(`git diff --name-status ${base}...${head}`, cwd);
-  const lines = diffOutput.split('\n').filter((line) => line.trim());
+  const lines = diffOutput.split("\n").filter((line) => line.trim());
 
   for (const line of lines) {
-    const [status, filePath] = line.split('\t');
+    const [status, filePath] = line.split("\t");
 
     // If specific files are specified, only include those
     if (!shouldIncludeFile(filePath, specifiedFiles)) {
       continue;
     }
 
-    let changeStatus: 'added' | 'modified' | 'deleted';
-    if (status === 'D') {
-      changeStatus = 'deleted';
-    } else if (status === 'A') {
-      changeStatus = 'added';
+    let changeStatus: "added" | "modified" | "deleted";
+    if (status === "D") {
+      changeStatus = "deleted";
+    } else if (status === "A") {
+      changeStatus = "added";
     } else {
-      changeStatus = 'modified';
+      changeStatus = "modified";
     }
 
-    const newContent = changeStatus !== 'deleted' ? getFileContent(filePath, head, cwd) : null;
-    const oldContent = changeStatus !== 'added' ? getFileContent(filePath, base, cwd) : null;
+    const newContent =
+      changeStatus !== "deleted" ? getFileContent(filePath, head, cwd) : null;
+    const oldContent =
+      changeStatus !== "added" ? getFileContent(filePath, base, cwd) : null;
 
     changes.push({
       path: filePath,
@@ -222,7 +251,7 @@ function getBranchFiles(
  */
 function convertToReviewFiles(changes: GitFileChange[]): ReviewFile[] {
   return changes
-    .filter((change) => typeof change.newContent === 'string') // Only include entries with string content
+    .filter((change) => typeof change.newContent === "string") // Only include entries with string content
     .map((change) => ({
       path: change.path,
       content: change.newContent as string,
@@ -239,7 +268,7 @@ export function getReviewFilesFromGit(input: ReviewInput): ReviewFile[] {
 
   // Verify it's a git repository
   if (!isGitRepository(cwd)) {
-    throw new Error('Not a git repository');
+    throw new Error("Not a git repository");
   }
 
   let changes: GitFileChange[];
@@ -247,20 +276,20 @@ export function getReviewFilesFromGit(input: ReviewInput): ReviewFile[] {
   const resolvedSource = resolveReviewSource(input);
 
   switch (resolvedSource) {
-    case 'uncommitted':
+    case "uncommitted":
       changes = getUncommittedFiles(input.files, cwd);
       break;
 
-    case 'commit':
+    case "commit":
       if (!input.commitHash) {
-        throw new Error('commitHash is required for source: commit');
+        throw new Error("commitHash is required for source: commit");
       }
       changes = getCommitFiles(input.commitHash, input.files, cwd);
       break;
 
-    case 'branch':
+    case "branch":
       if (!input.base || !input.head) {
-        throw new Error('base and head are required for source: branch');
+        throw new Error("base and head are required for source: branch");
       }
       changes = getBranchFiles(input.base, input.head, input.files, cwd);
       break;
@@ -270,7 +299,7 @@ export function getReviewFilesFromGit(input: ReviewInput): ReviewFile[] {
   }
 
   if (changes.length === 0) {
-    throw new Error('No changes found for the specified files');
+    throw new Error("No changes found for the specified files");
   }
 
   return convertToReviewFiles(changes);
@@ -283,13 +312,13 @@ export function getGitSummary(input: ReviewInput): string {
   const source = resolveReviewSource(input);
 
   switch (source) {
-    case 'uncommitted':
-      return 'Uncommitted changes';
-    case 'commit':
+    case "uncommitted":
+      return "Uncommitted changes";
+    case "commit":
       return `Commit ${input.commitHash?.substring(0, 7)}`;
-    case 'branch':
+    case "branch":
       return `${input.base}...${input.head}`;
     default:
-      return 'Git changes';
+      return "Git changes";
   }
 }

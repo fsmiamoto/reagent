@@ -4,7 +4,7 @@
  * This file runs before all tests and configures shared test behavior.
  */
 
-import { afterEach, vi } from 'vitest';
+import { afterEach, vi } from "vitest";
 
 afterEach(() => {
   vi.clearAllMocks();
