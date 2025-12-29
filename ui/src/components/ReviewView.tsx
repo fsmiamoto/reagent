@@ -5,6 +5,7 @@ import { DiffViewer } from "./DiffViewer";
 import { ReviewPanel } from "./ReviewPanel";
 import { ReviewSummaryBanner } from "./ReviewSummaryBanner";
 import { ThemeToggle } from "./ThemeToggle";
+import { SettingsPopup } from "./SettingsPopup";
 import { Layout } from "./Layout";
 import { Header } from "./Header";
 import { Loader2, AlertCircle, Home } from "lucide-react";
@@ -129,6 +130,7 @@ export function ReviewView({ sessionId }: ReviewViewProps) {
           isSidebarOpen={isLeftSidebarOpen}
           onToggleSidebar={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
         >
+          <SettingsPopup />
           <ThemeToggle />
           {!isCompleted && (
             <Popover>
@@ -137,7 +139,7 @@ export function ReviewView({ sessionId }: ReviewViewProps) {
                   variant="default"
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
-                  Review changes
+                  Submit review
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-96" align="end">

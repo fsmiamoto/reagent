@@ -2,6 +2,18 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { DiffViewer } from "../DiffViewer";
 import { ReviewFile } from "../../../types";
+import { useSettingsStore } from "../../../store/settingsStore";
+
+// Mock the settings store
+vi.mock("../../../store/settingsStore", () => ({
+  useSettingsStore: vi.fn((selector) => {
+    const state = {
+      defaultViewMode: "unified" as const,
+      setDefaultViewMode: vi.fn(),
+    };
+    return selector ? selector(state) : state;
+  }),
+}));
 
 // Mock sub-components to simplify testing
 vi.mock("../UnifiedDiffView", () => ({
@@ -73,5 +85,56 @@ describe("DiffViewer", () => {
     );
 
     expect(screen.getByText(/Error:/)).toBeDefined();
+  });
+
+  describe("global view mode integration", () => {
+    it("should use global default view mode", () => {
+      // Mock store to return "split"
+      vi.mocked(useSettingsStore).mockImplementation((selector) => {
+        const state = {
+          defaultViewMode: "split" as const,
+          setDefaultViewMode: vi.fn(),
+        };
+        return selector ? selector(state) : state;
+      });
+
+      render(
+        <DiffViewer
+          file={mockFile}
+          comments={[]}
+          onAddComment={vi.fn()}
+          onDeleteComment={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByTestId("split-diff-view")).toBeDefined();
+    });
+
+    it("should allow per-file override", () => {
+      // Start with unified global default
+      vi.mocked(useSettingsStore).mockImplementation((selector) => {
+        const state = {
+          defaultViewMode: "unified" as const,
+          setDefaultViewMode: vi.fn(),
+        };
+        return selector ? selector(state) : state;
+      });
+
+      render(
+        <DiffViewer
+          file={mockFile}
+          comments={[]}
+          onAddComment={vi.fn()}
+          onDeleteComment={vi.fn()}
+        />,
+      );
+
+      // Should start with unified view
+      expect(screen.getByTestId("unified-diff-view")).toBeDefined();
+
+      // Switch to split locally
+      fireEvent.click(screen.getByText("Split"));
+      expect(screen.getByTestId("split-diff-view")).toBeDefined();
+    });
   });
 });

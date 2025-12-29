@@ -1,4 +1,4 @@
-import { useState, useMemo, type FC } from "react";
+import { useState, useMemo, useEffect, type FC } from "react";
 import { FileJson } from "lucide-react";
 import { ReviewFile, ReviewComment, CommentSide } from "../../types";
 import { Button } from "../ui/Button";
@@ -10,6 +10,7 @@ import { UnifiedDiffView } from "./UnifiedDiffView";
 import { SplitDiffView } from "./SplitDiffView";
 import { validateReviewFile } from "./validators";
 import { LineRange } from "../../hooks/useDragSelection";
+import { useSettingsStore } from "../../store/settingsStore";
 
 interface DiffViewerProps {
   file: ReviewFile;
@@ -55,13 +56,30 @@ export const DiffViewer: FC<DiffViewerProps> = ({
     return fileName ? COLLAPSED_FILES.includes(fileName) : false;
   }, [file.path]);
 
+  const defaultViewMode = useSettingsStore((state) => state.defaultViewMode);
   const [isExpanded, setIsExpanded] = useState(!isCollapsedByDefault);
-  const [viewMode, setViewMode] = useState<"unified" | "split">("unified");
+  const [viewMode, setViewMode] = useState<"unified" | "split">(
+    defaultViewMode,
+  );
+  const [isOverridden, setIsOverridden] = useState(false);
   const [showAllLines, setShowAllLines] = useState(false);
   const [commentingRange, setCommentingRange] = useState<LineRange | null>(
     null,
   );
   const [previewMode, setPreviewMode] = useState(false);
+
+  // Sync with global when not overridden
+  useEffect(() => {
+    if (!isOverridden) {
+      setViewMode(defaultViewMode);
+    }
+  }, [defaultViewMode, isOverridden]);
+
+  // Wrap setViewMode to track override
+  const handleSetViewMode = (mode: "unified" | "split") => {
+    setIsOverridden(true);
+    setViewMode(mode);
+  };
 
   const { oldTokens, newTokens, diffRows } = useDiff({
     oldContent: file.oldContent,
@@ -104,7 +122,7 @@ export const DiffViewer: FC<DiffViewerProps> = ({
         showAllLines={showAllLines}
         onToggleShowAllLines={() => setShowAllLines(!showAllLines)}
         viewMode={viewMode}
-        onSetViewMode={setViewMode}
+        onSetViewMode={handleSetViewMode}
       />
 
       {!isExpanded ? (
