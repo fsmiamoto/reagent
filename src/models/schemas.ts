@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import * as path from 'path';
 import { resolveReviewSource } from './api';
 
 export const ReviewInputSchema = z
@@ -37,6 +38,17 @@ export const ReviewInputSchema = z
         path: ['files'],
         message: 'files are required for local review',
       });
+    }
+
+    if (source === 'local' && data.files && data.files.length > 0) {
+      const hasRelativePath = data.files.some(f => !path.isAbsolute(f));
+      if (hasRelativePath && !data.workingDirectory) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['workingDirectory'],
+          message: 'workingDirectory is required when using source: "local" with relative file paths. The MCP server cannot determine your project directory automatically.',
+        });
+      }
     }
   });
 

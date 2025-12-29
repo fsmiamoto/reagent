@@ -14,7 +14,10 @@ export function getLocalFiles(files: string[], cwd?: string): ReviewFile[] {
     const reviewFiles: ReviewFile[] = [];
 
     for (const filePath of files) {
-        const fullPath = path.join(workingDir, filePath);
+        // Use the path as-is if absolute, otherwise join with working directory
+        const fullPath = path.isAbsolute(filePath)
+            ? filePath
+            : path.join(workingDir, filePath);
 
         if (!existsSync(fullPath)) {
             console.warn(`[Reagent] File not found: ${fullPath}`);

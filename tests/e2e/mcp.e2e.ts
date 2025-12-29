@@ -148,6 +148,7 @@ describe('MCP Server', () => {
                 arguments: {
                     source: 'local',
                     files: ['package.json'],
+                    workingDirectory: PROJECT_ROOT,
                     openBrowser: false,
                 },
             });
@@ -197,6 +198,7 @@ describe('MCP Server', () => {
                     arguments: {
                         source: 'local',
                         files: ['package.json'],
+                        workingDirectory: PROJECT_ROOT,
                         openBrowser: false,
                     },
                 },

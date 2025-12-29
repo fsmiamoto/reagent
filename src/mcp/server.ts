@@ -42,9 +42,10 @@ export function createMCPServer() {
             '- Uncommitted changes: {"source": "uncommitted"}\n' +
             '- Specific commit: {"source": "commit", "commitHash": "abc123"}\n' +
             '- Branch comparison: {"source": "branch", "base": "main", "head": "feature"}\n' +
-            '- Local files (no Git): {"source": "local", "files": ["src/app.ts", "README.md"]}\n' +
+            '- Local files (no Git): {"source": "local", "files": ["src/app.ts"], "workingDirectory": "/path/to/project"}\n' +
             '- Disable browser opening: {"openBrowser": false}\n\n' +
             'NOTE: Local mode requires the "files" parameter and does not use Git. Files are read directly from the filesystem.\n\n' +
+            'IMPORTANT: When using source: "local" with relative file paths, you MUST provide workingDirectory. The MCP server runs in a different directory than your project.\n\n' +
             'COMPLETE WORKFLOW EXAMPLE:\n' +
             '1. Call: create_review({"source": "uncommitted"})\n' +
             '2. Receive: {sessionId: "abc-123", reviewUrl: "http://localhost:3000/review/abc-123", ...}\n' +
@@ -82,7 +83,7 @@ export function createMCPServer() {
               },
               workingDirectory: {
                 type: 'string',
-                description: 'Git repository path (optional, defaults to cwd)',
+                description: 'Project root path for resolving relative file paths. REQUIRED when source is "local" with relative paths. The MCP server\'s process.cwd() differs from your project directory.',
               },
               title: {
                 type: 'string',
