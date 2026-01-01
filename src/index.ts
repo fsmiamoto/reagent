@@ -177,18 +177,28 @@ program
 
 program
   .command("review [files...]")
-  .description("Create a new review session")
+  .description("Create a new code review session from git changes or local files")
   .option(
     "-s, --source <type>",
-    "Review source (uncommitted, commit, branch, local)",
+    "Review source type: uncommitted (default), commit, branch, or local",
     "uncommitted",
   )
-  .option("--base <ref>", "Base ref for branch comparison")
-  .option("--head <ref>", "Head ref for branch comparison")
-  .option("--commit <hash>", "Commit hash for commit review")
+  .option("--base <ref>", "Base branch/ref for comparison (required with --source=branch)")
+  .option("--head <ref>", "Head branch/ref for comparison (required with --source=branch)")
+  .option("--commit <hash>", "Commit hash to review (required with --source=commit)")
   .option("--title <string>", "Review title")
   .option("--description <string>", "Review description")
   .option("--no-open", "Do not open the browser automatically")
+  .addHelpText(
+    "after",
+    `
+Examples:
+  $ reagent review                                       # Review uncommitted changes (default)
+  $ reagent review --source=commit --commit=abc123       # Review a specific commit
+  $ reagent review -s branch --base=main --head=feature  # Compare two branches
+  $ reagent review --source=local src/file.ts            # Review specific local files
+`,
+  )
   .action(async (files, options) => {
     const body = {
       source: options.source,
