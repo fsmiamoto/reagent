@@ -3,7 +3,7 @@ set -e
 
 # Build the project
 echo "Building project..."
-npm run build
+bun run build
 
 # Start server in background
 echo "Starting server..."

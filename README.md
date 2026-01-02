@@ -90,6 +90,24 @@ Alternatively, use `npx` without installation:
 npx @fsmiamoto/reagent review
 ```
 
+### Development
+
+For contributors, this project requires Bun for development:
+
+```bash
+# Install dependencies
+bun install
+
+# Build the project
+bun run build
+
+# Run tests
+bun run test
+
+# Start development server with watch mode
+bun run dev
+```
+
 ### Creating a Review
 
 The most common CLI workflow is creating a review of your code:

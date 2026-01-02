@@ -1,9 +1,14 @@
-import * as esbuild from "esbuild";
+#!/usr/bin/env bun
+/**
+ * Build script using Bun's native build API
+ * Replaces esbuild.config.mjs
+ */
+
 import { readdirSync, statSync, readFileSync, writeFileSync } from "fs";
-import { join, dirname } from "path";
+import { join } from "path";
 
 // Recursively get all .ts files from src directory
-function getEntryPoints(dir, files = []) {
+function getEntryPoints(dir: string, files: string[] = []): string[] {
   const items = readdirSync(dir);
   for (const item of items) {
     const fullPath = join(dir, item);
@@ -17,7 +22,7 @@ function getEntryPoints(dir, files = []) {
 }
 
 // Get all .js files from output directory
-function getJsFiles(dir, files = []) {
+function getJsFiles(dir: string, files: string[] = []): string[] {
   const items = readdirSync(dir);
   for (const item of items) {
     const fullPath = join(dir, item);
@@ -31,7 +36,7 @@ function getJsFiles(dir, files = []) {
 }
 
 // Add .js extensions to relative imports in output files
-function addJsExtensionsToOutputs(outdir) {
+function addJsExtensionsToOutputs(outdir: string) {
   const files = getJsFiles(outdir);
 
   for (const file of files) {
@@ -45,7 +50,7 @@ function addJsExtensionsToOutputs(outdir) {
         if (path.endsWith(".js")) return match;
         // Add .js extension
         return `from ${quote}${path}.js${quote}`;
-      },
+      }
     );
 
     // Also handle export from statements
@@ -54,7 +59,7 @@ function addJsExtensionsToOutputs(outdir) {
       (match, quote, path) => {
         if (path.endsWith(".js")) return match;
         return match.replace(path, path + ".js");
-      },
+      }
     );
 
     writeFileSync(file, content, "utf8");
@@ -63,19 +68,24 @@ function addJsExtensionsToOutputs(outdir) {
 
 const entryPoints = getEntryPoints("src");
 
-await esbuild.build({
-  entryPoints,
+const result = await Bun.build({
+  entrypoints: entryPoints,
   outdir: "dist",
   format: "esm",
-  platform: "node",
-  target: "node20",
-  sourcemap: true,
-  outExtension: { ".js": ".js" },
-  // Keep individual files (no bundling) for easier debugging
-  bundle: false,
-  // Preserve directory structure
-  outbase: "src",
+  target: "node",
+  sourcemap: "external",
+  root: "src",
+  minify: false,
+  splitting: false,
 });
+
+if (!result.success) {
+  console.error("Build failed:");
+  for (const message of result.logs) {
+    console.error(message);
+  }
+  process.exit(1);
+}
 
 // Post-process to add .js extensions to imports
 addJsExtensionsToOutputs("dist");
