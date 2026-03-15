@@ -10,6 +10,7 @@ import {
   CreateReviewInputSchema,
   GetReviewInputSchema,
 } from "../models/schemas";
+import { getReagentVersion } from "../version";
 
 /**
  * Initialize and configure the MCP server
@@ -18,7 +19,7 @@ export function createMCPServer() {
   const server = new Server(
     {
       name: "reagent",
-      version: "1.0.0",
+      version: getReagentVersion(),
     },
     {
       capabilities: {
