@@ -13,11 +13,25 @@ export function getLocalFiles(files: string[], cwd?: string): ReviewFile[] {
   const workingDir = cwd || process.cwd();
   const reviewFiles: ReviewFile[] = [];
 
+  const resolvedDir = path.resolve(workingDir);
+
   for (const filePath of files) {
     // Use the path as-is if absolute, otherwise join with working directory
     const fullPath = path.isAbsolute(filePath)
       ? filePath
       : path.join(workingDir, filePath);
+
+    // Prevent path traversal — resolved path must be within the working directory
+    const resolvedPath = path.resolve(fullPath);
+    if (
+      !resolvedPath.startsWith(resolvedDir + path.sep) &&
+      resolvedPath !== resolvedDir
+    ) {
+      console.warn(
+        `[Reagent] Path traversal blocked: ${filePath} resolves outside working directory`,
+      );
+      continue;
+    }
 
     if (!existsSync(fullPath)) {
       console.warn(`[Reagent] File not found: ${fullPath}`);

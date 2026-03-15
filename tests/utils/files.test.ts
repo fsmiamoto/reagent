@@ -111,6 +111,52 @@ describe("getLocalFiles", () => {
     chmodSync(filePath, 0o644);
   });
 
+  it("should block relative path traversal (../)", () => {
+    writeFileSync(path.join(tempDir, "legit.ts"), "ok");
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const result = getLocalFiles(["../../../etc/passwd"], tempDir);
+
+    expect(result).toHaveLength(0);
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Path traversal blocked"),
+    );
+  });
+
+  it("should block absolute paths outside working directory", () => {
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const result = getLocalFiles(["/etc/passwd"], tempDir);
+
+    expect(result).toHaveLength(0);
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Path traversal blocked"),
+    );
+  });
+
+  it("should allow files in subdirectories within working directory", () => {
+    const subdir = path.join(tempDir, "src");
+    mkdirSync(subdir);
+    writeFileSync(path.join(subdir, "app.ts"), "code");
+
+    const result = getLocalFiles(["src/app.ts"], tempDir);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].content).toBe("code");
+  });
+
+  it("should block paths that escape and re-enter via symlink-like traversal", () => {
+    // e.g., "subdir/../../etc/passwd" — resolves outside workingDir
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const result = getLocalFiles(["subdir/../../etc/passwd"], tempDir);
+
+    expect(result).toHaveLength(0);
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Path traversal blocked"),
+    );
+  });
+
   it("should use process.cwd() when no cwd is provided", () => {
     // Create a file in the temp dir that matches what process.cwd() would resolve
     const filePath = path.join(process.cwd(), "package.json");
