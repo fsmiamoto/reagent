@@ -393,7 +393,26 @@ describe("getReviewFilesFromGit", () => {
       expect(result[0].path).toBe("a.ts");
     });
 
-    it("should return empty array when only deleted files exist in a commit", () => {
+    it("should throw when uncommitted changes contain only deletions", () => {
+      writeFileSync(path.join(tempDir, "a.ts"), "a\n");
+      writeFileSync(path.join(tempDir, "b.ts"), "b\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: "ignore" });
+
+      unlinkSync(path.join(tempDir, "a.ts"));
+      unlinkSync(path.join(tempDir, "b.ts"));
+
+      // Uncommitted deleted files are skipped before entering changes array,
+      // so this hits the "No changes found" check (not the deletions-only check)
+      expect(() =>
+        getReviewFilesFromGit({
+          source: "uncommitted",
+          workingDirectory: tempDir,
+        }),
+      ).toThrow("No changes found");
+    });
+
+    it("should throw when commit contains only deleted files", () => {
       writeFileSync(path.join(tempDir, "only.ts"), "content\n");
       execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
       execSync('git commit -m "add"', { cwd: tempDir, stdio: "ignore" });
@@ -406,15 +425,44 @@ describe("getReviewFilesFromGit", () => {
         encoding: "utf-8",
       }).trim();
 
-      // Deleted files are collected but filtered out by convertToReviewFiles;
-      // the "No changes found" check happens before filtering, so no throw
-      const result = getReviewFilesFromGit({
-        source: "commit",
-        commitHash,
-        workingDirectory: tempDir,
+      expect(() =>
+        getReviewFilesFromGit({
+          source: "commit",
+          commitHash,
+          workingDirectory: tempDir,
+        }),
+      ).toThrow("No reviewable changes found (changes contain only deletions)");
+    });
+
+    it("should throw when branch diff contains only deleted files", () => {
+      writeFileSync(path.join(tempDir, "a.ts"), "a\n");
+      writeFileSync(path.join(tempDir, "b.ts"), "b\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: "ignore" });
+
+      const defaultBranch = execSync("git branch --show-current", {
+        cwd: tempDir,
+        encoding: "utf-8",
+      }).trim();
+
+      execSync("git checkout -b delete-branch", {
+        cwd: tempDir,
+        stdio: "ignore",
+      });
+      execSync("git rm a.ts b.ts", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "delete all"', {
+        cwd: tempDir,
+        stdio: "ignore",
       });
 
-      expect(result).toEqual([]);
+      expect(() =>
+        getReviewFilesFromGit({
+          source: "branch",
+          base: defaultBranch,
+          head: "delete-branch",
+          workingDirectory: tempDir,
+        }),
+      ).toThrow("No reviewable changes found (changes contain only deletions)");
     });
   });
 

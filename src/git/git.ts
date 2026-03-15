@@ -287,7 +287,15 @@ export function getReviewFilesFromGit(input: ReviewInput): ReviewFile[] {
     throw new Error("No changes found for the specified files");
   }
 
-  return convertToReviewFiles(changes);
+  const reviewFiles = convertToReviewFiles(changes);
+
+  if (reviewFiles.length === 0) {
+    throw new Error(
+      "No reviewable changes found (changes contain only deletions)",
+    );
+  }
+
+  return reviewFiles;
 }
 
 /**
