@@ -282,6 +282,9 @@ program
   .action(async (sessionId, options) => {
     try {
       let session;
+      const startTime = Date.now();
+      const maxPollMs = 600_000; // 10 minutes
+
       while (true) {
         try {
           session = await apiFacade.get<ReviewSessionDetails>(
@@ -301,6 +304,14 @@ program
 
         if (!options.wait || session.status !== "pending") {
           break;
+        }
+
+        const elapsed = Date.now() - startTime;
+        if (elapsed >= maxPollMs) {
+          console.error(
+            `[Reagent] Timed out waiting for review after ${Math.round(elapsed / 1000)}s`,
+          );
+          process.exit(1);
         }
 
         await new Promise((r) => setTimeout(r, 1000));
