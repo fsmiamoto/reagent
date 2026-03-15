@@ -16,11 +16,12 @@ let isCleaningUp = false;
 const DEFAULT_PORT = 3636;
 
 function resolvePort(portOption?: string): number {
-  if (!portOption) {
+  const raw = portOption || process.env.REAGENT_PORT;
+  if (!raw) {
     return DEFAULT_PORT;
   }
 
-  const port = Number.parseInt(portOption, 10);
+  const port = Number.parseInt(raw, 10);
   if (Number.isNaN(port)) {
     throw new Error("Invalid port provided");
   }
@@ -84,7 +85,7 @@ async function ensureServerRunning(): Promise<void> {
     return;
   }
 
-  spawnServerInBackground(DEFAULT_PORT);
+  spawnServerInBackground(resolvePort());
 
   // Wait for the spawned server to become healthy
   const startTime = Date.now();
@@ -118,7 +119,10 @@ program
 program
   .command("start")
   .description("Start the ReAgent Web Server")
-  .option("-p, --port <number>", "Port to run on", DEFAULT_PORT.toString())
+  .option(
+    "-p, --port <number>",
+    "Port to run on (default: 3636, or REAGENT_PORT env var)",
+  )
   .option("-d, --detach", "Run in the background (daemon mode)")
   .action(async (options) => {
     if (options.detach) {
