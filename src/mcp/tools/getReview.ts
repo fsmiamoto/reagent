@@ -2,6 +2,9 @@ import type { ReviewSessionDetails } from "../../models/domain";
 import type { GetReviewInput, GetReviewResult } from "../../models/api";
 import { apiFacade } from "../../http/facade";
 
+/** Maximum time to poll before timing out (10 minutes). */
+const MAX_POLL_DURATION_MS = 600_000;
+
 /**
  * Get review status/results via the HTTP API.
  */
@@ -15,8 +18,16 @@ export async function getReview(
   );
 
   try {
-    // eslint-disable-next-line no-constant-condition
+    const startTime = Date.now();
+
     while (true) {
+      const elapsed = Date.now() - startTime;
+      if (wait && elapsed >= MAX_POLL_DURATION_MS) {
+        throw new Error(
+          `Timed out waiting for review ${sessionId} after ${Math.round(elapsed / 1000)}s`,
+        );
+      }
+
       const session = await apiFacade.get<ReviewSessionDetails>(
         `/sessions/${sessionId}`,
       );

@@ -145,4 +145,28 @@ describe("getReview", () => {
       "raw-error",
     );
   });
+
+  it("times out after 10 minutes of polling", async () => {
+    mockGet.mockResolvedValue(makeSession({ status: "pending" }));
+
+    const promise = getReview({ sessionId: "sess-123", wait: true });
+    // Attach handler before advancing so the rejection during timer
+    // advancement doesn't surface as an unhandled rejection
+    promise.catch(() => {});
+
+    // Advance past the 10-minute timeout
+    await vi.advanceTimersByTimeAsync(601_000);
+
+    await expect(promise).rejects.toThrow(/Timed out waiting for review/);
+  });
+
+  it("does not time out when wait is false", async () => {
+    // Even if time has "passed", wait=false returns immediately
+    vi.advanceTimersByTime(700_000);
+    mockGet.mockResolvedValue(makeSession({ status: "pending" }));
+
+    const result = await getReview({ sessionId: "sess-123", wait: false });
+
+    expect(result).toEqual({ status: "pending" });
+  });
 });
