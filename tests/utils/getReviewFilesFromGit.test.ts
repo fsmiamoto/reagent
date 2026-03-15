@@ -483,6 +483,66 @@ describe("getReviewFilesFromGit", () => {
       }
     });
 
+    it("should throw a clear error for an invalid commit hash", () => {
+      writeFileSync(path.join(tempDir, "file.ts"), "content\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "init"', { cwd: tempDir, stdio: "ignore" });
+
+      expect(() =>
+        getReviewFilesFromGit({
+          source: "commit",
+          commitHash: "deadbeef99999999",
+          workingDirectory: tempDir,
+        }),
+      ).toThrow(
+        "Invalid commit hash: 'deadbeef99999999' — not found in this repository",
+      );
+    });
+
+    it("should throw a clear error for a non-existent base branch", () => {
+      writeFileSync(path.join(tempDir, "file.ts"), "content\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "init"', { cwd: tempDir, stdio: "ignore" });
+
+      const currentBranch = execSync("git branch --show-current", {
+        cwd: tempDir,
+        encoding: "utf-8",
+      }).trim();
+
+      expect(() =>
+        getReviewFilesFromGit({
+          source: "branch",
+          base: "nonexistent-branch",
+          head: currentBranch,
+          workingDirectory: tempDir,
+        }),
+      ).toThrow(
+        "Invalid base ref: 'nonexistent-branch' — not found in this repository",
+      );
+    });
+
+    it("should throw a clear error for a non-existent head branch", () => {
+      writeFileSync(path.join(tempDir, "file.ts"), "content\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "init"', { cwd: tempDir, stdio: "ignore" });
+
+      const currentBranch = execSync("git branch --show-current", {
+        cwd: tempDir,
+        encoding: "utf-8",
+      }).trim();
+
+      expect(() =>
+        getReviewFilesFromGit({
+          source: "branch",
+          base: currentBranch,
+          head: "also-nonexistent",
+          workingDirectory: tempDir,
+        }),
+      ).toThrow(
+        "Invalid head ref: 'also-nonexistent' — not found in this repository",
+      );
+    });
+
     it("should throw when there are no uncommitted changes", () => {
       // Empty repo with initial commit but clean working tree
       writeFileSync(path.join(tempDir, "file.ts"), "content\n");

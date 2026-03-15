@@ -25,6 +25,20 @@ function execGit(args: string[], cwd?: string): string {
   }
 }
 
+/**
+ * Validate that a git ref (commit hash, branch name, tag) exists.
+ * Throws a clear, user-facing error message if it does not.
+ */
+function validateGitRef(ref: string, label: string, cwd?: string): void {
+  try {
+    execGit(["rev-parse", "--verify", ref], cwd);
+  } catch {
+    throw new Error(
+      `Invalid ${label}: '${ref}' — not found in this repository`,
+    );
+  }
+}
+
 export function isGitRepository(cwd?: string): boolean {
   try {
     execGit(["rev-parse", "--git-dir"], cwd);
@@ -276,6 +290,7 @@ export function getReviewFilesFromGit(input: ReviewInput): ReviewFile[] {
       if (!input.commitHash) {
         throw new Error("commitHash is required for source: commit");
       }
+      validateGitRef(input.commitHash, "commit hash", cwd);
       changes = getCommitFiles(input.commitHash, input.files, cwd);
       break;
 
@@ -283,6 +298,8 @@ export function getReviewFilesFromGit(input: ReviewInput): ReviewFile[] {
       if (!input.base || !input.head) {
         throw new Error("base and head are required for source: branch");
       }
+      validateGitRef(input.base, "base ref", cwd);
+      validateGitRef(input.head, "head ref", cwd);
       changes = getBranchFiles(input.base, input.head, input.files, cwd);
       break;
 
