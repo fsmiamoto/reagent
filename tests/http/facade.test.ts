@@ -108,4 +108,93 @@ describe("ApiFacade", () => {
 
     expect(await facade.isHealthy()).toBe(false);
   });
+
+  it("makes DELETE request with correct URL", async () => {
+    vi.mocked(mockLock.getServerPort).mockReturnValue(3636);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: true }),
+    } as MockResponse);
+
+    const facade = createApiFacade(mockLock);
+    const result = await facade.delete("/sessions/abc/comments/1");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:3636/api/sessions/abc/comments/1",
+      expect.objectContaining({ method: "DELETE" }),
+    );
+    expect(result).toEqual({ success: true });
+  });
+
+  it("returns false when fetch throws in isHealthy", async () => {
+    vi.mocked(mockLock.getServerPort).mockReturnValue(3636);
+    fetchMock.mockRejectedValue(new Error("ECONNREFUSED"));
+
+    const facade = new ApiFacade(mockLock);
+
+    expect(await facade.isHealthy()).toBe(false);
+  });
+
+  it("returns false when health check response is not ok", async () => {
+    vi.mocked(mockLock.getServerPort).mockReturnValue(3636);
+    fetchMock.mockResolvedValue({
+      ok: false,
+    } as MockResponse);
+
+    const facade = new ApiFacade(mockLock);
+
+    expect(await facade.isHealthy()).toBe(false);
+  });
+
+  it("falls back to statusText when error response JSON parsing fails", async () => {
+    vi.mocked(mockLock.getServerPort).mockReturnValue(3636);
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: "Internal Server Error",
+      json: () => Promise.reject(new Error("invalid json")),
+    } as MockResponse);
+
+    const facade = createApiFacade(mockLock);
+
+    await expect(facade.get("/sessions")).rejects.toThrow(
+      "API error (500): Internal Server Error",
+    );
+  });
+
+  it("uses error field from response body when available", async () => {
+    vi.mocked(mockLock.getServerPort).mockReturnValue(3636);
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 422,
+      statusText: "Unprocessable Entity",
+      json: () => Promise.resolve({ error: "Invalid source type" }),
+    } as MockResponse);
+
+    const facade = createApiFacade(mockLock);
+
+    await expect(facade.post("/reviews", {})).rejects.toThrow(
+      "API error (422): Invalid source type",
+    );
+  });
+
+  it("sends POST without Content-Type header when no body provided", async () => {
+    vi.mocked(mockLock.getServerPort).mockReturnValue(3636);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ done: true }),
+    } as MockResponse);
+
+    const facade = createApiFacade(mockLock);
+    await facade.post("/sessions/abc/complete");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:3636/api/sessions/abc/complete",
+      expect.objectContaining({
+        method: "POST",
+        headers: undefined,
+        body: undefined,
+      }),
+    );
+  });
 });
