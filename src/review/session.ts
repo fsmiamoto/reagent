@@ -16,6 +16,7 @@ export class ReviewSession {
   public generalFeedback: string = "";
   public status: ReviewStatus = "pending";
   public readonly createdAt: Date;
+  public completedAt?: Date;
 
   private resolvePromise!: (value: ReviewResult) => void;
   private rejectPromise!: (reason: any) => void;
@@ -66,6 +67,7 @@ export class ReviewSession {
 
     this.status = status;
     this.generalFeedback = generalFeedback;
+    this.completedAt = new Date();
 
     const result: ReviewResult = {
       status,
@@ -83,6 +85,7 @@ export class ReviewSession {
     }
 
     this.status = "cancelled";
+    this.completedAt = new Date();
 
     this.rejectPromise(new Error(reason));
   }
@@ -97,6 +100,7 @@ export class ReviewSession {
       generalFeedback: this.generalFeedback,
       status: this.status,
       createdAt: this.createdAt,
+      completedAt: this.completedAt,
     };
   }
 }

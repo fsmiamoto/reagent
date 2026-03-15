@@ -24,6 +24,7 @@ describe("ReviewSession", () => {
     expect(session.files).toEqual(mockFiles);
     expect(session.status).toBe("pending");
     expect(session.comments).toEqual([]);
+    expect(session.completedAt).toBeUndefined();
   });
 
   it("should add single-line comments correctly", () => {
@@ -67,6 +68,7 @@ describe("ReviewSession", () => {
 
     expect(session.status).toBe("approved");
     expect(session.generalFeedback).toBe("Looks good");
+    expect(session.completedAt).toBeInstanceOf(Date);
 
     const result = await promise;
     expect(result.status).toBe("approved");
@@ -80,6 +82,7 @@ describe("ReviewSession", () => {
     session.cancel("User cancelled");
 
     expect(session.status).toBe("cancelled");
+    expect(session.completedAt).toBeInstanceOf(Date);
 
     await expect(promise).rejects.toThrow("User cancelled");
   });
@@ -108,5 +111,23 @@ describe("ReviewSession", () => {
         status: "approved",
       }),
     );
+  });
+
+  it("should include completedAt in toJSON when completed", () => {
+    const session = new ReviewSession(mockFiles);
+    expect(session.toJSON().completedAt).toBeUndefined();
+
+    session.complete("approved");
+    const json = session.toJSON();
+    expect(json.completedAt).toBeInstanceOf(Date);
+  });
+
+  it("should include completedAt in toJSON when cancelled", () => {
+    const session = new ReviewSession(mockFiles);
+    session.completionPromise.catch(() => {});
+
+    session.cancel("done");
+    const json = session.toJSON();
+    expect(json.completedAt).toBeInstanceOf(Date);
   });
 });

@@ -32,6 +32,7 @@ export interface ReviewSessionDetails {
   generalFeedback: string;
   status: ReviewStatus;
   createdAt: Date;
+  completedAt?: Date;
 }
 
 export interface ReviewResult {

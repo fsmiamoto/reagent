@@ -1,5 +1,7 @@
 import { ReviewSession } from "./session";
 
+export const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
+
 export interface IReviewSessionStore {
   set(session: ReviewSession): void;
   get(sessionId: string): ReviewSession | undefined;
@@ -13,6 +15,7 @@ export class InMemoryReviewSessionStore implements IReviewSessionStore {
   private sessions = new Map<string, ReviewSession>();
 
   set(session: ReviewSession): void {
+    this.sweepExpired();
     this.sessions.set(session.id, session);
   }
 
@@ -29,6 +32,7 @@ export class InMemoryReviewSessionStore implements IReviewSessionStore {
   }
 
   getAllSessions(): ReviewSession[] {
+    this.sweepExpired();
     return Array.from(this.sessions.values());
   }
 
@@ -40,6 +44,19 @@ export class InMemoryReviewSessionStore implements IReviewSessionStore {
       }
     }
     this.sessions.clear();
+  }
+
+  private sweepExpired(): void {
+    const now = Date.now();
+    for (const [id, session] of this.sessions) {
+      if (
+        session.status !== "pending" &&
+        session.completedAt &&
+        now - session.completedAt.getTime() > SESSION_TTL_MS
+      ) {
+        this.sessions.delete(id);
+      }
+    }
   }
 }
 
