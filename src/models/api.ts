@@ -1,5 +1,4 @@
 import type {
-  CommentSide,
   ReviewComment,
   ReviewSource,
   ReviewStatus,
@@ -45,19 +44,6 @@ export interface GetReviewResult {
   generalFeedback?: string;
   comments?: ReviewComment[];
   timestamp?: Date;
-}
-
-export interface AddCommentRequest {
-  filePath: string;
-  startLine: number;
-  endLine: number;
-  side: CommentSide;
-  text: string;
-}
-
-export interface CompleteReviewRequest {
-  status: "approved" | "changes_requested";
-  generalFeedback: string;
 }
 
 /**

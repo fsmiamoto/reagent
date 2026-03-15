@@ -19,7 +19,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noEmit": true,
-    "verbatimModuleSyntax": false,
+    "verbatimModuleSyntax": true,
     "baseUrl": ".",
     "paths": {
       "@src/*": ["src/*"]
