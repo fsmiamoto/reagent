@@ -167,6 +167,117 @@ describe("LockManager", () => {
     });
   });
 
+  describe("removeLockFile", () => {
+    it("does nothing when lock file does not exist", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+
+      lockManager.removeLockFile();
+
+      expect(fs.unlinkSync).not.toHaveBeenCalled();
+    });
+
+    it("removes existing lock file", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+
+      lockManager.removeLockFile();
+
+      expect(fs.unlinkSync).toHaveBeenCalledWith(lockManager.getLockFilePath());
+    });
+
+    it("logs error but does not throw when unlinkSync fails", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.unlinkSync).mockImplementation(() => {
+        throw new Error("EPERM");
+      });
+
+      expect(() => lockManager.removeLockFile()).not.toThrow();
+      expect(console.error).toHaveBeenCalledWith(
+        "[Reagent] Failed to remove lock file:",
+        expect.any(Error),
+      );
+    });
+  });
+
+  describe("acquireLock - write_error", () => {
+    it("returns write_error when writeLockFile throws", () => {
+      // No existing lock file
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+      vi.mocked(fs.writeFileSync).mockImplementation(() => {
+        throw new Error("ENOSPC");
+      });
+
+      const result = lockManager.acquireLock(3636);
+
+      expect(result).toEqual({
+        success: false,
+        reason: "write_error",
+        error: expect.any(Error),
+      });
+      if (!result.success && result.reason === "write_error") {
+        expect(result.error.message).toContain("ENOSPC");
+      }
+    });
+
+    it("wraps non-Error throws in an Error", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+      vi.mocked(fs.writeFileSync).mockImplementation(() => {
+        throw "string error"; // eslint-disable-line no-throw-literal
+      });
+
+      const result = lockManager.acquireLock(3636);
+
+      expect(result).toEqual({
+        success: false,
+        reason: "write_error",
+        error: expect.objectContaining({ message: "Unknown error" }),
+      });
+    });
+  });
+
+  describe("getServerInfo", () => {
+    it("returns null when no lock file exists", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+
+      expect(lockManager.getServerInfo()).toBeNull();
+    });
+
+    it("returns lock data when valid lock exists", () => {
+      const lockData = {
+        pid: 1234,
+        port: 4000,
+        startedAt: "2025-01-01T00:00:00.000Z",
+        version: "1.0.0",
+      };
+
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(lockData));
+      vi.spyOn(process, "kill").mockReturnValue(true);
+
+      expect(lockManager.getServerInfo()).toEqual(lockData);
+    });
+
+    it("cleans up stale lock and returns null", () => {
+      const lockData = {
+        pid: 1234,
+        port: 4000,
+        startedAt: "2025-01-01T00:00:00.000Z",
+        version: "1.0.0",
+      };
+
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(lockData));
+      vi.spyOn(process, "kill").mockImplementation(() => {
+        throw new Error("ESRCH");
+      });
+
+      expect(lockManager.getServerInfo()).toBeNull();
+      expect(fs.unlinkSync).toHaveBeenCalled();
+      expect(console.error).toHaveBeenCalledWith(
+        "[Reagent] Cleaning up stale lock file",
+      );
+    });
+  });
+
   describe("getServerPort", () => {
     it("returns null when no lock file", () => {
       vi.mocked(fs.existsSync).mockReturnValue(false);

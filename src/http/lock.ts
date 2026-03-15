@@ -144,19 +144,7 @@ export class LockManager {
   }
 
   getServerPort(): number | null {
-    const lockData = this.readLockFile();
-
-    if (!lockData) {
-      return null;
-    }
-
-    if (this.isLockStale(lockData)) {
-      console.error("[Reagent] Cleaning up stale lock file");
-      this.removeLockFile();
-      return null;
-    }
-
-    return lockData.port;
+    return this.getServerInfo()?.port ?? null;
   }
 
   getServerInfo(): LockFileData | null {
