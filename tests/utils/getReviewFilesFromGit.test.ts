@@ -149,4 +149,136 @@ describe("getReviewFilesFromGit", () => {
     expect(result).toHaveLength(1);
     expect(result[0].path).toBe("feature/subdir/new.ts");
   });
+
+  describe("source: commit", () => {
+    it("should return files changed in a specific commit", () => {
+      writeFileSync(path.join(tempDir, "base.ts"), "base\n");
+      execSync("git add base.ts", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "base"', { cwd: tempDir, stdio: "ignore" });
+
+      writeFileSync(path.join(tempDir, "added.ts"), "new file\n");
+      writeFileSync(path.join(tempDir, "base.ts"), "modified\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "changes"', { cwd: tempDir, stdio: "ignore" });
+
+      const commitHash = execSync("git rev-parse HEAD", {
+        cwd: tempDir,
+        encoding: "utf-8",
+      }).trim();
+
+      const result = getReviewFilesFromGit({
+        source: "commit",
+        commitHash,
+        workingDirectory: tempDir,
+      });
+
+      expect(result).toHaveLength(2);
+
+      const addedFile = result.find((f) => f.path === "added.ts");
+      expect(addedFile).toBeDefined();
+      expect(addedFile?.content).toBe("new file\n");
+      expect(addedFile?.oldContent).toBeUndefined();
+
+      const modifiedFile = result.find((f) => f.path === "base.ts");
+      expect(modifiedFile).toBeDefined();
+      expect(modifiedFile?.content).toBe("modified\n");
+      expect(modifiedFile?.oldContent).toBe("base\n");
+    });
+
+    it("should respect file filtering for commit source", () => {
+      // Need a base commit so diff-tree has a parent to compare against
+      writeFileSync(path.join(tempDir, "placeholder.txt"), "base\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "base"', { cwd: tempDir, stdio: "ignore" });
+
+      mkdirSync(path.join(tempDir, "src"), { recursive: true });
+      writeFileSync(path.join(tempDir, "root.ts"), "root\n");
+      writeFileSync(path.join(tempDir, "src", "app.ts"), "app\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "add files"', { cwd: tempDir, stdio: "ignore" });
+
+      const commitHash = execSync("git rev-parse HEAD", {
+        cwd: tempDir,
+        encoding: "utf-8",
+      }).trim();
+
+      const result = getReviewFilesFromGit({
+        source: "commit",
+        commitHash,
+        workingDirectory: tempDir,
+        files: ["src"],
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].path).toBe("src/app.ts");
+    });
+
+    it("should throw when commitHash is missing", () => {
+      writeFileSync(path.join(tempDir, "file.ts"), "content\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "init"', { cwd: tempDir, stdio: "ignore" });
+
+      expect(() =>
+        getReviewFilesFromGit({
+          source: "commit",
+          workingDirectory: tempDir,
+        }),
+      ).toThrow("commitHash is required");
+    });
+  });
+
+  describe("source: branch", () => {
+    it("should return files changed between two branches", () => {
+      writeFileSync(path.join(tempDir, "base.ts"), "base content\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "base commit"', {
+        cwd: tempDir,
+        stdio: "ignore",
+      });
+
+      // Get the actual default branch name (varies by git config)
+      const defaultBranch = execSync("git branch --show-current", {
+        cwd: tempDir,
+        encoding: "utf-8",
+      }).trim();
+
+      execSync("git checkout -b feature", { cwd: tempDir, stdio: "ignore" });
+      writeFileSync(path.join(tempDir, "feature.ts"), "feature code\n");
+      writeFileSync(path.join(tempDir, "base.ts"), "updated base\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "feature work"', {
+        cwd: tempDir,
+        stdio: "ignore",
+      });
+
+      const result = getReviewFilesFromGit({
+        source: "branch",
+        base: defaultBranch,
+        head: "feature",
+        workingDirectory: tempDir,
+      });
+
+      expect(result).toHaveLength(2);
+
+      const newFile = result.find((f) => f.path === "feature.ts");
+      expect(newFile).toBeDefined();
+      expect(newFile?.content).toBe("feature code\n");
+      expect(newFile?.oldContent).toBeUndefined();
+
+      const modifiedFile = result.find((f) => f.path === "base.ts");
+      expect(modifiedFile).toBeDefined();
+      expect(modifiedFile?.content).toBe("updated base\n");
+      expect(modifiedFile?.oldContent).toBe("base content\n");
+    });
+
+    it("should throw when base or head is missing", () => {
+      expect(() =>
+        getReviewFilesFromGit({
+          source: "branch",
+          base: "main",
+          workingDirectory: tempDir,
+        }),
+      ).toThrow("base and head are required");
+    });
+  });
 });

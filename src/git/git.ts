@@ -145,26 +145,23 @@ function getUncommittedFiles(
 }
 
 /**
- * Get list of changed files in a specific commit
+ * Parse git name-status diff output and collect file changes with content.
+ * Shared by getCommitFiles and getBranchFiles which both produce the same
+ * tab-separated "STATUS\tPATH" format.
  */
-function getCommitFiles(
-  commitHash: string,
+function collectChangesFromNameStatus(
+  diffOutput: string,
+  oldRef: string,
+  newRef: string,
   specifiedFiles?: string[],
   cwd?: string,
 ): GitFileChange[] {
   const changes: GitFileChange[] = [];
-
-  // Get list of files changed in the commit
-  const diffOutput = execGit(
-    `git diff-tree --no-commit-id --name-status -r ${commitHash}`,
-    cwd,
-  );
   const lines = diffOutput.split("\n").filter((line) => line.trim());
 
   for (const line of lines) {
     const [status, filePath] = line.split("\t");
 
-    // If specific files are specified, only include those
     if (!shouldIncludeFile(filePath, specifiedFiles)) {
       continue;
     }
@@ -179,23 +176,40 @@ function getCommitFiles(
     }
 
     const newContent =
-      changeStatus !== "deleted"
-        ? getFileContent(filePath, commitHash, cwd)
-        : null;
+      changeStatus !== "deleted" ? getFileContent(filePath, newRef, cwd) : null;
     const oldContent =
-      changeStatus !== "added"
-        ? getFileContent(filePath, `${commitHash}^`, cwd)
-        : null;
+      changeStatus !== "added" ? getFileContent(filePath, oldRef, cwd) : null;
 
     changes.push({
       path: filePath,
       status: changeStatus,
-      oldContent: oldContent || undefined,
-      newContent: newContent || undefined,
+      oldContent: oldContent ?? undefined,
+      newContent: newContent ?? undefined,
     });
   }
 
   return changes;
+}
+
+/**
+ * Get list of changed files in a specific commit
+ */
+function getCommitFiles(
+  commitHash: string,
+  specifiedFiles?: string[],
+  cwd?: string,
+): GitFileChange[] {
+  const diffOutput = execGit(
+    `git diff-tree --no-commit-id --name-status -r ${commitHash}`,
+    cwd,
+  );
+  return collectChangesFromNameStatus(
+    diffOutput,
+    `${commitHash}^`,
+    commitHash,
+    specifiedFiles,
+    cwd,
+  );
 }
 
 /**
@@ -207,43 +221,14 @@ function getBranchFiles(
   specifiedFiles?: string[],
   cwd?: string,
 ): GitFileChange[] {
-  const changes: GitFileChange[] = [];
-
-  // Get list of files changed between base and head
   const diffOutput = execGit(`git diff --name-status ${base}...${head}`, cwd);
-  const lines = diffOutput.split("\n").filter((line) => line.trim());
-
-  for (const line of lines) {
-    const [status, filePath] = line.split("\t");
-
-    // If specific files are specified, only include those
-    if (!shouldIncludeFile(filePath, specifiedFiles)) {
-      continue;
-    }
-
-    let changeStatus: "added" | "modified" | "deleted";
-    if (status === "D") {
-      changeStatus = "deleted";
-    } else if (status === "A") {
-      changeStatus = "added";
-    } else {
-      changeStatus = "modified";
-    }
-
-    const newContent =
-      changeStatus !== "deleted" ? getFileContent(filePath, head, cwd) : null;
-    const oldContent =
-      changeStatus !== "added" ? getFileContent(filePath, base, cwd) : null;
-
-    changes.push({
-      path: filePath,
-      status: changeStatus,
-      oldContent: oldContent || undefined,
-      newContent: newContent || undefined,
-    });
-  }
-
-  return changes;
+  return collectChangesFromNameStatus(
+    diffOutput,
+    base,
+    head,
+    specifiedFiles,
+    cwd,
+  );
 }
 
 /**
