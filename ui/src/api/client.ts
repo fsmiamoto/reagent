@@ -2,6 +2,21 @@ import type { ReviewSession, ReviewComment, SessionSummary } from "../types";
 
 const API_BASE = "/api";
 
+async function extractErrorMessage(
+  response: Response,
+  fallback: string,
+): Promise<string> {
+  const body: unknown = await response.json().catch(() => undefined);
+  const detail =
+    typeof body === "object" &&
+    body !== null &&
+    "error" in body &&
+    typeof body.error === "string"
+      ? body.error
+      : response.statusText;
+  return `${fallback}: ${detail}`;
+}
+
 /**
  * API client for communicating with the Reagent backend
  */
@@ -13,7 +28,9 @@ export const api = {
     const response = await fetch(`${API_BASE}/sessions`);
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch sessions: ${response.statusText}`);
+      throw new Error(
+        await extractErrorMessage(response, "Failed to fetch sessions"),
+      );
     }
 
     return response.json();
@@ -54,7 +71,9 @@ export const api = {
     const response = await fetch(`${API_BASE}/sessions/${sessionId}`);
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch session: ${response.statusText}`);
+      throw new Error(
+        await extractErrorMessage(response, "Failed to fetch session"),
+      );
     }
 
     return response.json();
@@ -86,7 +105,9 @@ export const api = {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to add comment: ${response.statusText}`);
+      throw new Error(
+        await extractErrorMessage(response, "Failed to add comment"),
+      );
     }
 
     return response.json();
@@ -104,7 +125,9 @@ export const api = {
     );
 
     if (!response.ok) {
-      throw new Error(`Failed to delete comment: ${response.statusText}`);
+      throw new Error(
+        await extractErrorMessage(response, "Failed to delete comment"),
+      );
     }
   },
 
@@ -129,7 +152,9 @@ export const api = {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to complete review: ${response.statusText}`);
+      throw new Error(
+        await extractErrorMessage(response, "Failed to complete review"),
+      );
     }
   },
 
@@ -142,7 +167,9 @@ export const api = {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to cancel review: ${response.statusText}`);
+      throw new Error(
+        await extractErrorMessage(response, "Failed to cancel review"),
+      );
     }
   },
 };
