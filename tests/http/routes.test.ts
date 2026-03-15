@@ -125,6 +125,56 @@ describe("routes", () => {
       expect(res.body.reviewUrl).toContain(`/review/${session.id}`);
     });
 
+    it("uses provided Host header in reviewUrl", async () => {
+      const session = createPendingSession(sampleFiles, "Test Review");
+      mockedExtractReviewFiles.mockReturnValue({
+        files: sampleFiles,
+        title: "Test Review",
+        description: undefined,
+      });
+      mockedService.createSession.mockReturnValue(session);
+
+      const res = await request(app)
+        .post("/api/reviews")
+        .set("Host", "myhost:8080")
+        .send({ source: "local", files: ["/tmp/test.ts"] });
+
+      expect(res.status).toBe(201);
+      expect(res.body.reviewUrl).toBe(
+        `http://myhost:8080/review/${session.id}`,
+      );
+    });
+
+    it("uses actual server port in reviewUrl when Host header is absent", async () => {
+      const session = createPendingSession(sampleFiles, "Test Review");
+      mockedExtractReviewFiles.mockReturnValue({
+        files: sampleFiles,
+        title: "Test Review",
+        description: undefined,
+      });
+      mockedService.createSession.mockReturnValue(session);
+
+      // Create a separate app that strips the Host header before the router
+      const noHostApp = express();
+      noHostApp.use(express.json());
+      noHostApp.use((_req, _res, next) => {
+        delete _req.headers.host;
+        next();
+      });
+      noHostApp.use("/api", apiRouter);
+
+      const res = await request(noHostApp)
+        .post("/api/reviews")
+        .send({ source: "local", files: ["/tmp/test.ts"] });
+
+      expect(res.status).toBe(201);
+      // Without Host header, falls back to req.socket.localPort (the actual port)
+      // The URL should contain the actual listening port, not hardcoded 3636
+      expect(res.body.reviewUrl).toMatch(
+        new RegExp(`^http://localhost:\\d+/review/${session.id}$`),
+      );
+    });
+
     it("returns 400 on invalid input", async () => {
       mockedExtractReviewFiles.mockImplementation(() => {
         throw new Error("Files must be specified for local review");
