@@ -183,7 +183,7 @@ export function createMCPServer() {
           },
         ],
       };
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       return {

@@ -98,7 +98,7 @@ apiRouter.post("/reviews", async (req, res) => {
     };
 
     res.status(201).json(result);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Failed to create review:", error);
     if (error instanceof Error) {
       res.status(400).json({ error: error.message });
@@ -138,7 +138,7 @@ apiRouter.post(
       );
 
       res.status(201).json(comment);
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof Error) {
         res.status(400).json({ error: error.message });
         return;
@@ -197,7 +197,7 @@ apiRouter.post(
           comments: session.comments,
         },
       });
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof Error) {
         res.status(400).json({ error: error.message });
         return;

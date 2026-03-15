@@ -55,7 +55,7 @@ export function getLocalFiles(files: string[], cwd?: string): ReviewFile[] {
         oldContent: undefined,
         language: getLanguageFromPath(filePath),
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`[Reagent] Failed to read file ${fullPath}:`, error);
     }
   }

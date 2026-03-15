@@ -253,7 +253,7 @@ Examples:
         console.error(`[Reagent] Opening browser: ${result.reviewUrl}`);
         try {
           await open(result.reviewUrl);
-        } catch (browserError) {
+        } catch (browserError: unknown) {
           console.error("[Reagent] Failed to open browser:", browserError);
           console.error(
             "[Reagent] You can manually open the review at:",
@@ -290,7 +290,7 @@ program
           session = await apiFacade.get<ReviewSessionDetails>(
             `/sessions/${sessionId}`,
           );
-        } catch (error) {
+        } catch (error: unknown) {
           const message =
             error instanceof Error ? error.message : "Unknown error";
           if (message.includes("404")) {

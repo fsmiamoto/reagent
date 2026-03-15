@@ -29,7 +29,7 @@ export async function createReview(
       console.error(`[Reagent] Opening browser: ${result.reviewUrl}`);
       try {
         await open(result.reviewUrl);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("[Reagent] Failed to open browser:", error);
         console.error(
           "[Reagent] You can manually open the review at:",
