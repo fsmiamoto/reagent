@@ -80,13 +80,25 @@ function spawnServerInBackground(port: number): void {
 }
 
 async function ensureServerRunning(): Promise<void> {
-  const isHealthy = await apiFacade.isHealthy();
-
-  if (isHealthy) {
+  if (await apiFacade.isHealthy()) {
     return;
   }
 
   spawnServerInBackground(DEFAULT_PORT);
+
+  // Wait for the spawned server to become healthy
+  const startTime = Date.now();
+  const timeoutMs = 10_000;
+  while (Date.now() - startTime < timeoutMs) {
+    await new Promise((r) => setTimeout(r, 200));
+    if (await apiFacade.isHealthy()) {
+      return;
+    }
+  }
+
+  throw new Error(
+    "Server did not become healthy within 10 seconds. Try starting it manually with: reagent start",
+  );
 }
 
 program
@@ -200,6 +212,10 @@ program
   .option("--title <string>", "Review title")
   .option("--description <string>", "Review description")
   .option("--no-open", "Do not open the browser automatically")
+  .option(
+    "--auto-start",
+    "Automatically start the server if not already running",
+  )
   .addHelpText(
     "after",
     `
@@ -211,6 +227,10 @@ Examples:
 `,
   )
   .action(async (files, options) => {
+    if (options.autoStart) {
+      await ensureServerRunning();
+    }
+
     const body = {
       source: options.source,
       files: files.length > 0 ? files : undefined,
