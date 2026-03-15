@@ -240,10 +240,13 @@ function getBranchFiles(
  */
 function convertToReviewFiles(changes: GitFileChange[]): ReviewFile[] {
   return changes
-    .filter((change) => typeof change.newContent === "string") // Only include entries with string content
+    .filter(
+      (change): change is GitFileChange & { newContent: string } =>
+        typeof change.newContent === "string",
+    )
     .map((change) => ({
       path: change.path,
-      content: change.newContent as string,
+      content: change.newContent,
       oldContent: change.oldContent,
       language: getLanguageFromPath(change.path),
     }));
@@ -284,7 +287,7 @@ export function getReviewFilesFromGit(input: ReviewInput): ReviewFile[] {
       break;
 
     default:
-      throw new Error(`Unknown source: ${(input as any).source}`);
+      throw new Error(`Unknown source: ${resolvedSource}`);
   }
 
   if (changes.length === 0) {
