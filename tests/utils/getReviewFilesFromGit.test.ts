@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "fs";
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, unlinkSync } from "fs";
 import { execSync } from "child_process";
 import * as path from "path";
-import { getReviewFilesFromGit } from "@src/git/git";
+import { getReviewFilesFromGit, getGitSummary } from "@src/git/git";
 
 describe("getReviewFilesFromGit", () => {
   let tempDir: string;
@@ -280,5 +280,146 @@ describe("getReviewFilesFromGit", () => {
         }),
       ).toThrow("base and head are required");
     });
+  });
+
+  describe("deleted files", () => {
+    it("should exclude deleted files from uncommitted changes", () => {
+      writeFileSync(path.join(tempDir, "keep.ts"), "keep\n");
+      writeFileSync(path.join(tempDir, "remove.ts"), "remove\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: "ignore" });
+
+      // Delete one file, modify the other
+      unlinkSync(path.join(tempDir, "remove.ts"));
+      writeFileSync(path.join(tempDir, "keep.ts"), "updated\n");
+
+      const result = getReviewFilesFromGit({
+        source: "uncommitted",
+        workingDirectory: tempDir,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].path).toBe("keep.ts");
+      expect(result[0].content).toBe("updated\n");
+    });
+
+    it("should exclude deleted files from commit source", () => {
+      writeFileSync(path.join(tempDir, "a.ts"), "a\n");
+      writeFileSync(path.join(tempDir, "b.ts"), "b\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "add files"', { cwd: tempDir, stdio: "ignore" });
+
+      // Commit a deletion
+      execSync("git rm b.ts", { cwd: tempDir, stdio: "ignore" });
+      writeFileSync(path.join(tempDir, "a.ts"), "a updated\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "delete b"', { cwd: tempDir, stdio: "ignore" });
+
+      const commitHash = execSync("git rev-parse HEAD", {
+        cwd: tempDir,
+        encoding: "utf-8",
+      }).trim();
+
+      const result = getReviewFilesFromGit({
+        source: "commit",
+        commitHash,
+        workingDirectory: tempDir,
+      });
+
+      // Only the modified file should appear; deleted file is excluded
+      expect(result).toHaveLength(1);
+      expect(result[0].path).toBe("a.ts");
+    });
+
+    it("should return empty array when only deleted files exist in a commit", () => {
+      writeFileSync(path.join(tempDir, "only.ts"), "content\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "add"', { cwd: tempDir, stdio: "ignore" });
+
+      execSync("git rm only.ts", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "remove all"', { cwd: tempDir, stdio: "ignore" });
+
+      const commitHash = execSync("git rev-parse HEAD", {
+        cwd: tempDir,
+        encoding: "utf-8",
+      }).trim();
+
+      // Deleted files are collected but filtered out by convertToReviewFiles;
+      // the "No changes found" check happens before filtering, so no throw
+      const result = getReviewFilesFromGit({
+        source: "commit",
+        commitHash,
+        workingDirectory: tempDir,
+      });
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("error handling", () => {
+    it("should throw when not a git repository", () => {
+      // Must be outside tempDir (which has git init) since git traverses upward
+      const tmpBase = process.env.TMPDIR || "/tmp";
+      const nonGitDir = mkdtempSync(path.join(tmpBase, "reagent-no-git-"));
+      try {
+        expect(() =>
+          getReviewFilesFromGit({
+            source: "uncommitted",
+            workingDirectory: nonGitDir,
+          }),
+        ).toThrow("Not a git repository");
+      } finally {
+        rmSync(nonGitDir, { recursive: true, force: true });
+      }
+    });
+
+    it("should throw when there are no uncommitted changes", () => {
+      // Empty repo with initial commit but clean working tree
+      writeFileSync(path.join(tempDir, "file.ts"), "content\n");
+      execSync("git add -A", { cwd: tempDir, stdio: "ignore" });
+      execSync('git commit -m "init"', { cwd: tempDir, stdio: "ignore" });
+
+      expect(() =>
+        getReviewFilesFromGit({
+          source: "uncommitted",
+          workingDirectory: tempDir,
+        }),
+      ).toThrow("No changes found");
+    });
+  });
+});
+
+describe("getGitSummary", () => {
+  it('should return "Uncommitted changes" for uncommitted source', () => {
+    expect(getGitSummary({ source: "uncommitted" })).toBe(
+      "Uncommitted changes",
+    );
+  });
+
+  it("should return abbreviated commit hash for commit source", () => {
+    expect(
+      getGitSummary({ source: "commit", commitHash: "abc1234567890" }),
+    ).toBe("Commit abc1234");
+  });
+
+  it("should return base...head for branch source", () => {
+    expect(
+      getGitSummary({ source: "branch", base: "main", head: "feature" }),
+    ).toBe("main...feature");
+  });
+
+  it("should auto-detect source from input fields", () => {
+    // No source specified, but commitHash provided → commit
+    expect(getGitSummary({ commitHash: "deadbeef1234" })).toBe(
+      "Commit deadbee",
+    );
+
+    // No source, but base/head → branch
+    expect(getGitSummary({ base: "dev", head: "release" })).toBe(
+      "dev...release",
+    );
+
+    // No source, no fields → uncommitted
+    expect(getGitSummary({})).toBe("Uncommitted changes");
   });
 });
