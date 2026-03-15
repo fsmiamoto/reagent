@@ -36,8 +36,11 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      - name: Test
-        run: bun run test
+      - name: Test (server)
+        run: npx vitest run --coverage
+
+      - name: Test (UI)
+        run: bun run test:ui
 
       - name: Build
         run: bun run build

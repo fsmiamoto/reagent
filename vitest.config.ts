@@ -13,7 +13,16 @@ export default defineConfig({
     environment: "node",
     globals: true,
     setupFiles: ["tests/setup.ts"],
-    coverage: { provider: "v8", reports: ["text", "lcov"] },
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      thresholds: {
+        statements: 95,
+        branches: 90,
+        functions: 95,
+        lines: 95,
+      },
+    },
     passWithNoTests: false,
   },
 });
