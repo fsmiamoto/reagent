@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { readFileSync } from "fs";
 import * as path from "path";
 import type { ReviewFile } from "../models/domain";
@@ -12,9 +12,9 @@ interface GitFileChange {
   newContent?: string;
 }
 
-function execGit(command: string, cwd?: string): string {
+function execGit(args: string[], cwd?: string): string {
   try {
-    return execSync(command, {
+    return execFileSync("git", args, {
       cwd: cwd || process.cwd(),
       encoding: "utf-8",
       maxBuffer: 10 * 1024 * 1024, // 10MB buffer for large files
@@ -27,7 +27,7 @@ function execGit(command: string, cwd?: string): string {
 
 export function isGitRepository(cwd?: string): boolean {
   try {
-    execGit("git rev-parse --git-dir", cwd);
+    execGit(["rev-parse", "--git-dir"], cwd);
     return true;
   } catch {
     return false;
@@ -43,7 +43,7 @@ function getFileContent(
   cwd?: string,
 ): string | null {
   try {
-    return execGit(`git show ${ref}:${filePath}`, cwd);
+    return execGit(["show", `${ref}:${filePath}`], cwd);
   } catch {
     // File might not exist at this ref
     return null;
@@ -100,7 +100,7 @@ function getUncommittedFiles(
 
   // Get staged, unstaged, and untracked files (including in subdirectories)
   const statusOutput = execGit(
-    "git status --porcelain=v1 --untracked-files=all",
+    ["status", "--porcelain=v1", "--untracked-files=all"],
     cwd,
   );
   const lines = statusOutput.split("\n").filter((line) => line.trim());
@@ -201,7 +201,7 @@ function getCommitFiles(
   cwd?: string,
 ): GitFileChange[] {
   const diffOutput = execGit(
-    `git diff-tree --no-commit-id --name-status -r ${commitHash}`,
+    ["diff-tree", "--no-commit-id", "--name-status", "-r", commitHash],
     cwd,
   );
   return collectChangesFromNameStatus(
@@ -222,7 +222,10 @@ function getBranchFiles(
   specifiedFiles?: string[],
   cwd?: string,
 ): GitFileChange[] {
-  const diffOutput = execGit(`git diff --name-status ${base}...${head}`, cwd);
+  const diffOutput = execGit(
+    ["diff", "--name-status", `${base}...${head}`],
+    cwd,
+  );
   return collectChangesFromNameStatus(
     diffOutput,
     base,
