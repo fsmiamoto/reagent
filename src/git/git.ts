@@ -19,8 +19,9 @@ function execGit(command: string, cwd?: string): string {
       encoding: "utf-8",
       maxBuffer: 10 * 1024 * 1024, // 10MB buffer for large files
     });
-  } catch (error: any) {
-    throw new Error(`Git command failed: ${error.message}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Git command failed: ${message}`);
   }
 }
 

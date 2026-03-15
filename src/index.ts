@@ -262,7 +262,6 @@ program
   .action(async (sessionId, options) => {
     try {
       let session;
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         try {
           session = await apiFacade.get<ReviewSessionDetails>(

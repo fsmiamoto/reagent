@@ -16,8 +16,6 @@ export interface ReviewInput {
   workingDirectory?: string;
 }
 
-export type AskForReviewInput = ReviewInput;
-
 export interface CreateReviewInput extends ReviewInput {
   openBrowser?: boolean;
   /** Internal: host for URL generation, not exposed in MCP schema */
