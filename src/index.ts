@@ -362,7 +362,7 @@ program
       console.log(`  Port:       ${info.port}`);
       console.log(`  URL:        http://localhost:${info.port}`);
       console.log(
-        `  Started:    ${new Date(info.startedAt as string).toLocaleString()}`,
+        `  Started:    ${info.startedAt ? new Date(info.startedAt).toLocaleString() : "unknown"}`,
       );
       console.log(`  Version:    ${info.version}`);
       console.log(`  Healthy:    ${info.healthy ? "Yes" : "No"}`);

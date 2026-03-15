@@ -61,10 +61,14 @@ export class ApiFacade {
     });
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => undefined);
+      const errorBody: unknown = await response.json().catch(() => undefined);
       const message =
-        (errorBody as { error?: string } | undefined)?.error ||
-        response.statusText;
+        typeof errorBody === "object" &&
+        errorBody !== null &&
+        "error" in errorBody &&
+        typeof errorBody.error === "string"
+          ? errorBody.error
+          : response.statusText;
       throw new Error(`API error (${response.status}): ${message}`);
     }
 

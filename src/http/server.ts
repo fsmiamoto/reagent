@@ -52,7 +52,8 @@ export class Server {
 
       if (
         error instanceof Error &&
-        (error as NodeJS.ErrnoException).code === "EADDRINUSE"
+        "code" in error &&
+        error.code === "EADDRINUSE"
       ) {
         throw new Error(`Port ${port} is already in use`);
       }
@@ -111,10 +112,7 @@ export class Server {
       this.lock.removeLockFile();
       return "stopped";
     } catch (error: unknown) {
-      if (
-        error instanceof Error &&
-        (error as NodeJS.ErrnoException).code === "ESRCH"
-      ) {
+      if (error instanceof Error && "code" in error && error.code === "ESRCH") {
         console.error(
           "[Reagent] Server process not found, cleaning up lock file.",
         );
@@ -147,11 +145,17 @@ export class Server {
         res: express.Response,
         _next: express.NextFunction,
       ) => {
-        const error = err as { status?: number; message?: string };
         console.error("[Reagent] Express error:", err);
-        res.status(error.status || 500).json({
-          error: error.message || "Internal server error",
-        });
+        const status =
+          typeof err === "object" &&
+          err !== null &&
+          "status" in err &&
+          typeof err.status === "number"
+            ? err.status
+            : 500;
+        const message =
+          err instanceof Error ? err.message : "Internal server error";
+        res.status(status).json({ error: message });
       },
     );
 
