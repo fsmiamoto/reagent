@@ -1,4 +1,4 @@
-import type { ReviewResult } from "../../models/domain";
+import type { ReviewSessionDetails } from "../../models/domain";
 import type { GetReviewInput, GetReviewResult } from "../../models/api";
 import { apiFacade } from "../../http/facade";
 
@@ -7,7 +7,7 @@ import { apiFacade } from "../../http/facade";
  */
 export async function getReview(
   input: GetReviewInput,
-): Promise<ReviewResult | GetReviewResult> {
+): Promise<GetReviewResult> {
   const { sessionId, wait = true } = input;
 
   console.error(
@@ -17,20 +17,8 @@ export async function getReview(
   try {
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const session = await apiFacade.get<{
-        id: string;
-        status: "pending" | "approved" | "changes_requested" | "cancelled";
-        generalFeedback: string;
-        comments: Array<{
-          id: string;
-          filePath: string;
-          startLine: number;
-          endLine: number;
-          side: "old" | "new";
-          text: string;
-          createdAt: Date;
-        }>;
-      }>(`/sessions/${sessionId}`);
+      const session =
+        await apiFacade.get<ReviewSessionDetails>(`/sessions/${sessionId}`);
 
       if (!wait || session.status !== "pending") {
         const result: GetReviewResult = {

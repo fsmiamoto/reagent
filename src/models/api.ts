@@ -49,21 +49,6 @@ export interface GetReviewResult {
   timestamp?: Date;
 }
 
-/**
- * Response from GET /sessions/:id endpoint
- */
-export interface GetSessionResponse {
-  id: string;
-  status: string;
-  generalFeedback: string;
-  comments: Array<{
-    filePath: string;
-    startLine: number;
-    endLine: number;
-    text: string;
-  }>;
-}
-
 export interface AddCommentRequest {
   filePath: string;
   startLine: number;

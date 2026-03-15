@@ -7,7 +7,7 @@ import { startMCPServer } from "./mcp/server";
 import { apiFacade } from "./http/facade";
 import { Server as WebServer } from "./http/server";
 import { getReagentVersion } from "./version";
-import type { GetSessionResponse } from "@src/models/api";
+import type { ReviewSessionDetails } from "@src/models/domain";
 
 const program = new Command();
 
@@ -159,7 +159,7 @@ program
       }
 
       console.table(
-        sessions.map((s: any) => ({
+        sessions.map((s) => ({
           ID: s.id,
           Status: s.status,
           Files: s.filesCount,
@@ -254,7 +254,7 @@ program
       // eslint-disable-next-line no-constant-condition
       while (true) {
         try {
-          session = await apiFacade.get<GetSessionResponse>(
+          session = await apiFacade.get<ReviewSessionDetails>(
             `/sessions/${sessionId}`,
           );
         } catch (error) {
@@ -292,20 +292,13 @@ program
         `\nGeneral Feedback:\n${session.generalFeedback || "(none)"}`,
       );
       console.log(`\nComments (${session.comments.length}):`);
-      session.comments.forEach(
-        (c: {
-          filePath: string;
-          startLine: number;
-          endLine: number;
-          text: string;
-        }) => {
-          const lineInfo =
-            c.startLine === c.endLine
-              ? `${c.startLine}`
-              : `${c.startLine}-${c.endLine}`;
-          console.log(`- ${c.filePath}:${lineInfo}: ${c.text}`);
-        },
-      );
+      session.comments.forEach((c) => {
+        const lineInfo =
+          c.startLine === c.endLine
+            ? `${c.startLine}`
+            : `${c.startLine}-${c.endLine}`;
+        console.log(`- ${c.filePath}:${lineInfo}: ${c.text}`);
+      });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
       console.error("[Reagent] Error:", message);
