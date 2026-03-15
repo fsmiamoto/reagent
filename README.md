@@ -108,18 +108,87 @@ bun run test
 bun run dev
 ```
 
-### Creating a Review
+### Commands
 
-The most common CLI workflow is creating a review of your code:
+#### `reagent start`
+
+Start the ReAgent web server.
 
 ```bash
-# This will review all the uncommitted changes in your Git repo.
-reagent review --auto-start
+reagent start                  # Start on default port (3636)
+reagent start --port 8080      # Start on a custom port
+reagent start --detach         # Start in the background (daemon mode)
 ```
 
-The `--auto-start` flag automatically starts the server if it's not already running. 
+The port can also be configured via the `REAGENT_PORT` environment variable. Priority: `--port` flag > `REAGENT_PORT` > default (3636).
 
-By default, the review URL will open in your browser.
+#### `reagent stop`
+
+Stop the running ReAgent web server.
+
+```bash
+reagent stop           # Graceful stop
+reagent stop --force   # Force stop (SIGKILL)
+```
+
+#### `reagent status`
+
+Show the status of the ReAgent web server.
+
+```bash
+reagent status          # Human-readable output
+reagent status --json   # Machine-readable JSON output
+```
+
+#### `reagent review`
+
+Create a new code review session from git changes or local files.
+
+```bash
+# Review uncommitted changes (default)
+reagent review --auto-start
+
+# Review a specific commit
+reagent review --source=commit --commit=abc123
+
+# Compare two branches
+reagent review -s branch --base=main --head=feature
+
+# Review specific local files
+reagent review --source=local src/file.ts src/other.ts
+
+# With title and description
+reagent review --title "Auth refactor" --description "Splitting middleware"
+
+# Don't open browser automatically
+reagent review --no-open
+```
+
+The `--auto-start` flag starts the server in the background if it's not already running.
+
+By default, the review URL opens in your browser.
+
+#### `reagent get`
+
+Get review status and results.
+
+```bash
+reagent get <sessionId>          # Show status and comments
+reagent get <sessionId> --wait   # Poll until the review is completed
+reagent get <sessionId> --json   # Output as JSON
+```
+
+#### `reagent list`
+
+List active review sessions.
+
+```bash
+reagent list
+```
+
+#### `reagent mcp`
+
+Start the MCP server (stdio transport). This is the command used in MCP server configuration — you typically don't run it directly.
 
 ## License
 
