@@ -1,11 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import {
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-  mkdirSync,
-  chmodSync,
-} from "fs";
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, chmodSync } from "fs";
 import * as path from "path";
 import { getLocalFiles, extractReviewFiles } from "@src/files/files";
 import type { ReviewInput } from "@src/models/api";
@@ -103,9 +97,7 @@ describe("getLocalFiles", () => {
     const filePath = path.join(tempDir, "unreadable.ts");
     writeFileSync(filePath, "content");
     chmodSync(filePath, 0o000);
-    const consoleSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const result = getLocalFiles(["unreadable.ts"], tempDir);
 
@@ -219,9 +211,7 @@ describe("extractReviewFiles", () => {
 
   it("should delegate to getReviewFilesFromGit for commit source", async () => {
     const { getReviewFilesFromGit } = await import("@src/git/git");
-    const mockFiles: ReviewFile[] = [
-      { path: "file.ts", content: "committed" },
-    ];
+    const mockFiles: ReviewFile[] = [{ path: "file.ts", content: "committed" }];
     vi.mocked(getReviewFilesFromGit).mockReturnValue(mockFiles);
 
     const input: ReviewInput = {

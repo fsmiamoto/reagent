@@ -99,7 +99,11 @@ describe("getReview", () => {
       .mockResolvedValueOnce(makeSession({ status: "pending" }))
       .mockResolvedValueOnce(makeSession({ status: "pending" }))
       .mockResolvedValueOnce(
-        makeSession({ status: "approved", generalFeedback: "LGTM", comments: [] }),
+        makeSession({
+          status: "approved",
+          generalFeedback: "LGTM",
+          comments: [],
+        }),
       );
 
     const promise = getReview({ sessionId: "sess-123", wait: true });
@@ -137,8 +141,8 @@ describe("getReview", () => {
   it("throws original non-Error when API call fails with non-Error", async () => {
     mockGet.mockRejectedValue("raw-error");
 
-    await expect(
-      getReview({ sessionId: "bad-id", wait: false }),
-    ).rejects.toBe("raw-error");
+    await expect(getReview({ sessionId: "bad-id", wait: false })).rejects.toBe(
+      "raw-error",
+    );
   });
 });

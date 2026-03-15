@@ -4,9 +4,7 @@ import type express from "express";
 import { Server } from "@src/http/server";
 import type { LockManager, LockFileData } from "@src/http/lock";
 
-function createMockLock(
-  overrides: Partial<LockManager> = {},
-): LockManager {
+function createMockLock(overrides: Partial<LockManager> = {}): LockManager {
   return {
     acquireLock: vi.fn().mockReturnValue({ success: true }),
     removeLockFile: vi.fn(),
@@ -18,9 +16,7 @@ function createMockLock(
   } as unknown as LockManager;
 }
 
-function createMockHttpServer(
-  overrides: Partial<HttpServer> = {},
-): HttpServer {
+function createMockHttpServer(overrides: Partial<HttpServer> = {}): HttpServer {
   return {
     on: vi.fn(),
     close: vi.fn((callback?: () => void) => callback?.()),
@@ -107,8 +103,9 @@ describe("Server", () => {
           const fakeServer = createMockHttpServer();
           // Emit error asynchronously
           queueMicrotask(() => {
-            const errorHandler = (fakeServer.on as ReturnType<typeof vi.fn>)
-              .mock.calls.find(([event]: string[]) => event === "error")?.[1];
+            const errorHandler = (
+              fakeServer.on as ReturnType<typeof vi.fn>
+            ).mock.calls.find(([event]: string[]) => event === "error")?.[1];
             if (errorHandler) errorHandler(eaddrinuseError);
           });
           return fakeServer;
@@ -131,8 +128,9 @@ describe("Server", () => {
         listen: vi.fn((_port: number, _callback?: () => void) => {
           const fakeServer = createMockHttpServer();
           queueMicrotask(() => {
-            const errorHandler = (fakeServer.on as ReturnType<typeof vi.fn>)
-              .mock.calls.find(([event]: string[]) => event === "error")?.[1];
+            const errorHandler = (
+              fakeServer.on as ReturnType<typeof vi.fn>
+            ).mock.calls.find(([event]: string[]) => event === "error")?.[1];
             if (errorHandler) errorHandler(genericError);
           });
           return fakeServer;
@@ -288,7 +286,9 @@ describe("Server", () => {
   describe("getServerStatus", () => {
     it("returns not running when no lock file exists", async () => {
       const lock = createMockLock({
-        getLockFilePath: vi.fn().mockReturnValue("/home/user/.reagent/server.lock"),
+        getLockFilePath: vi
+          .fn()
+          .mockReturnValue("/home/user/.reagent/server.lock"),
       });
 
       server = new Server(lock);
@@ -310,7 +310,9 @@ describe("Server", () => {
 
       const lock = createMockLock({
         getServerInfo: vi.fn().mockReturnValue(lockInfo),
-        getLockFilePath: vi.fn().mockReturnValue("/home/user/.reagent/server.lock"),
+        getLockFilePath: vi
+          .fn()
+          .mockReturnValue("/home/user/.reagent/server.lock"),
       });
 
       global.fetch = vi.fn().mockResolvedValue({ ok: true });
@@ -336,7 +338,9 @@ describe("Server", () => {
 
       const lock = createMockLock({
         getServerInfo: vi.fn().mockReturnValue(lockInfo),
-        getLockFilePath: vi.fn().mockReturnValue("/home/user/.reagent/server.lock"),
+        getLockFilePath: vi
+          .fn()
+          .mockReturnValue("/home/user/.reagent/server.lock"),
       });
 
       global.fetch = vi.fn().mockRejectedValue(new Error("Connection refused"));

@@ -50,7 +50,7 @@ function addJsExtensionsToOutputs(outdir: string) {
         if (path.endsWith(".js")) return match;
         // Add .js extension
         return `from ${quote}${path}.js${quote}`;
-      }
+      },
     );
 
     // Also handle export from statements
@@ -59,7 +59,7 @@ function addJsExtensionsToOutputs(outdir: string) {
       (match, quote, path) => {
         if (path.endsWith(".js")) return match;
         return match.replace(path, path + ".js");
-      }
+      },
     );
 
     writeFileSync(file, content, "utf8");

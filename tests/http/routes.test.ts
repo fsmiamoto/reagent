@@ -35,7 +35,11 @@ function createApp() {
 }
 
 const sampleFiles: ReviewFile[] = [
-  { path: "src/index.ts", content: "console.log('hello');", language: "typescript" },
+  {
+    path: "src/index.ts",
+    content: "console.log('hello');",
+    language: "typescript",
+  },
 ];
 
 function createPendingSession(
@@ -76,7 +80,11 @@ describe("routes", () => {
     });
 
     it("returns session summaries", async () => {
-      const session = createPendingSession(sampleFiles, "My Review", "A description");
+      const session = createPendingSession(
+        sampleFiles,
+        "My Review",
+        "A description",
+      );
       mockedService.listSessions.mockReturnValue([session]);
 
       const res = await request(app).get("/api/sessions");
@@ -422,9 +430,7 @@ describe("routes", () => {
       session.completionPromise.catch(() => {});
       mockedService.getSession.mockReturnValue(session);
 
-      const res = await request(app).post(
-        `/api/sessions/${session.id}/cancel`,
-      );
+      const res = await request(app).post(`/api/sessions/${session.id}/cancel`);
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe("Review cancelled");
@@ -434,9 +440,7 @@ describe("routes", () => {
     it("returns 404 when session not found", async () => {
       mockedService.getSession.mockReturnValue(undefined);
 
-      const res = await request(app).post(
-        "/api/sessions/nonexistent/cancel",
-      );
+      const res = await request(app).post("/api/sessions/nonexistent/cancel");
 
       expect(res.status).toBe(404);
     });
@@ -446,9 +450,7 @@ describe("routes", () => {
       session.complete("approved");
       mockedService.getSession.mockReturnValue(session);
 
-      const res = await request(app).post(
-        `/api/sessions/${session.id}/cancel`,
-      );
+      const res = await request(app).post(`/api/sessions/${session.id}/cancel`);
 
       expect(res.status).toBe(400);
       expect(res.body.error).toBe("Review has already been completed");

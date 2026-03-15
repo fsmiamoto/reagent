@@ -17,8 +17,9 @@ export async function getReview(
   try {
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const session =
-        await apiFacade.get<ReviewSessionDetails>(`/sessions/${sessionId}`);
+      const session = await apiFacade.get<ReviewSessionDetails>(
+        `/sessions/${sessionId}`,
+      );
 
       if (!wait || session.status !== "pending") {
         const result: GetReviewResult = {

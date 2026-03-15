@@ -177,15 +177,26 @@ program
 
 program
   .command("review [files...]")
-  .description("Create a new code review session from git changes or local files")
+  .description(
+    "Create a new code review session from git changes or local files",
+  )
   .option(
     "-s, --source <type>",
     "Review source type: uncommitted (default), commit, branch, or local",
     "uncommitted",
   )
-  .option("--base <ref>", "Base branch/ref for comparison (required with --source=branch)")
-  .option("--head <ref>", "Head branch/ref for comparison (required with --source=branch)")
-  .option("--commit <hash>", "Commit hash to review (required with --source=commit)")
+  .option(
+    "--base <ref>",
+    "Base branch/ref for comparison (required with --source=branch)",
+  )
+  .option(
+    "--head <ref>",
+    "Head branch/ref for comparison (required with --source=branch)",
+  )
+  .option(
+    "--commit <hash>",
+    "Commit hash to review (required with --source=commit)",
+  )
   .option("--title <string>", "Review title")
   .option("--description <string>", "Review description")
   .option("--no-open", "Do not open the browser automatically")
