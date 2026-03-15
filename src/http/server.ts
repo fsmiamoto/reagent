@@ -13,9 +13,14 @@ export class Server {
   private httpServer: HttpServer | null = null;
   private port: number | null = null;
   private lock: LockManager;
+  private appFactory: () => express.Express;
 
-  constructor(lock: LockManager = lockManager) {
+  constructor(
+    lock: LockManager = lockManager,
+    appFactory?: () => express.Express,
+  ) {
     this.lock = lock;
+    this.appFactory = appFactory ?? (() => this.buildExpressApp());
   }
 
   async start(port: number): Promise<{ port: number }> {
@@ -31,7 +36,7 @@ export class Server {
       throw lockResult.error;
     }
 
-    const app = this.buildExpressApp();
+    const app = this.appFactory();
 
     try {
       this.httpServer = await new Promise<HttpServer>((resolve, reject) => {
