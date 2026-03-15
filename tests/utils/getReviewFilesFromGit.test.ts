@@ -150,6 +150,68 @@ describe("getReviewFilesFromGit", () => {
     expect(result[0].path).toBe("feature/subdir/new.ts");
   });
 
+  describe("file filter edge cases", () => {
+    it("should not treat empty string entries as wildcards", () => {
+      mkdirSync(path.join(tempDir, "src"), { recursive: true });
+      writeFileSync(path.join(tempDir, "src", "app.ts"), "app\n");
+      writeFileSync(path.join(tempDir, "root.ts"), "root\n");
+
+      // Empty string entry should be skipped, not match all files
+      expect(() =>
+        getReviewFilesFromGit({
+          source: "uncommitted",
+          workingDirectory: tempDir,
+          files: [""],
+        }),
+      ).toThrow("No changes found");
+    });
+
+    it("should not treat slash-only entries as wildcards", () => {
+      writeFileSync(path.join(tempDir, "file.ts"), "content\n");
+
+      // "///" normalizes to "" which should be skipped
+      expect(() =>
+        getReviewFilesFromGit({
+          source: "uncommitted",
+          workingDirectory: tempDir,
+          files: ["///"],
+        }),
+      ).toThrow("No changes found");
+    });
+
+    it("should skip empty entries but still match valid ones", () => {
+      mkdirSync(path.join(tempDir, "src"), { recursive: true });
+      mkdirSync(path.join(tempDir, "lib"), { recursive: true });
+      writeFileSync(path.join(tempDir, "src", "app.ts"), "app\n");
+      writeFileSync(path.join(tempDir, "lib", "util.ts"), "util\n");
+
+      // Empty string is skipped; only "src" entry matches
+      const result = getReviewFilesFromGit({
+        source: "uncommitted",
+        workingDirectory: tempDir,
+        files: ["", "src"],
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].path).toBe("src/app.ts");
+    });
+
+    it("should skip slash-only entries but still match valid ones", () => {
+      mkdirSync(path.join(tempDir, "src"), { recursive: true });
+      writeFileSync(path.join(tempDir, "src", "app.ts"), "app\n");
+      writeFileSync(path.join(tempDir, "other.ts"), "other\n");
+
+      const result = getReviewFilesFromGit({
+        source: "uncommitted",
+        workingDirectory: tempDir,
+        files: ["///", "src"],
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].path).toBe("src/app.ts");
+    });
+  });
+
   describe("source: commit", () => {
     it("should return files changed in a specific commit", () => {
       writeFileSync(path.join(tempDir, "base.ts"), "base\n");

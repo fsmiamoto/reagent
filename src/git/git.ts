@@ -74,13 +74,13 @@ function shouldIncludeFile(
 
   return specifiedFiles.some((entry) => {
     if (!entry) {
-      return true;
+      return false;
     }
 
     const normalized = entry.replace(/\/+$/, "");
 
     if (!normalized) {
-      return true;
+      return false;
     }
 
     if (filePath === normalized) {
