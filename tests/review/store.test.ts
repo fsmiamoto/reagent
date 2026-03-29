@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   InMemoryReviewSessionStore,
   SESSION_TTL_MS,
-  PENDING_SESSION_TIMEOUT_MS,
 } from "@src/review/store";
 import { ReviewSession } from "@src/review/session";
 import type { ReviewFile } from "@src/models/domain";
@@ -109,11 +108,11 @@ describe("ReviewSessionStore", () => {
       expect(store.has(fresh.id)).toBe(true);
     });
 
-    it("should NOT remove pending sessions within timeout", () => {
+    it("should NOT remove pending sessions regardless of age", () => {
       const pending = createSession();
       store.set(pending);
 
-      vi.advanceTimersByTime(PENDING_SESSION_TIMEOUT_MS - 1000);
+      vi.advanceTimersByTime(SESSION_TTL_MS * 10);
 
       const fresh = createSession();
       store.set(fresh);
@@ -158,84 +157,12 @@ describe("ReviewSessionStore", () => {
       expired1.complete("approved");
       expired2.cancel("stale");
 
-      // Advance past completed TTL — completed/cancelled are swept,
-      // pending is auto-cancelled but still in store (recently completed)
       vi.advanceTimersByTime(SESSION_TTL_MS + 1);
 
       const sessions = store.getAllSessions();
       expect(sessions).toHaveLength(1);
       expect(sessions[0].id).toBe(pending.id);
-      expect(pending.status).toBe("cancelled"); // auto-cancelled after timeout
-    });
-  });
-
-  describe("pending session auto-cancellation (AC-5.4)", () => {
-    it("should auto-cancel pending sessions older than timeout on set()", () => {
-      const old = createSession();
-      store.set(old);
-
-      vi.advanceTimersByTime(PENDING_SESSION_TIMEOUT_MS + 1);
-
-      const fresh = createSession();
-      store.set(fresh);
-
-      expect(old.status).toBe("cancelled");
-      expect(old.completedAt).toBeDefined();
-      expect(store.has(old.id)).toBe(true); // Still in store until TTL sweep
-    });
-
-    it("should auto-cancel pending sessions older than timeout on getAllSessions()", () => {
-      const old = createSession();
-      store.set(old);
-
-      vi.advanceTimersByTime(PENDING_SESSION_TIMEOUT_MS + 1);
-
-      const sessions = store.getAllSessions();
-      expect(old.status).toBe("cancelled");
-      expect(sessions).toHaveLength(1);
-      expect(sessions[0].status).toBe("cancelled");
-    });
-
-    it("should not cancel pending sessions within timeout", () => {
-      const recent = createSession();
-      store.set(recent);
-
-      vi.advanceTimersByTime(PENDING_SESSION_TIMEOUT_MS - 1000);
-
-      const sessions = store.getAllSessions();
-      expect(recent.status).toBe("pending");
-      expect(sessions).toHaveLength(1);
-    });
-
-    it("should auto-cancel and then sweep after completed TTL", () => {
-      const old = createSession();
-      store.set(old);
-
-      // First: auto-cancel after pending timeout
-      vi.advanceTimersByTime(PENDING_SESSION_TIMEOUT_MS + 1);
-      store.getAllSessions();
-      expect(old.status).toBe("cancelled");
-
-      // Then: sweep after completed TTL
-      vi.advanceTimersByTime(SESSION_TTL_MS + 1);
-      const sessions = store.getAllSessions();
-      expect(sessions).toHaveLength(0);
-      expect(store.has(old.id)).toBe(false);
-    });
-
-    it("should not double-cancel already-cancelled sessions", () => {
-      const session = createSession();
-      store.set(session);
-      session.cancel("manual cancel");
-
-      vi.advanceTimersByTime(PENDING_SESSION_TIMEOUT_MS + 1);
-
-      const cancelSpy = vi.spyOn(session, "cancel");
-      store.getAllSessions();
-
-      // cancel() is a no-op when status !== "pending", so the spy
-      // should not have been called since the session is already cancelled
-      expect(cancelSpy).not.toHaveBeenCalled();
+      expect(pending.status).toBe("pending");
     });
   });
 });

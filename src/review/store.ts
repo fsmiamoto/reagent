@@ -1,7 +1,6 @@
 import { ReviewSession } from "./session";
 
 export const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
-export const PENDING_SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
 export interface IReviewSessionStore {
   set(session: ReviewSession): void;
@@ -50,15 +49,6 @@ export class InMemoryReviewSessionStore implements IReviewSessionStore {
   private sweepExpired(): void {
     const now = Date.now();
     for (const [id, session] of this.sessions) {
-      // Auto-cancel pending sessions that exceed the timeout (AC-5.4)
-      if (
-        session.status === "pending" &&
-        now - session.createdAt.getTime() > PENDING_SESSION_TIMEOUT_MS
-      ) {
-        session.completionPromise.catch(() => {}); // Prevent unhandled rejection
-        session.cancel("Session timed out");
-      }
-
       if (
         session.status !== "pending" &&
         session.completedAt &&
