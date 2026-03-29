@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import {
-  InMemoryReviewSessionStore,
-  SESSION_TTL_MS,
-} from "@src/review/store";
+import { InMemoryReviewSessionStore, SESSION_TTL_MS } from "@src/review/store";
 import { ReviewSession } from "@src/review/session";
 import type { ReviewFile } from "@src/models/domain";
 

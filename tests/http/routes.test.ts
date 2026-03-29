@@ -125,7 +125,7 @@ describe("routes", () => {
       expect(res.body.reviewUrl).toContain(`/review/${session.id}`);
     });
 
-    it("uses provided Host header in reviewUrl", async () => {
+    it("uses provided Host header in reviewUrl when no configuredHost", async () => {
       const session = createPendingSession(sampleFiles, "Test Review");
       mockedExtractReviewFiles.mockReturnValue({
         files: sampleFiles,
@@ -142,6 +142,30 @@ describe("routes", () => {
       expect(res.status).toBe(201);
       expect(res.body.reviewUrl).toBe(
         `http://myhost:8080/review/${session.id}`,
+      );
+    });
+
+    it("uses configuredHost from app.locals when set", async () => {
+      const session = createPendingSession(sampleFiles, "Test Review");
+      mockedExtractReviewFiles.mockReturnValue({
+        files: sampleFiles,
+        title: "Test Review",
+        description: undefined,
+      });
+      mockedService.createSession.mockReturnValue(session);
+
+      const configuredApp = createApp();
+      configuredApp.locals.configuredHost = "tokyo";
+
+      const res = await request(configuredApp)
+        .post("/api/reviews")
+        .set("Host", "ignored:9999")
+        .send({ source: "local", files: ["/tmp/test.ts"] });
+
+      expect(res.status).toBe(201);
+      // configuredHost takes precedence over Host header; port comes from socket
+      expect(res.body.reviewUrl).toMatch(
+        new RegExp(`^http://tokyo:\\d+/review/${session.id}$`),
       );
     });
 

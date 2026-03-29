@@ -66,10 +66,32 @@ describe("LockManager", () => {
 
       expect(fs.writeFileSync).toHaveBeenCalledTimes(1);
       const written = vi.mocked(fs.writeFileSync).mock.calls[0][1] as string;
-      const parsed = JSON.parse(written) as { port: number; pid: number };
+      const parsed = JSON.parse(written) as {
+        port: number;
+        pid: number;
+        host?: string;
+      };
 
       expect(parsed.port).toBe(4000);
       expect(typeof parsed.pid).toBe("number");
+      expect(parsed.host).toBeUndefined();
+    });
+
+    it("writes lock file with host when provided", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+
+      lockManager.writeLockFile(4000, "tokyo");
+
+      expect(fs.writeFileSync).toHaveBeenCalledTimes(1);
+      const written = vi.mocked(fs.writeFileSync).mock.calls[0][1] as string;
+      const parsed = JSON.parse(written) as {
+        port: number;
+        pid: number;
+        host?: string;
+      };
+
+      expect(parsed.port).toBe(4000);
+      expect(parsed.host).toBe("tokyo");
     });
 
     it("creates lock directory when missing", () => {
@@ -121,6 +143,17 @@ describe("LockManager", () => {
 
       expect(result).toEqual({ success: true, port: 3636 });
       expect(fs.writeFileSync).toHaveBeenCalled();
+    });
+
+    it("acquires lock with host and writes it to lock file", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+
+      const result = lockManager.acquireLock(3636, "myhost");
+
+      expect(result).toEqual({ success: true, port: 3636 });
+      const written = vi.mocked(fs.writeFileSync).mock.calls[0][1] as string;
+      const parsed = JSON.parse(written) as { host?: string };
+      expect(parsed.host).toBe("myhost");
     });
 
     it("fails when another server is running", () => {

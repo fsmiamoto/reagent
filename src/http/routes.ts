@@ -85,7 +85,11 @@ apiRouter.get("/sessions", (_req, res) => {
 apiRouter.post("/reviews", async (req, res) => {
   try {
     const input = ReviewInputSchema.parse(req.body);
-    const host = req.get("host") || `localhost:${req.socket.localPort}`;
+    const configuredHost = req.app.locals.configuredHost as string | undefined;
+    const host =
+      configuredHost && configuredHost !== "localhost"
+        ? `${configuredHost}:${req.socket.localPort}`
+        : req.get("host") || `localhost:${req.socket.localPort}`;
 
     const { files, title, description } = extractReviewFiles(input);
     const session = reviewService.createSession(files, title, description);

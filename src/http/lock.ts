@@ -9,6 +9,7 @@ const LOCK_FILE_NAME = "server.lock";
 export interface LockFileData {
   pid: number;
   port: number;
+  host?: string;
   startedAt: string;
   version: string;
 }
@@ -26,6 +27,7 @@ export type AcquireLockResult =
 const LockFileSchema = z.object({
   pid: z.number().int().positive(),
   port: z.number().int().positive(),
+  host: z.string().optional(),
   startedAt: z.string().min(1),
   version: z.string().min(1),
 });
@@ -78,11 +80,12 @@ export class LockManager {
     }
   }
 
-  writeLockFile(port: number): void {
+  writeLockFile(port: number, host?: string): void {
     this.ensureLockDir();
     const data: LockFileData = {
       pid: process.pid,
       port,
+      ...(host ? { host } : {}),
       startedAt: new Date().toISOString(),
       version: this.version,
     };
@@ -114,7 +117,7 @@ export class LockManager {
     return !this.isProcessAlive(lockData.pid);
   }
 
-  acquireLock(port: number): AcquireLockResult {
+  acquireLock(port: number, host?: string): AcquireLockResult {
     const existingLock = this.readLockFile();
 
     if (existingLock) {
@@ -134,7 +137,7 @@ export class LockManager {
     }
 
     try {
-      this.writeLockFile(port);
+      this.writeLockFile(port, host);
       return { success: true, port };
     } catch (error: unknown) {
       const typedError =

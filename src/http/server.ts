@@ -12,19 +12,23 @@ const __dirname = path.dirname(__filename);
 export class Server {
   private httpServer: HttpServer | null = null;
   private port: number | null = null;
+  private host: string = "localhost";
   private lock: LockManager;
-  private appFactory: () => express.Express;
+  private appFactory: (host: string) => express.Express;
 
   constructor(
     lock: LockManager = lockManager,
-    appFactory?: () => express.Express,
+    appFactory?: (host: string) => express.Express,
   ) {
     this.lock = lock;
-    this.appFactory = appFactory ?? (() => this.buildExpressApp());
+    this.appFactory =
+      appFactory ?? ((host: string) => this.buildExpressApp(host));
   }
 
-  async start(port: number): Promise<{ port: number }> {
-    const lockResult = this.lock.acquireLock(port);
+  async start(port: number, host?: string): Promise<{ port: number }> {
+    this.host = host || "localhost";
+    const hostForLock = this.host !== "localhost" ? this.host : undefined;
+    const lockResult = this.lock.acquireLock(port, hostForLock);
 
     if (!lockResult.success) {
       if (lockResult.reason === "already_running") {
@@ -36,7 +40,7 @@ export class Server {
       throw lockResult.error;
     }
 
-    const app = this.appFactory();
+    const app = this.appFactory(this.host);
 
     try {
       this.httpServer = await new Promise<HttpServer>((resolve, reject) => {
@@ -45,7 +49,9 @@ export class Server {
       });
 
       this.port = port;
-      console.error(`[Reagent] Web server running on http://localhost:${port}`);
+      console.error(
+        `[Reagent] Web server running on http://${this.host}:${port}`,
+      );
       return { port };
     } catch (error: unknown) {
       this.lock.removeLockFile();
@@ -123,8 +129,9 @@ export class Server {
     }
   }
 
-  buildExpressApp() {
+  buildExpressApp(host: string = "localhost") {
     const app = express();
+    app.locals.configuredHost = host;
 
     app.use(cors());
     app.use(express.json({ limit: "50mb" }));
@@ -207,6 +214,7 @@ export class Server {
       running: true,
       pid: serverInfo.pid,
       port: serverInfo.port,
+      host: serverInfo.host,
       startedAt: serverInfo.startedAt,
       version: serverInfo.version,
       healthy,
@@ -219,6 +227,7 @@ export interface ServerStatus {
   running: boolean;
   pid?: number;
   port?: number;
+  host?: string;
   startedAt?: string;
   version?: string;
   healthy?: boolean;

@@ -29,6 +29,10 @@ function resolvePort(portOption?: string): number {
   return port;
 }
 
+function resolveHost(hostOption?: string): string {
+  return hostOption || process.env.REAGENT_HOST || "localhost";
+}
+
 function cleanup() {
   if (isCleaningUp) return;
   isCleaningUp = true;
@@ -67,16 +71,22 @@ program
   )
   .version(getReagentVersion());
 
-function spawnServerInBackground(port: number): void {
+function spawnServerInBackground(port: number, host: string): void {
   console.error("[Reagent] Web server not running. Starting...");
-  const child = spawn(
-    process.argv[0],
-    [process.argv[1], "start", "--detach", "--port", port.toString()],
-    {
-      detached: true,
-      stdio: "ignore",
-    },
-  );
+  const args = [
+    process.argv[1],
+    "start",
+    "--detach",
+    "--port",
+    port.toString(),
+  ];
+  if (host !== "localhost") {
+    args.push("--host", host);
+  }
+  const child = spawn(process.argv[0], args, {
+    detached: true,
+    stdio: "ignore",
+  });
   child.unref();
 }
 
@@ -85,7 +95,7 @@ async function ensureServerRunning(): Promise<void> {
     return;
   }
 
-  spawnServerInBackground(resolvePort());
+  spawnServerInBackground(resolvePort(), resolveHost());
 
   // Wait for the spawned server to become healthy
   const startTime = Date.now();
@@ -123,6 +133,10 @@ program
     "-p, --port <number>",
     "Port to run on (default: 3636, or REAGENT_PORT env var)",
   )
+  .option(
+    "--host <hostname>",
+    "Hostname for user-facing URLs (default: localhost, or REAGENT_HOST env var)",
+  )
   .option("-d, --detach", "Run in the background (daemon mode)")
   .action(async (options) => {
     if (options.detach) {
@@ -144,9 +158,10 @@ program
 
     try {
       const port = resolvePort(options.port);
+      const host = resolveHost(options.host);
 
       const server = new WebServer();
-      await server.start(port);
+      await server.start(port, host);
       webServer = server;
     } catch (error: unknown) {
       console.error("[Reagent] Failed to start web server:", error);
@@ -391,11 +406,12 @@ program
         return;
       }
 
+      const statusHost = info.host || "localhost";
       console.log("[Reagent] Server Status:");
       console.log(`  Status:     Running`);
       console.log(`  PID:        ${info.pid}`);
       console.log(`  Port:       ${info.port}`);
-      console.log(`  URL:        http://localhost:${info.port}`);
+      console.log(`  URL:        http://${statusHost}:${info.port}`);
       console.log(
         `  Started:    ${info.startedAt ? new Date(info.startedAt).toLocaleString() : "unknown"}`,
       );

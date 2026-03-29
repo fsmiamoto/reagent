@@ -30,6 +30,7 @@ function createMockApp(fakeServer: HttpServer): express.Express {
       if (callback) queueMicrotask(callback);
       return fakeServer;
     }),
+    locals: {},
   } as unknown as express.Express;
 }
 
@@ -53,13 +54,35 @@ describe("Server", () => {
       server = new Server(lock, () => fakeApp);
       await server.start(0);
 
-      expect(lock.acquireLock).toHaveBeenCalledWith(0);
+      expect(lock.acquireLock).toHaveBeenCalledWith(0, undefined);
       expect(server.isRunning()).toBe(true);
       expect(server.getPort()).toBe(0);
       expect(server.getHttpServer()).toBe(fakeServer);
 
       await server.stop();
       expect(lock.removeLockFile).toHaveBeenCalled();
+    });
+
+    it("passes host to acquireLock when not localhost", async () => {
+      const lock = createMockLock();
+      const fakeServer = createMockHttpServer();
+      const fakeApp = createMockApp(fakeServer);
+
+      server = new Server(lock, () => fakeApp);
+      await server.start(3636, "tokyo");
+
+      expect(lock.acquireLock).toHaveBeenCalledWith(3636, "tokyo");
+    });
+
+    it("does not pass host to acquireLock when localhost", async () => {
+      const lock = createMockLock();
+      const fakeServer = createMockHttpServer();
+      const fakeApp = createMockApp(fakeServer);
+
+      server = new Server(lock, () => fakeApp);
+      await server.start(3636, "localhost");
+
+      expect(lock.acquireLock).toHaveBeenCalledWith(3636, undefined);
     });
 
     it("throws when another server is already running", async () => {

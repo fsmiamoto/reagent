@@ -122,6 +122,13 @@ reagent start --detach         # Start in the background (daemon mode)
 
 The port can also be configured via the `REAGENT_PORT` environment variable. Priority: `--port` flag > `REAGENT_PORT` > default (3636).
 
+The hostname used in user-facing URLs (e.g., review links) can be configured via the `--host` flag or the `REAGENT_HOST` environment variable. This is useful when running on a remote machine. Priority: `--host` flag > `REAGENT_HOST` > default (`localhost`).
+
+```bash
+reagent start --host tokyo        # URLs will use http://tokyo:3636/...
+REAGENT_HOST=tokyo reagent start  # Same effect via env var
+```
+
 #### `reagent stop`
 
 Stop the running ReAgent web server.
