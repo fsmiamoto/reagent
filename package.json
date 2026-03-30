@@ -26,6 +26,7 @@
     "test:all": "bun run test && bun run test:e2e",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "install-bin": "bun run build && npm link --force",
     "lint": "prettier --check .",
     "lint:fix": "prettier --write .",
     "preversion": "bun test",

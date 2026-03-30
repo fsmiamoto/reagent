@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Server as HttpServer } from "http";
@@ -8,6 +9,24 @@ import { LockManager, lockManager } from "./lock";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Find the package root by locating package.json relative to the executing file.
+// When bundled by Bun (splitting: false), all code is inlined into dist/index.js,
+// so import.meta.url points to dist/index.js (1 level deep), not dist/http/server.js
+// (2 levels deep). Walking up to find package.json works in both cases.
+function findPackageRoot(startDir: string): string {
+  let dir = startDir;
+  while (dir !== path.dirname(dir)) {
+    if (
+      fs.existsSync(path.join(dir, "package.json")) &&
+      fs.existsSync(path.join(dir, "ui"))
+    ) {
+      return dir;
+    }
+    dir = path.dirname(dir);
+  }
+  return startDir;
+}
 
 export class Server {
   private httpServer: HttpServer | null = null;
@@ -138,7 +157,7 @@ export class Server {
 
     app.use("/api", apiRouter);
 
-    const uiDistPath = path.join(__dirname, "../../ui/dist");
+    const uiDistPath = path.join(findPackageRoot(__dirname), "ui/dist");
     app.use(express.static(uiDistPath));
 
     app.get("*", (_req, res) => {

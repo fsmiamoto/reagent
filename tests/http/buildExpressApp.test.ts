@@ -51,20 +51,18 @@ describe("buildExpressApp", () => {
   });
 
   it("falls through to SPA handler for non-API GET requests", async () => {
-    // ui/dist/index.html doesn't exist in test env, so sendFile
-    // passes an error to next(), which reaches the error middleware
+    // Non-API GET requests are served by the SPA handler which sends ui/dist/index.html
     const res = await request(app).get("/some/page");
 
-    // Error middleware catches the sendFile failure and returns JSON
-    expect(res.headers["content-type"]).toMatch(/json/);
-    expect(res.body).toHaveProperty("error");
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/html/);
   });
 
-  it("error middleware returns status from error object", async () => {
+  it("SPA handler serves index.html for any non-API path", async () => {
     const res = await request(app).get("/nonexistent-page");
 
-    // sendFile on missing file produces an error with status 404
-    expect(res.status).toBe(404);
-    expect(res.body.error).toBeDefined();
+    // SPA catch-all serves index.html for client-side routing
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/html/);
   });
 });
