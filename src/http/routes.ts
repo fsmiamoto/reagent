@@ -116,8 +116,10 @@ apiRouter.post("/reviews", async (req, res) => {
  * GET /api/sessions/:id
  * Retrieve a review session by ID
  */
-apiRouter.get("/sessions/:id", requireSession, (_req, res) => {
-  res.json(getSession(res).toJSON());
+apiRouter.get("/sessions/:id", requireSession, (req, res) => {
+  const session = getSession(res);
+  const compact = req.query.compact === "true";
+  res.json(compact ? session.toCompactJSON() : session.toJSON());
 });
 
 /**

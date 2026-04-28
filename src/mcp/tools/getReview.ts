@@ -1,4 +1,4 @@
-import type { ReviewSessionDetails } from "../../models/domain";
+import type { CompactReviewSessionDetails } from "../../models/domain";
 import type { GetReviewInput, GetReviewResult } from "../../models/api";
 import { apiFacade } from "../../http/facade";
 
@@ -28,8 +28,8 @@ export async function getReview(
         );
       }
 
-      const session = await apiFacade.get<ReviewSessionDetails>(
-        `/sessions/${sessionId}`,
+      const session = await apiFacade.get<CompactReviewSessionDetails>(
+        `/sessions/${sessionId}?compact=true`,
       );
 
       if (!wait || session.status !== "pending") {

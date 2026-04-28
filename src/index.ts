@@ -7,7 +7,7 @@ import { startMCPServer } from "./mcp/server";
 import { apiFacade } from "./http/facade";
 import { Server as WebServer } from "./http/server";
 import { getReagentVersion } from "./version";
-import type { ReviewSessionDetails } from "@src/models/domain";
+import type { CompactReviewSessionDetails } from "@src/models/domain";
 
 const program = new Command();
 
@@ -306,8 +306,8 @@ program
 
       while (true) {
         try {
-          session = await apiFacade.get<ReviewSessionDetails>(
-            `/sessions/${sessionId}`,
+          session = await apiFacade.get<CompactReviewSessionDetails>(
+            `/sessions/${sessionId}?compact=true`,
           );
         } catch (error: unknown) {
           const message =

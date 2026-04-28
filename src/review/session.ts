@@ -5,6 +5,7 @@ import type {
   ReviewResult,
   ReviewStatus,
   ReviewSessionDetails,
+  CompactReviewSessionDetails,
 } from "../models/domain";
 
 export class ReviewSession {
@@ -102,5 +103,10 @@ export class ReviewSession {
       createdAt: this.createdAt,
       completedAt: this.completedAt,
     };
+  }
+
+  toCompactJSON(): CompactReviewSessionDetails {
+    const { files, ...rest } = this.toJSON();
+    return rest;
   }
 }

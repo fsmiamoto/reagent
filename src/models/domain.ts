@@ -35,6 +35,8 @@ export interface ReviewSessionDetails {
   completedAt?: Date;
 }
 
+export type CompactReviewSessionDetails = Omit<ReviewSessionDetails, "files">;
+
 export interface ReviewResult {
   status: "approved" | "changes_requested";
   generalFeedback: string;

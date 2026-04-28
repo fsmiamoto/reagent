@@ -36,7 +36,7 @@ describe("getReview", () => {
 
     expect(result).toEqual({ status: "pending" });
     expect(mockGet).toHaveBeenCalledTimes(1);
-    expect(mockGet).toHaveBeenCalledWith("/sessions/sess-123");
+    expect(mockGet).toHaveBeenCalledWith("/sessions/sess-123?compact=true");
   });
 
   it("returns approved review with feedback and comments", async () => {
